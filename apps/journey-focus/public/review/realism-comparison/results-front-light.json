@@ -1,0 +1,78 @@
+{
+  "conditions": {
+    "version": "1.99",
+    "ao": true,
+    "shadow": true,
+    "sunLight": true,
+    "customShader": true,
+    "ibl": true,
+    "position": {
+      "lon": 127.06346545578344,
+      "lat": 37.54234132497599,
+      "heading": 110.70386494699198,
+      "name": "성수",
+      "next": "건대입구",
+      "segmentProgress": 0.9878447696605535,
+      "tunnel": false
+    },
+    "height": 42.63361788052065
+  },
+  "variants": [
+    {
+      "id": "11-front-soft",
+      "label": "카메라 정면광 · 약하게",
+      "ao": false,
+      "shadows": false,
+      "terrainLighting": true,
+      "mapError": "",
+      "camera": {
+        "lon": 2.2176758311974987,
+        "lat": 0.6552374650283617,
+        "height": 42.63361788052065
+      },
+      "shaderReady": true
+    },
+    {
+      "id": "12-front-medium",
+      "label": "카메라 정면광 · 보통",
+      "ao": false,
+      "shadows": false,
+      "terrainLighting": true,
+      "mapError": "",
+      "camera": {
+        "lon": 2.2176758311974987,
+        "lat": 0.6552374650283617,
+        "height": 42.63361788052065
+      },
+      "shaderReady": true
+    },
+    {
+      "id": "13-front-shadow",
+      "label": "카메라 정면광 + 그림자",
+      "ao": false,
+      "shadows": true,
+      "terrainLighting": true,
+      "mapError": "",
+      "camera": {
+        "lon": 2.2176758311974987,
+        "lat": 0.6552374650283617,
+        "height": 42.63361788052065
+      },
+      "shaderReady": true
+    },
+    {
+      "id": "14-front-high",
+      "label": "카메라 위쪽 사선광",
+      "ao": false,
+      "shadows": true,
+      "terrainLighting": true,
+      "mapError": "",
+      "camera": {
+        "lon": 2.2176758311974987,
+        "lat": 0.6552374650283617,
+        "height": 42.63361788052065
+      },
+      "shaderReady": true
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Journey Focus · 10초 영상 비교</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:32px;background:#f6f5ee;color:#243c34;font:16px/1.6 system-ui,sans-serif}main{max-width:1440px;margin:auto}h1{font-size:clamp(24px,3vw,36px);margin:12px 0}a{color:inherit}p{max-width:1000px}.actions{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}button,.link{font:inherit;padding:10px 18px;border:1px solid #aab8a7;border-radius:9px;color:inherit;background:white;cursor:pointer}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}article{background:white;border:1px solid #d8dece;border-radius:16px;overflow:hidden}article h2,article p{margin:16px 20px}h2{font-size:20px}video{display:block;width:100%;aspect-ratio:8/5;background:#14251e}.note{padding:18px 22px;background:#e7ecdf;border-radius:12px;margin-top:24px}small{display:block;margin:18px 0;color:#5e7065}@media(max-width:850px){body{padding:20px}.grid{grid-template-columns:1fr}}
+</style>
+<main>
+<a href="/">← 개발 사이트로</a>
+<h1>같은 선로, 같은 10초</h1>
+<p>성수 → 건대입구 실제 OSM 선로 중 약 191m를 오른쪽 창가 시점으로 이동해요. 6번은 개발 사이트의 기본 풍경 스타일로 적용했어요.</p>
+<div class="actions"><button id="play">두 영상 함께 재생</button><button id="pause">일시정지</button><button id="reset">처음으로</button></div>
+<div class="grid">
+<article><h2>01 · 원본 — AI 변환 입력 후보</h2><video id="original" controls playsinline preload="auto" src="/video-pilot/route-original-10s.webm"></video><p>추가 조명·AO·색감 보정 없이 녹화한 지도예요.<br><a href="/video-pilot/route-original-10s.webm" download>원본 WebM 다운로드</a></p></article>
+<article><h2>06 · 선택한 실사풍</h2><video id="styled" controls playsinline preload="auto" src="/video-pilot/route-style6-10s.webm"></video><p>카메라 방향 정면광 1.2 · 그림자 끔 · AO · 색감 보정 70%<br><a href="/video-pilot/route-style6-10s.webm" download>6번 WebM 다운로드</a></p></article>
+</div>
+<div class="note"><strong>AI 영상 변환은 아직 실행하지 않았어요.</strong><br>현재 연결된 도구는 이미지 생성만 지원해요. 다음 단계는 원본 10초를 영상 변환 서비스에 넣고 건물 형태 유지, 프레임 깜빡임, 노선 재사용 가능성을 확인하는 거예요. 결과가 괜찮으면 노선 영상을 미리 제작해 재생하는 방식을 검토할 수 있어요.</div>
+<small>촬영 조건: 지면 기준 높이 30m 시험값(실제 선로 높이 미검증), 우측 90°, 피치 −4°, 화각 65°. 약 10초 / 1280×800. 현재 QA 녹화 환경에서 실제 지도 갱신은 약 16fps로 움직임이 거칠 수 있어요. 두 영상은 같은 경로지만 녹화 시점의 타일 로딩 차이가 있을 수 있어요. 출처: VWorld·국토교통부, © OpenStreetMap contributors · ODbL.</small>
+<p id="status" role="status"></p>
+</main>
+<script type="module">
+const videos=[...document.querySelectorAll('video')],status=document.querySelector('#status');
+document.querySelector('#play').onclick=async()=>{const position=videos[0].ended?0:videos[0].currentTime;videos.forEach(v=>{v.currentTime=position});try{await Promise.all(videos.map(v=>v.play()));status.textContent='두 영상을 함께 재생 중';}catch{status.textContent='영상의 재생 버튼을 눌러 주세요.';}};
+document.querySelector('#pause').onclick=()=>videos.forEach(v=>v.pause());
+document.querySelector('#reset').onclick=()=>videos.forEach(v=>{v.pause();v.currentTime=0});
+</script>
+</html>

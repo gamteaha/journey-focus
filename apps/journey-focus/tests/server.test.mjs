@@ -40,7 +40,8 @@ test('successful station requests filter other lines and share one in-memory fet
     return new Response(JSON.stringify([
       { lineNm: '경춘선', stnKrNm: '백양리', convX: '127.58933', convY: '37.830779' },
       { lineNm: '경춘선', stnKrNm: '강촌', convX: '127.634146', convY: '37.805723' },
-      { lineNm: '2호선', stnKrNm: '성수', convX: '127.1', convY: '37.5' },
+      { lineNm: '2호선', stnKrNm: '성수', convX: '127.055961', convY: '37.544581' },
+      { lineNm: '2호선', stnKrNm: '건대입구', convX: '127.069191', convY: '37.540373' },
     ]));
   });
   await new Promise(resolve => app.listen(0, '127.0.0.1', resolve));

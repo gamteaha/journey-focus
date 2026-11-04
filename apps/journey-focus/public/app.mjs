@@ -43,11 +43,11 @@ function connection() {
   const failed = state.stationError || state.mapFailed;
   const ready = state.mapReady && state.stations.length > 1;
   document.querySelector('.status-led').className = `status-led ${failed ? 'error' : ready ? '' : 'pending'}`;
-  $('connection-text').textContent = failed ? '연결 상태를 확인해 주세요' : ready ? `VWorld 연결 · 경춘선 ${state.stations.length}개 역` : '실제 API 연결 확인 중';
+  $('connection-text').textContent = failed ? '연결 상태를 확인해 주세요' : ready ? `VWorld 연결 · 2호선 ${state.stations.length}개 역` : '실제 API 연결 확인 중';
   $('retry').hidden = !failed;
   $('start').disabled = !ready || !state.route || state.loading;
   $('compare-toggle').disabled = !ready || !state.route || state.loading;
-  $('scenery-toggle').disabled=!ready||!state.route||state.loading;
+  $('scenery-toggle').disabled=true;$('scenery-toggle').hidden=true;
   if(scenery?.active){$('start').disabled=true;$('compare-toggle').disabled=true;}
   $('start-label').textContent = clock.state === 'running' ? '여정 진행 중' : clock.state === 'paused' ? '여정 이어가기' : ready ? '나의 여정 시작하기' : failed ? 'API 연결을 확인해 주세요' : '여정 준비 중';
   if (clock.state === 'running') $('start').disabled = true;
@@ -65,7 +65,7 @@ function preview() {
   $('progress-to').textContent = $('to').value;
   const rail = state.route.geometry === 'osm-rail';
   $('route-summary').textContent = `${state.route.stations.length}개 역 · ${rail ? 'OSM 철도 선형' : '보간 경로'} 약 ${(state.route.distance / 1000).toFixed(1)} km`;
-  $('geometry-label').textContent = rail ? '실제 지형 · OSM 철도 선형 · 높이 미검증' : '실제 지형 · 역 사이 보간 이동';
+  $('geometry-label').textContent = rail ? '2호선 실제 선로 · 오른쪽 창가 · 높이 30m 시험값' : '실제 지형 · 역 사이 보간 이동';
   post('geometry', { rail });
   $('scene-description').textContent = `${$('from').value}에서 ${$('to').value}까지, 나에게 집중하는 시간`;
   $('ticket-duration').textContent = `${state.duration / 60} MIN`;
@@ -98,7 +98,7 @@ async function loadStations() {
   try {
     const [response, shape] = await Promise.all([
       fetch('/api/stations', { signal: AbortSignal.timeout(25000) }),
-      fetch('/data/baegyangri-gangchon.json').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/data/seongsu-konkuk.json').then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
     state.railShape = shape;
     if (!response.ok) throw new Error('역 API 연결 실패');
@@ -117,6 +117,7 @@ async function loadStations() {
   } finally { state.loading = false; connection(); }
 }
 function loadMap() {
+  $('landscape-tools').replaceChildren();
   state.mapReady = false; state.mapFailed = false;
   $('scene-loading').hidden = false; $('scene').classList.remove('map-ready', 'loading-error');
   $('map-retry').hidden = true;
@@ -261,11 +262,11 @@ $('focus-button').onclick = () => {
 };
 $('map-retry').onclick = loadMap;
 $('retry').onclick = () => { if (state.stationError) loadStations(); if (state.mapFailed) loadMap(); };
-$('about-button').onclick = () => dialog('창밖으로 떠나는 집중.', '<p>Journey Focus는 책상이나 도서관에 앉아, 열차에 타고 이동하는 느낌으로 나만의 집중 시간을 보내는 서비스입니다.</p><h3>작은 여행을 시작하는 방법</h3><ol><li>출발역과 도착역을 선택하세요.</li><li>집중하고 싶은 시간을 정하세요. 처음이라면 1분 체험을 추천해요.</li><li>여정을 시작하고, 잠시 나에게 집중하세요.</li></ol><p>브이월드의 실제 3D 공간정보와 서울시 T Data의 역 좌표를 사용합니다. 기본 구간인 백양리–강촌은 OpenStreetMap 철도 선형을 따라갑니다. 다른 구간은 역 사이 보간 경로입니다. 선로 높이와 열차 시각표는 미검증이며, 터널 구간은 지상에서 조망합니다. 창가 시점의 높이는 설정에 따라 달라지고, 넓게 보기는 항공 조망입니다. 300m 근경 미리보기는 지형 위 약 6m의 재구성 시점이며 실제 선로 표고는 미검증입니다.</p>');
+$('about-button').onclick = () => dialog('창밖으로 떠나는 집중.', '<p>Journey Focus는 책상이나 도서관에 앉아, 열차에 타고 이동하는 느낌으로 나만의 집중 시간을 보내는 서비스입니다.</p><h3>작은 여행을 시작하는 방법</h3><ol><li>출발역과 도착역을 선택하세요.</li><li>집중하고 싶은 시간을 정하세요. 처음이라면 1분 체험을 추천해요.</li><li>여정을 시작하고, 잠시 나에게 집중하세요.</li></ol><p>브이월드의 실제 3D 공간정보와 서울시 T Data의 역 좌표를 사용합니다. 기본 구간인 성수–건대입구은 OpenStreetMap 철도 선형을 따라갑니다. 다른 구간은 역 사이 보간 경로입니다. 선로 높이와 열차 시각표는 미검증이며, 터널 구간은 지상에서 조망합니다. 창가 시점의 높이는 설정에 따라 달라지고, 넓게 보기는 항공 조망입니다. 300m 근경 미리보기는 지형 위 약 6m의 재구성 시점이며 실제 선로 표고는 미검증입니다.</p>');
 function showData() {
   const time = state.fetchedAt ? new Date(state.fetchedAt).toLocaleString('ko-KR') : '미수신';
   const rail = state.route?.geometry === 'osm-rail';
-  dialog('실제 데이터, 정확한 구분.', `<div class="data-grid"><div class="data-item"><strong>브이월드 3D API 3.0</strong><span>${state.mapReady ? '지도 렌더러 연결됨' : '지도 연결 확인 필요'}</span></div><div class="data-item"><strong>T Data 경춘선 역사마스터</strong><span>${state.stations.length}개 역 · 좌표 수신</span></div></div><h3>현재 확인된 것</h3><p>브이월드 공식 SDK를 통해 지도와 지형을 요청합니다. 역 이름과 좌표는 서울특별시 교통정책지원시스템(TAIMS)의 지하철역_GEOM 응답입니다. 수신 시각: ${escape(time)}.</p><h3>지금 선택한 이동 경로</h3><p>${rail ? '백양리–강촌의 OpenStreetMap 철도 선형 45개 좌표를 사용합니다. 공식 OSM API에서 가져온 수평 선형 후보이며, 현장 측량 또는 운영기관 검증 자료는 아닙니다. 터널 구간도 지형 위에서 조망합니다.' : '이 구간은 역 좌표를 연결한 보간 경로입니다. 산이나 건물을 가로지를 수 있으며 실제 선로와 일치하지 않습니다. 기본 구간 백양리–강촌에서는 OSM 철도 선형을 사용할 수 있습니다.'} 표시 거리는 선택한 경로를 계산한 값입니다.</p><h3>아직 검증하지 않은 것</h3><p>선로 높이, 터널 내부, 정차시간과 운행 시각표입니다. 창가 시점은 지형 위 설정한 높이의 조망이며, 넓게 보기는 항공 시점입니다. 실제 열차 창문 높이가 아닙니다. 집중시간에 맞춰 이동하므로 실제 운행시간을 뜻하지 않습니다.</p><h3>데이터 이용과 기록</h3><p>브이월드 지형·3D 자산은 별도 저장하지 않습니다. 여정 기록은 이 브라우저에만 보관됩니다. 화면 우측 FPS는 현재 기기의 지도 렌더 횟수 측정치이며 품질을 보장하는 수치가 아닙니다.</p><p><a href="https://www.vworld.kr/" target="_blank" rel="noopener noreferrer">VWorld 공간정보 오픈플랫폼 ↗</a><br><a href="https://t-data.seoul.go.kr/category/dataviewopenapi.do?data_id=1036" target="_blank" rel="noopener noreferrer">서울특별시 T Data · 지하철역 좌표정보 (저작자 표시) ↗</a><br><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">철도 선형 © OpenStreetMap contributors · ODbL 1.0 ↗</a><br><a href="https://polyhaven.com/license" target="_blank" rel="noopener noreferrer">근경 식생·재질: Poly Haven CC0 ↗</a></p>`, 'DATA & SOURCES');
+  dialog('실제 데이터, 정확한 구분.', `<div class="data-grid"><div class="data-item"><strong>브이월드 3D API 3.0</strong><span>${state.mapReady ? '지도 렌더러 연결됨' : '지도 연결 확인 필요'}</span></div><div class="data-item"><strong>T Data 2호선 역사마스터</strong><span>${state.stations.length}개 역 · 좌표 수신</span></div></div><h3>현재 확인된 것</h3><p>브이월드 공식 SDK를 통해 지도와 지형을 요청합니다. 역 이름과 좌표는 서울특별시 교통정책지원시스템(TAIMS)의 지하철역_GEOM 응답입니다. 수신 시각: ${escape(time)}.</p><h3>지금 선택한 이동 경로</h3><p>${rail ? '성수–건대입구의 OpenStreetMap 철도 선형 13개 좌표를 사용합니다. 공식 OSM API에서 가져온 수평 선형 후보이며, 현장 측량 또는 운영기관 검증 자료는 아닙니다. 터널 구간도 지형 위에서 조망합니다.' : '이 구간은 역 좌표를 연결한 보간 경로입니다. 산이나 건물을 가로지를 수 있으며 실제 선로와 일치하지 않습니다. 기본 구간 성수–건대입구에서는 OSM 철도 선형을 사용할 수 있습니다.'} 표시 거리는 선택한 경로를 계산한 값입니다.</p><h3>아직 검증하지 않은 것</h3><p>선로 높이, 터널 내부, 정차시간과 운행 시각표입니다. 창가 시점은 지형 위 설정한 높이의 조망이며, 넓게 보기는 항공 시점입니다. 실제 열차 창문 높이가 아닙니다. 집중시간에 맞춰 이동하므로 실제 운행시간을 뜻하지 않습니다.</p><h3>데이터 이용과 기록</h3><p>브이월드 지형·3D 자산은 별도 저장하지 않습니다. 여정 기록은 이 브라우저에만 보관됩니다. 화면 우측 FPS는 현재 기기의 지도 렌더 횟수 측정치이며 품질을 보장하는 수치가 아닙니다.</p><p><a href="https://www.vworld.kr/" target="_blank" rel="noopener noreferrer">VWorld 공간정보 오픈플랫폼 ↗</a><br><a href="https://t-data.seoul.go.kr/category/dataviewopenapi.do?data_id=1036" target="_blank" rel="noopener noreferrer">서울특별시 T Data · 지하철역 좌표정보 (저작자 표시) ↗</a><br><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">철도 선형 © OpenStreetMap contributors · ODbL 1.0 ↗</a><br><a href="https://polyhaven.com/license" target="_blank" rel="noopener noreferrer">근경 식생·재질: Poly Haven CC0 ↗</a></p>`, 'DATA & SOURCES');
 }
 $('data-button').onclick = showData; $('geometry-info').onclick = showData;
 $('history-button').onclick = () => {

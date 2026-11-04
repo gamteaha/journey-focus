@@ -3,6 +3,8 @@ import { createSceneryLayer } from '/scenery-layer.mjs';
 import { pilotGroundHeight,HeightStabilizer } from '/src/motion.mjs';
 import {createRenderingController} from '/rendering.mjs';
 import {settleInitialView} from '/src/startup.mjs';
+import {createForestStudy} from '/forest.mjs';
+import {createStyleFilter} from '/style-filter.mjs';
 const notify = (type, data = {}) => parent.postMessage({ type: `jf:${type}`, ...data }, location.origin);
 const errorBox = document.getElementById('map-error');
 let viewer, engine, lastPosition, view = 'window', locked = false;
@@ -14,17 +16,25 @@ let sampledHeight=null,sampledAt=0;
 let rendering=null,renderMode='auto';
 let cancelStartup=()=>{};
 let terminalFailure=false;
+let forestStudy=null;
+let styleFilter=null;
+let removeInputLock=()=>{};
+let resizeTimer;
+window.addEventListener('resize',()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer=setTimeout(()=>{if(lastPosition&&!terminalFailure){viewer?.resize?.();setCamera(lastPosition);}},150);
+});
 function applyVisual(input) {
   visual = normalizeVisual(input);
   if (!viewer) return;
   try {
     if (!sceneryActive && (layerResult?.mode !== visual.buildings || !layerResult.ok)) {
-    const selected = BUILDING_IDS[visual.buildings];
+    const selected = visual.buildings==='textured' ? [BUILDING_IDS.lod3,BUILDING_IDS.lod4] : [BUILDING_IDS[visual.buildings]].filter(Boolean);
     const layers = Object.values(BUILDING_IDS).map(id => ({ id, layer: viewer.map.getElementById(id) }));
-    if (selected && !layers.find(l => l.id === selected)?.layer) throw new Error('Layer unavailable');
+    if (selected.length && !layers.some(l => selected.includes(l.id)&&l.layer)) throw new Error('Layer unavailable');
     for (const { id, layer } of layers) {
       if (!layer) continue;
-      if (id === selected) layer.show(); else layer.hide();
+      if (selected.includes(id)) layer.show(); else layer.hide();
     }
     layerResult = { ok: true, mode: visual.buildings, activeIds: layers.filter(l => l.layer?.visible).map(l => l.id) };
     }
@@ -98,7 +108,8 @@ window.addEventListener('message', event => {
   }
   if (event.data.type === 'jf:lock') {
     locked = Boolean(event.data.locked);
-    if (viewer) viewer.scene.screenSpaceCameraController.enableInputs = !locked;
+    // Camera movement is owned by the app, including before/after a session.
+    if (viewer) viewer.scene.screenSpaceCameraController.enableInputs = false;
   }
 });
 notify('map-initialized');
@@ -107,8 +118,8 @@ try {
   if (!window.vw?.Map) throw new Error('3D 지도 SDK를 불러오지 못했습니다. 네트워크를 확인해 주세요.');
   const options = {
     mapId: 'vmap',
-    initPosition: new vw.CameraPosition(new vw.CoordZ(127.58933, 37.830779, 1600), new vw.Direction(115, -35, 0)),
-    logo: true, navigation: true,
+    initPosition: new vw.CameraPosition(new vw.CoordZ(127.055961, 37.544581, 1600), new vw.Direction(110, -35, 0)),
+    logo: true, navigation: false,
   };
   const map = new vw.Map();
   map.setOption(options);
@@ -119,8 +130,16 @@ try {
     engine = window.Cesium || window.ws3d?.common;
     if (viewer?.scene?.globe && engine?.Cartesian3 && engine?.Cartographic) {
       clearInterval(poll);
-      viewer.scene.screenSpaceCameraController.enableInputs = !locked;
+      viewer.scene.screenSpaceCameraController.enableInputs = false;
+      // Provider startup may re-enable its controller after the viewer appears.
+      removeInputLock=(viewer.scene.preUpdate||viewer.scene.preRender).addEventListener(()=>{
+        if(viewer?.scene?.screenSpaceCameraController)viewer.scene.screenSpaceCameraController.enableInputs=false;
+      });
       rendering=createRenderingController(viewer,engine,notify);rendering.setMode(renderMode);
+      // Rural forest reconstruction belongs to the archived Gyeongchun pilot.
+      styleFilter=createStyleFilter(viewer,engine);
+      // A fixed window view is available even while station information connects.
+      if(!lastPosition)lastPosition={lon:127.055961,lat:37.544581,heading:110};
       applyVisual(visual);
       scenery=createSceneryLayer(viewer,engine,(type,data)=>notify(type,data),active=>{sceneryActive=active;sceneryMoving=false;sceneryHasStarted=false;sampledHeight=null;sampledAt=0;heightStabilizer=new HeightStabilizer();setCamera(lastPosition);});
       viewer.scene.globe.tileLoadProgressEvent.addEventListener(count => {
@@ -155,4 +174,4 @@ document.addEventListener('keydown',event=>{
   if(event.code==='Space'&&!event.repeat&&!event.isComposing&&!/^(INPUT|SELECT|TEXTAREA|BUTTON|A)$/.test(event.target?.tagName)&&!event.target?.isContentEditable){event.preventDefault();notify('shortcut',{key:'space'});}
   if(event.key==='Escape')notify('shortcut',{key:'escape'});
 });
-window.addEventListener('pagehide',()=>{cancelStartup();rendering?.dispose();});
+window.addEventListener('pagehide',()=>{cancelStartup();removeInputLock();rendering?.dispose();forestStudy?.dispose();styleFilter?.dispose();});

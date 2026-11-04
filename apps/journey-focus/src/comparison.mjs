@@ -1,5 +1,5 @@
 import { STATION_ORDER } from './route.mjs';
-export const DEFAULT_VISUAL = Object.freeze({ height: 30, pitch: -4, heading: -90, fov: 65, buildings: 'all', quality: 'detailed' });
+export const DEFAULT_VISUAL = Object.freeze({ height: 30, pitch: -4, heading: 90, fov: 65, buildings: 'textured', quality: 'detailed' });
 export const BASELINE_VISUAL = Object.freeze({ height: 110, pitch: -12, heading: 70, fov: 60, buildings: 'lod4', quality: 'standard' });
 export const BUILDING_IDS = Object.freeze({ all: 'facility_build_all', lod1: 'facility_build_lod1', lod2: 'facility_build_lod2', lod3: 'facility_build_lod3', lod4: 'facility_build' });
 const bounded = (value, fallback, min, max) => Number.isFinite(Number(value)) && value !== '' && value !== null ? Math.max(min, Math.min(max, Number(value))) : fallback;
@@ -10,7 +10,7 @@ export function normalizeVisual(input = {}) {
     pitch: bounded(input.pitch, DEFAULT_VISUAL.pitch, -60, 10),
     heading: bounded(input.heading, DEFAULT_VISUAL.heading, -180, 180),
     fov: bounded(input.fov, DEFAULT_VISUAL.fov, 30, 100),
-    buildings: Object.hasOwn(BUILDING_IDS, input.buildings) || input.buildings === 'off' ? input.buildings : DEFAULT_VISUAL.buildings,
+    buildings: Object.hasOwn(BUILDING_IDS, input.buildings) || ['off','textured'].includes(input.buildings) ? input.buildings : DEFAULT_VISUAL.buildings,
     quality: input.quality === 'standard' ? 'standard' : 'detailed',
   };
 }

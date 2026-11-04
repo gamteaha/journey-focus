@@ -1,0 +1,32 @@
+{
+  "source": "OSM horizontal rail polyline",
+  "fromProgress": 0.42,
+  "toProgress": 0.58,
+  "routeLength": 1191.981695320105,
+  "segmentMetres": 190.7170712512168,
+  "cameraHeightAboveTerrain": 30,
+  "captureSeconds": 10,
+  "aiTransformed": false,
+  "reports": [
+    {
+      "filename": "route-original-10s.webm",
+      "frames": 165,
+      "mime": "video/webm;codecs=vp8",
+      "ao": false,
+      "shadows": false,
+      "intensity": 1,
+      "mapError": "",
+      "style": "original"
+    },
+    {
+      "filename": "route-style6-10s.webm",
+      "frames": 161,
+      "mime": "video/webm;codecs=vp8",
+      "ao": true,
+      "shadows": false,
+      "intensity": 1.2,
+      "mapError": "",
+      "style": "cinematic"
+    }
+  ]
+}

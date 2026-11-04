@@ -8,7 +8,7 @@ test('camera controls are bounded and reject unknown layer and quality modes', (
   assert.equal(settings.pitch, 10);
   assert.equal(settings.heading, 180);
   assert.equal(settings.fov, 100);
-  assert.equal(settings.buildings, 'all');
+  assert.equal(settings.buildings, 'textured');
   assert.equal(settings.quality, 'detailed');
   assert.equal(normalizeVisual({ height: NaN }).height, 30);
 });

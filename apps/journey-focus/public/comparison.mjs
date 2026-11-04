@@ -2,11 +2,11 @@ import { DEFAULT_VISUAL, BASELINE_VISUAL, normalizeVisual, normalizeBookmark, pa
 import { positionAt } from '/src/route.mjs';
 
 const VIDEO_ID = 's9KmHA-Jty4';
-const SETTINGS_KEY = 'journey-focus-visual';
+const SETTINGS_KEY = 'journey-focus-visual-city-v1';
 const BOOKMARKS_KEY = 'journey-focus-comparisons';
 const $ = id => document.getElementById(id);
 const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-function readSettings() { try { return normalizeVisual(JSON.parse(localStorage.getItem(SETTINGS_KEY))); } catch { return { ...DEFAULT_VISUAL }; } }
+function readSettings() { try { const saved=JSON.parse(localStorage.getItem(SETTINGS_KEY));return normalizeVisual(saved?.buildings==='all'?{...saved,buildings:'textured'}:saved); } catch { return { ...DEFAULT_VISUAL }; } }
 function readBookmarks() { try { const value = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || '[]'); return Array.isArray(value) ? value.map(normalizeBookmark).filter(Boolean).slice(0, 30) : []; } catch { return []; } }
 
 export function createComparison(api) {
@@ -20,7 +20,7 @@ export function createComparison(api) {
       <label class="lab-control"><span>바라보는 방향 <output id="lab-heading-value"></output></span><input id="lab-heading" type="range" min="-180" max="180" step="1"></label>
       <label class="lab-control"><span>위아래 각도 <output id="lab-pitch-value"></output></span><input id="lab-pitch" type="range" min="-60" max="10" step="1"></label>
       <label class="lab-control"><span>화각 <output id="lab-fov-value"></output></span><input id="lab-fov" type="range" min="30" max="100" step="1"></label>
-      <label class="lab-control">건물 데이터<select id="lab-buildings"><option value="all">전체 상세도 비교 (All)</option><option value="lod4">기존 고상세 (LoD4)</option><option value="lod3">LoD3</option><option value="lod2">LoD2</option><option value="lod1">LoD1</option><option value="off">건물 끄기</option></select></label>
+      <label class="lab-control">건물 데이터<select id="lab-buildings"><option value="textured">상세 건물 (LoD3+4) · 기본</option><option value="all">All · 흰색 단순 모형 포함 / 조사용</option><option value="lod4">LoD4</option><option value="lod3">LoD3</option><option value="lod2">LoD2</option><option value="lod1">LoD1</option><option value="off">건물 끄기</option></select></label>
       <p class="lab-control">화면 품질은 위의 품질 메뉴에서 조절할 수 있어요.</p>
     </div>
     <div class="lab-diagnostics" aria-live="polite"><span id="lab-layer-status">건물 레이어 확인 중</span><span id="lab-camera-status">카메라 준비 중</span><span id="lab-render-status">지형 로딩 확인 중</span></div>

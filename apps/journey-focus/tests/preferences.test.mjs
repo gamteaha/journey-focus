@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { normalizePreferences, readPreferences, savePreferences } from '../src/preferences.mjs';
 
-const defaults = { from: '백양리', to: '강촌', duration: 1500, view: 'window' };
+const defaults = { from: '성수', to: '건대입구', duration: 1500, view: 'window' };
 
 test('defaults malformed input without coercion or inherited properties', () => {
   for (const value of [undefined, null, [], 'route', 42, true, Object.create({ from: '춘천', duration: 60 })]) {

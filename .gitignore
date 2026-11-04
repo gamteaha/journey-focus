@@ -21,3 +21,4 @@ coverage/
 *.tsbuildinfo
 .DS_Store
 Thumbs.db
+.qa-chrome/

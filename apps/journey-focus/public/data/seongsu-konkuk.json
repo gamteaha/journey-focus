@@ -1,0 +1,84 @@
+{
+  "name": "seongsu-konkuk",
+  "from": "성수",
+  "to": "건대입구",
+  "points": [
+    {
+      "id": 5935554451,
+      "lon": 127.0571443,
+      "lat": 37.5442407
+    },
+    {
+      "id": 5906079879,
+      "lon": 127.057263,
+      "lat": 37.544202
+    },
+    {
+      "id": 5906079870,
+      "lon": 127.0573531,
+      "lat": 37.5441749
+    },
+    {
+      "id": 5906079872,
+      "lon": 127.0579384,
+      "lat": 37.5439989
+    },
+    {
+      "id": 5906079864,
+      "lon": 127.0582103,
+      "lat": 37.5439171
+    },
+    {
+      "id": 5906079862,
+      "lon": 127.0588168,
+      "lat": 37.5437347
+    },
+    {
+      "id": 5906079878,
+      "lon": 127.0613895,
+      "lat": 37.542961
+    },
+    {
+      "id": 5933687509,
+      "lon": 127.063491,
+      "lat": 37.5423337
+    },
+    {
+      "id": 5933687507,
+      "lon": 127.0638934,
+      "lat": 37.5422124
+    },
+    {
+      "id": 5933687506,
+      "lon": 127.0665313,
+      "lat": 37.5413107
+    },
+    {
+      "id": 5933687505,
+      "lon": 127.0680575,
+      "lat": 37.5407875
+    },
+    {
+      "id": 9350319683,
+      "lon": 127.0681638,
+      "lat": 37.540751
+    },
+    {
+      "id": 9350319682,
+      "lon": 127.0696876,
+      "lat": 37.5402476
+    }
+  ],
+  "distance": 1191.981695320105,
+  "id": "seongsu-konkuk-osm",
+  "geometry": "osm-rail",
+  "license": "ODbL-1.0",
+  "attribution": "© OpenStreetMap contributors",
+  "source": "https://api.openstreetmap.org/api/0.6/map.json?bbox=127.043,37.536,127.073,37.550",
+  "wayIds": [
+    1458437482,
+    625534094
+  ],
+  "retrievedAt": "2026-11-04",
+  "note": "OSM horizontal rail geometry; station centres differ from track endpoints. Track elevation and operating direction unverified. Camera terrain+30m is a test viewpoint."
+}

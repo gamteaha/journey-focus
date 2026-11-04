@@ -1,10 +1,16 @@
 import http from 'node:http';
+import * as tls from 'node:tls';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { normalizeStations } from './src/route.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
+// Trust OS-installed corporate/local roots as well as Node's bundled roots.
+// Certificate verification remains enabled.
+if(tls.setDefaultCACertificates&&tls.getCACertificates){
+  tls.setDefaultCACertificates([...new Set([...tls.getCACertificates('default'),...tls.getCACertificates('system')])]);
+}
 const ASSETS = new Map();
 try {
   const catalog=JSON.parse(await readFile(path.join(ROOT,'public/assets/catalog.json'),'utf8'));
@@ -14,6 +20,15 @@ try {
   }
 } catch { /* The app still works without the optional scenery assets. */ }
 const PUBLIC = new Map([
+  ['/render-study', ['public/review/realism-comparison/index.html', 'text/html']],
+  ['/render-study/', ['public/review/realism-comparison/index.html', 'text/html']],
+  ['/render-study/front-light.html', ['public/review/realism-comparison/front-light.html', 'text/html']],
+  ['/render-study-front/', ['public/review/realism-comparison-front/index.html', 'text/html']],
+  ['/video-pilot/', ['public/video-pilot.html', 'text/html']],
+  ['/video-pilot/route-original-10s.webm', ['public/review/route-video-pilot/route-original-10s.webm', 'video/webm']],
+  ['/video-pilot/route-style6-10s.webm', ['public/review/route-video-pilot/route-style6-10s.webm', 'video/webm']],
+  ['/forest.mjs', ['public/forest.mjs', 'text/javascript']],
+  ['/style-filter.mjs', ['public/style-filter.mjs', 'text/javascript']],
   ['/', ['public/index.html', 'text/html']],
   ['/styles.css', ['public/styles.css', 'text/css']],
   ['/finish.css', ['public/finish.css', 'text/css']],
@@ -37,7 +52,15 @@ const PUBLIC = new Map([
   ['/src/motion.mjs', ['src/motion.mjs', 'text/javascript']],
   ['/favicon.svg', ['public/favicon.svg', 'image/svg+xml']],
   ['/data/baegyangri-gangchon.json', ['public/data/baegyangri-gangchon.json', 'application/json']],
+  ['/data/seongsu-konkuk.json', ['public/data/seongsu-konkuk.json', 'application/json']],
 ]);
+// Local comparison gallery: explicit captures only, never arbitrary tmp files.
+for(const name of ['01-original','02-grade','03-ao','04-light','05-ao-light','06-combined','07-ai-concept','08-pbr','09-ibl','10-material-combined','11-front-soft','12-front-medium','13-front-shadow','14-front-high']){
+ PUBLIC.set(`/render-study/${name}.png`,[`public/review/realism-comparison/${name}.png`,'image/png']);
+}
+for(const name of ['01-original','02-grade','03-ao','04-light','05-ao-light','06-combined','07-ai-concept','08-pbr','09-ibl','10-material-combined']){
+ PUBLIC.set(`/render-study-front/${name}.png`,[`public/review/realism-comparison-front/${name}.png`,'image/png']);
+}
 export async function loadConfig() {
   const env = {};
   try {
@@ -55,7 +78,7 @@ export async function loadConfig() {
 }
 function send(res, status, body, type = 'application/json') {
   res.writeHead(status, {
-    'Content-Type': `${type}; charset=utf-8`, 'Cache-Control': 'no-store',
+    'Content-Type': Buffer.isBuffer(body) ? type : `${type}; charset=utf-8`, 'Cache-Control': 'no-store',
     'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin',
     'X-Frame-Options': 'SAMEORIGIN',
   });
@@ -73,7 +96,7 @@ export function createApp(config, fetcher = fetch) {
       const response = await fetcher(url, { signal: AbortSignal.timeout(20000) });
       if (!response.ok) throw new Error('TDATA_UNAVAILABLE');
       const raw = await response.json();
-      const rows = normalizeStations(raw);
+      const rows = normalizeStations(raw,'2호선');
       if (rows.length < 2) throw new Error('TDATA_NO_STATIONS');
       cached = { stations: rows, fetchedAt: Date.now(), source: '서울특별시 T Data · 교통정책지원시스템(TAIMS)', geometry: '역 좌표만 제공 · 선로 선형 미검증' };
       return cached;
@@ -110,7 +133,7 @@ export function createApp(config, fetcher = fetch) {
       }
       const entry = PUBLIC.get(url.pathname);
       if (!entry) return send(res, 404, { error: 'NOT_FOUND' });
-      return send(res, 200, await readFile(path.join(ROOT, entry[0]), 'utf8'), entry[1]);
+      return send(res, 200, await readFile(path.join(ROOT, entry[0]), entry[1]==='image/png'||entry[1].startsWith('video/')?undefined:'utf8'), entry[1]);
     } catch { return send(res, 500, { error: 'SERVER_ERROR' }); }
   });
 }

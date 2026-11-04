@@ -1,15 +1,17 @@
-export const STATION_ORDER = ['신내', '갈매', '별내', '퇴계원', '사릉', '금곡', '평내호평', '천마산', '마석', '대성리', '청평', '상천', '가평', '굴봉산', '백양리', '강촌', '김유정', '남춘천', '춘천'];
+export const GYEONGCHUN_ORDER = ['신내', '갈매', '별내', '퇴계원', '사릉', '금곡', '평내호평', '천마산', '마석', '대성리', '청평', '상천', '가평', '굴봉산', '백양리', '강촌', '김유정', '남춘천', '춘천'];
+export const CITY_ORDER = ['성수','건대입구'];
+export const STATION_ORDER = [...GYEONGCHUN_ORDER,...CITY_ORDER];
 const rad = d => d * Math.PI / 180;
-export function normalizeStations(rows) {
+export function normalizeStations(rows,line='경춘선') {
   if (!Array.isArray(rows)) throw new Error('Invalid station response');
   const byName = new Map();
   for (const row of rows) {
-    if (row.lineNm !== '경춘선' || !STATION_ORDER.includes(row.stnKrNm)) continue;
+    if (row.lineNm !== line || !(line==='2호선'?CITY_ORDER:GYEONGCHUN_ORDER).includes(row.stnKrNm)) continue;
     const lon = Number(row.convX), lat = Number(row.convY);
     if (!Number.isFinite(lon) || !Number.isFinite(lat) || lon < 124 || lon > 132 || lat < 33 || lat > 39) continue;
     byName.set(row.stnKrNm, { name: row.stnKrNm, lon, lat });
   }
-  return STATION_ORDER.filter(n => byName.has(n)).map(n => byName.get(n));
+  return (line==='2호선'?CITY_ORDER:GYEONGCHUN_ORDER).filter(n => byName.has(n)).map(n => byName.get(n));
 }
 export function distance(a, b) {
   const dlat = rad(b.lat - a.lat), dlon = rad(b.lon - a.lon);

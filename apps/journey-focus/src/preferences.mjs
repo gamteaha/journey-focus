@@ -1,7 +1,7 @@
-import { STATION_ORDER } from './route.mjs';
+import { STATION_ORDER,CITY_ORDER } from './route.mjs';
 
 const STORAGE_KEY = 'journey-focus-preferences';
-const DEFAULTS = Object.freeze({ from: '백양리', to: '강촌', duration: 1500, view: 'window' });
+const DEFAULTS = Object.freeze({ from: '성수', to: '건대입구', duration: 1500, view: 'window' });
 const DURATIONS = new Set([60, 300, 1500, 3000]);
 
 // Read data properties only: unexpected objects cannot execute getters or coerce values.
@@ -21,7 +21,7 @@ export function normalizePreferences(input) {
   const viewValue = ownValue(input, 'view');
   let from = typeof fromValue === 'string' && STATION_ORDER.includes(fromValue) ? fromValue : DEFAULTS.from;
   let to = typeof toValue === 'string' && STATION_ORDER.includes(toValue) ? toValue : DEFAULTS.to;
-  if (from === to) ({ from, to } = DEFAULTS);
+  if (from === to||CITY_ORDER.includes(from)!==CITY_ORDER.includes(to)) ({ from, to } = DEFAULTS);
   return {
     from,
     to,

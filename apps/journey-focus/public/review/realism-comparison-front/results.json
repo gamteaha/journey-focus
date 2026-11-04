@@ -1,0 +1,102 @@
+{
+  "conditions": {
+    "version": "1.99",
+    "ao": true,
+    "shadow": true,
+    "sunLight": true,
+    "customShader": true,
+    "ibl": true,
+    "position": {
+      "lon": 127.06346545578344,
+      "lat": 37.54234132497599,
+      "heading": 110.70386494699198,
+      "name": "성수",
+      "next": "건대입구",
+      "segmentProgress": 0.9878447696605535,
+      "tunnel": false
+    },
+    "height": 42.63361788052065
+  },
+  "variants": [
+    {
+      "id": "04-light",
+      "label": "카메라 정면광1.2 · 그림자 끔",
+      "ao": false,
+      "shadows": false,
+      "lightIntensity": 1.2,
+      "lightDirection": {
+        "x": -0.027939077360825227,
+        "y": 0.6221531242402651,
+        "z": -0.7823968928582878
+      },
+      "terrainLighting": true,
+      "mapError": "",
+      "camera": {
+        "lon": 2.2176758311974987,
+        "lat": 0.6552374650283617,
+        "height": 42.63361788052065
+      },
+      "shaderReady": true
+    },
+    {
+      "id": "05-ao-light",
+      "label": "HBAO + 카메라 정면광1.2 · 그림자 끔",
+      "ao": true,
+      "shadows": false,
+      "lightIntensity": 1.2,
+      "lightDirection": {
+        "x": -0.027939077360825227,
+        "y": 0.6221531242402651,
+        "z": -0.7823968928582878
+      },
+      "terrainLighting": true,
+      "mapError": "",
+      "camera": {
+        "lon": 2.2176758311974987,
+        "lat": 0.6552374650283617,
+        "height": 42.63361788052065
+      },
+      "shaderReady": true
+    },
+    {
+      "id": "06-combined",
+      "label": "HBAO + 정면광1.2 + 기존 필터 · 그림자 끔",
+      "ao": true,
+      "shadows": false,
+      "lightIntensity": 1.2,
+      "lightDirection": {
+        "x": -0.027939077360825227,
+        "y": 0.6221531242402651,
+        "z": -0.7823968928582878
+      },
+      "terrainLighting": true,
+      "mapError": "",
+      "camera": {
+        "lon": 2.2176758311974987,
+        "lat": 0.6552374650283617,
+        "height": 42.63361788052065
+      },
+      "shaderReady": true
+    },
+    {
+      "id": "10-material-combined",
+      "label": "재질 + 환경광 + AO + 정면광1.2 · 그림자 끔",
+      "ao": true,
+      "shadows": false,
+      "lightIntensity": 1.2,
+      "lightDirection": {
+        "x": -0.027939077360825227,
+        "y": 0.6221531242402651,
+        "z": -0.7823968928582878
+      },
+      "terrainLighting": true,
+      "mapError": "",
+      "camera": {
+        "lon": 2.2176758311974987,
+        "lat": 0.6552374650283617,
+        "height": 42.63361788052065
+      },
+      "shaderReady": true
+    }
+  ]
+}
