@@ -1,0 +1,128 @@
+import http from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import path from 'node:path';
+import { normalizeStations } from './src/route.mjs';
+
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
+const ASSETS = new Map();
+try {
+  const catalog=JSON.parse(await readFile(path.join(ROOT,'public/assets/catalog.json'),'utf8'));
+  const types={'.gltf':'model/gltf+json','.bin':'application/octet-stream','.jpg':'image/jpeg','.png':'image/png'};
+  for(const {path:relative} of catalog.files){
+    if(typeof relative==='string'&&/^[a-zA-Z0-9_./-]+$/.test(relative)&&!relative.startsWith('/')&&!relative.split('/').includes('..')&&types[path.extname(relative)])ASSETS.set('/assets/'+relative,[relative,types[path.extname(relative)]]);
+  }
+} catch { /* The app still works without the optional scenery assets. */ }
+const PUBLIC = new Map([
+  ['/', ['public/index.html', 'text/html']],
+  ['/styles.css', ['public/styles.css', 'text/css']],
+  ['/finish.css', ['public/finish.css', 'text/css']],
+  ['/rendering.mjs', ['public/rendering.mjs', 'text/javascript']],
+  ['/src/rendering.mjs', ['src/rendering.mjs', 'text/javascript']],
+  ['/src/loading.mjs', ['src/loading.mjs', 'text/javascript']],
+  ['/src/preferences.mjs', ['src/preferences.mjs', 'text/javascript']],
+  ['/src/startup.mjs', ['src/startup.mjs', 'text/javascript']],
+  ['/src/frame-work.mjs', ['src/frame-work.mjs', 'text/javascript']],
+  ['/app.mjs', ['public/app.mjs', 'text/javascript']],
+  ['/map.mjs', ['public/map.mjs', 'text/javascript']],
+  ['/audio.mjs', ['public/audio.mjs', 'text/javascript']],
+  ['/comparison.mjs', ['public/comparison.mjs', 'text/javascript']],
+  ['/comparison.css', ['public/comparison.css', 'text/css']],
+  ['/scenery.mjs', ['public/scenery.mjs', 'text/javascript']],
+  ['/scenery-layer.mjs', ['public/scenery-layer.mjs', 'text/javascript']],
+  ['/src/session.mjs', ['src/session.mjs', 'text/javascript']],
+  ['/src/route.mjs', ['src/route.mjs', 'text/javascript']],
+  ['/src/comparison.mjs', ['src/comparison.mjs', 'text/javascript']],
+  ['/src/scenery.mjs', ['src/scenery.mjs', 'text/javascript']],
+  ['/src/motion.mjs', ['src/motion.mjs', 'text/javascript']],
+  ['/favicon.svg', ['public/favicon.svg', 'image/svg+xml']],
+  ['/data/baegyangri-gangchon.json', ['public/data/baegyangri-gangchon.json', 'application/json']],
+]);
+export async function loadConfig() {
+  const env = {};
+  try {
+    const text = await readFile(path.resolve(ROOT, '../../.env.local'), 'utf8');
+    for (const line of text.replace(/^\uFEFF/, '').split(/\r?\n/)) {
+      const match = line.match(/^\s*([A-Z_][A-Z_0-9]*)\s*=\s*(.*?)\s*$/);
+      if (match) env[match[1]] = match[2].replace(/^(["'])(.*)\1$/, '$2');
+    }
+  } catch (error) { if (error.code !== 'ENOENT') throw new Error('설정 파일을 읽지 못했습니다.'); }
+  return {
+    VWORLD_API_KEY: process.env.VWORLD_API_KEY || env.VWORLD_API_KEY || '',
+    TDATA_API_KEY: process.env.TDATA_API_KEY || env.TDATA_API_KEY || '',
+    VWORLD_SERVICE_URL: process.env.VWORLD_SERVICE_URL || env.VWORLD_SERVICE_URL || 'http://localhost:5173',
+  };
+}
+function send(res, status, body, type = 'application/json') {
+  res.writeHead(status, {
+    'Content-Type': `${type}; charset=utf-8`, 'Cache-Control': 'no-store',
+    'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'X-Frame-Options': 'SAMEORIGIN',
+  });
+  res.end(Buffer.isBuffer(body)?body:typeof body === 'object' ? JSON.stringify(body) : body);
+}
+export function createApp(config, fetcher = fetch) {
+  let cached = null, pending = null;
+  async function stations() {
+    if (cached && Date.now() - cached.fetchedAt < 3600000) return cached;
+    if (pending) return pending;
+    pending = (async () => {
+      if (!config.TDATA_API_KEY) throw new Error('TDATA_MISSING');
+      const url = new URL('https://t-data.seoul.go.kr/apig/apiman-gateway/tapi/TaimsKsccDvSubwayStationGeom/1.0');
+      url.search = new URLSearchParams({ apikey: config.TDATA_API_KEY, startRow: '1', rowCnt: '1000' });
+      const response = await fetcher(url, { signal: AbortSignal.timeout(20000) });
+      if (!response.ok) throw new Error('TDATA_UNAVAILABLE');
+      const raw = await response.json();
+      const rows = normalizeStations(raw);
+      if (rows.length < 2) throw new Error('TDATA_NO_STATIONS');
+      cached = { stations: rows, fetchedAt: Date.now(), source: '서울특별시 T Data · 교통정책지원시스템(TAIMS)', geometry: '역 좌표만 제공 · 선로 선형 미검증' };
+      return cached;
+    })();
+    try { return await pending; } finally { pending = null; }
+  }
+  return http.createServer(async (req, res) => {
+    try {
+      const host = req.headers.host || '';
+      if (!/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host)) return send(res, 403, { error: 'LOCAL_ONLY' });
+      const origin = req.headers.origin;
+      if (origin && origin !== `http://${host}`) return send(res, 403, { error: 'ORIGIN_DENIED' });
+      if (req.headers['sec-fetch-site'] === 'cross-site') return send(res, 403, { error: 'ORIGIN_DENIED' });
+      if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, { error: 'METHOD_NOT_ALLOWED' });
+      const url = new URL(req.url, `http://${host}`);
+      if(ASSETS.has(url.pathname)){
+        const [relative,type]=ASSETS.get(url.pathname);
+        return send(res,200,await readFile(path.join(ROOT,'public/assets',relative)),type);
+      }
+      if (url.pathname === '/api/status') return send(res, 200, {
+        vworldConfigured: Boolean(config.VWORLD_API_KEY), tdataConfigured: Boolean(config.TDATA_API_KEY),
+        serviceUrl: config.VWORLD_SERVICE_URL, sdkVersion: '3.0',
+      });
+      if (url.pathname === '/api/stations') {
+        try { return send(res, 200, await stations()); }
+        catch { return send(res, 502, { error: config.TDATA_API_KEY ? 'TDATA_UNAVAILABLE' : 'TDATA_MISSING', message: '역 정보를 가져오지 못했습니다. 키와 네트워크를 확인한 뒤 다시 시도해 주세요.' }); }
+      }
+      if (url.pathname === '/map') {
+        let html = await readFile(path.join(ROOT, 'public/map.html'), 'utf8');
+        const sdk = new URL('https://map.vworld.kr/js/webglMapInit.js.do');
+        sdk.search = new URLSearchParams({ version: '3.0', apiKey: config.VWORLD_API_KEY });
+        html = html.replace('{{VWORLD_SDK_URL}}', sdk.href.replaceAll('&', '&amp;').replaceAll('"', '&quot;'));
+        return send(res, 200, html, 'text/html');
+      }
+      const entry = PUBLIC.get(url.pathname);
+      if (!entry) return send(res, 404, { error: 'NOT_FOUND' });
+      return send(res, 200, await readFile(path.join(ROOT, entry[0]), 'utf8'), entry[1]);
+    } catch { return send(res, 500, { error: 'SERVER_ERROR' }); }
+  });
+}
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  const config = await loadConfig();
+  const app = createApp(config);
+  app.on('error', error => {
+    console.error(error.code === 'EADDRINUSE' ? '5173 포트가 사용 중입니다. 기존 서버를 종료하고 다시 실행해 주세요.' : '로컬 서버를 시작하지 못했습니다.');
+    process.exitCode = 1;
+  });
+  app.listen(5173, '127.0.0.1', () => {
+    console.log('Journey Focus: http://localhost:5173');
+    console.log(`VWorld key: ${config.VWORLD_API_KEY ? 'configured' : 'missing'} | T Data key: ${config.TDATA_API_KEY ? 'configured' : 'missing'}`);
+  });
+}

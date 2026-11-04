@@ -1,0 +1,210 @@
+{
+  "mode": "balanced",
+  "cpuProfiledMs": 31589.455,
+  "top": [
+    {
+      "name": "DW",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 11448,
+      "selfMs": 5891
+    },
+    {
+      "name": "DW",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 11448,
+      "selfMs": 2398
+    },
+    {
+      "name": "(program)",
+      "source": "",
+      "line": -1,
+      "selfMs": 2274
+    },
+    {
+      "name": "DW",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 11448,
+      "selfMs": 2030
+    },
+    {
+      "name": "DW",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 11448,
+      "selfMs": 1977
+    },
+    {
+      "name": "DW",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 11448,
+      "selfMs": 1814
+    },
+    {
+      "name": "Ma.rayTriangleParametric",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 4313,
+      "selfMs": 1392
+    },
+    {
+      "name": "Ma.rayTriangleParametric",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 4313,
+      "selfMs": 607
+    },
+    {
+      "name": "Ta.pick",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 11448,
+      "selfMs": 581
+    },
+    {
+      "name": "Ma.rayTriangleParametric",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 4313,
+      "selfMs": 500
+    },
+    {
+      "name": "Ma.rayTriangleParametric",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 4313,
+      "selfMs": 469
+    },
+    {
+      "name": "(garbage collector)",
+      "source": "",
+      "line": -1,
+      "selfMs": 409
+    },
+    {
+      "name": "Ma.rayTriangleParametric",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 4313,
+      "selfMs": 399
+    },
+    {
+      "name": "DW",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 11448,
+      "selfMs": 388
+    },
+    {
+      "name": "nNt",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 11448,
+      "selfMs": 376
+    },
+    {
+      "name": "r5e",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 13005,
+      "selfMs": 362
+    },
+    {
+      "name": "mKe",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 3503,
+      "selfMs": 361
+    },
+    {
+      "name": "LS.resize",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 12681,
+      "selfMs": 345
+    },
+    {
+      "name": "DW",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 11448,
+      "selfMs": 345
+    },
+    {
+      "name": "Ta.pick",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 11448,
+      "selfMs": 230
+    },
+    {
+      "name": "Ta.pick",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 11448,
+      "selfMs": 229
+    },
+    {
+      "name": "DW",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 11448,
+      "selfMs": 210
+    },
+    {
+      "name": "DW",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 11448,
+      "selfMs": 183
+    },
+    {
+      "name": "Ta.pick",
+      "source": "/js/ws3dmap/WS3DRelease3/WSViewerStartup.js",
+      "line": 11448,
+      "selfMs": 174
+    },
+    {
+      "name": "bindVertexArrayOES",
+      "source": "",
+      "line": -1,
+      "selfMs": 150
+    }
+  ],
+  "runtime": {
+    "height": {
+      "calls": 8851,
+      "ms": 21477.400000039488,
+      "max": 67.09999999776483
+    },
+    "camera": {
+      "calls": 1096,
+      "ms": 55.900000009685755,
+      "max": 2.399999998509884
+    },
+    "tileCompletions": 34,
+    "tileTimes": [
+      840.3999999985099,
+      1513.3999999985099,
+      2249.599999997765,
+      3279.199999999255,
+      4539.199999999255,
+      5171.300000000745,
+      5827.699999999255,
+      6463.800000000745,
+      7224,
+      8666.099999997765,
+      9761.89999999851,
+      10419.300000000745,
+      11094,
+      11770.800000000745,
+      12427.099999997765,
+      13085.199999999255,
+      13786.89999999851,
+      15057.300000000745,
+      15756.699999999255,
+      16466.699999999255,
+      17117.699999999255,
+      18052.39999999851,
+      19042,
+      19704.5,
+      20410.099999997765,
+      21043.39999999851,
+      22997.300000000745,
+      23656.699999999255,
+      24358.300000000745,
+      25646.699999999255
+    ],
+    "longTasks": [
+      {
+        "t": 21787.800000000745,
+        "ms": 82
+      }
+    ],
+    "frameGapP95": 35.400000000001455,
+    "frameGapMax": 407.90000000000146
+  },
+  "pageErrors": 0
+}

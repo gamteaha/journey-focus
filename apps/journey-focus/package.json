@@ -1,0 +1,16 @@
+{
+  "name": "journey-focus",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "경춘선 실제 공간정보 기반 집중 여정 프로토타입",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check server.mjs && node --check public/app.mjs && node --check public/map.mjs && node --check public/comparison.mjs && node --check public/audio.mjs && node --check public/scenery.mjs && node --check public/scenery-layer.mjs && node --check src/scenery.mjs && node --check src/motion.mjs && node --check public/rendering.mjs && node --check src/rendering.mjs && node --check src/loading.mjs && node --check src/preferences.mjs && node --check src/startup.mjs && node --check src/frame-work.mjs"
+  }
+}

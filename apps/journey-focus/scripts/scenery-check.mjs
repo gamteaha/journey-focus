@@ -1,0 +1,60 @@
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import { writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { connectPage,waitFor,sleep } from './cdp.mjs';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../../..');
+const p=await connectPage({fresh:true});
+try{
+ await p.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1080,deviceScaleFactor:1,mobile:false});
+ await p.send('Page.navigate',{url:'http://localhost:5173/'});
+ assert.ok(await waitFor(p,`document.querySelector('#scene')?.classList.contains('map-ready')&&!document.querySelector('#scenery-toggle').disabled`,45000));
+ const original=await p.evaluate(`(()=>{const v=document.querySelector('#map-frame').contentWindow.ws3d.viewer;return{entities:v.entities.values.length,all:v.map.getElementById('facility_build_all').visible}})()`);
+ await p.evaluate(`document.querySelector('#scenery-toggle').click();document.querySelector('#scenery-close').click()`);
+ assert.equal(await p.evaluate(`document.body.classList.contains('scenery-active')`),false);
+ await p.evaluate(`document.querySelector('[data-duration="60"]').click();document.querySelector('#start').click()`);
+ await sleep(1000);
+ await p.evaluate(`document.querySelector('#scenery-toggle').click()`);
+ assert.ok(await waitFor(p,`!document.querySelector('#scenery-play').disabled`,60000),'Models load on actual terrain');
+ const studyTimer=await p.evaluate(`document.querySelector('#timer').textContent`);
+ const loaded=await p.evaluate(`(()=>{const v=document.querySelector('#map-frame').contentWindow.ws3d.viewer;return{entities:v.entities.values.length,all:v.map.getElementById('facility_build_all').visible,status:document.querySelector('#scenery-status').textContent}})()`);
+ assert.equal(loaded.entities,original.entities+13);assert.equal(loaded.all,false);
+ await p.evaluate(`document.querySelector('#scenery-play').click()`);await sleep(1600);await p.evaluate(`document.querySelector('#scenery-play').click()`);
+ const paused=await p.evaluate(`document.querySelector('#scenery-time').textContent`);await sleep(1100);
+ assert.equal(await p.evaluate(`document.querySelector('#scenery-time').textContent`),paused);
+ assert.equal(await p.evaluate(`document.querySelector('#timer').textContent`),studyTimer,'Preview does not count study time');
+ await p.evaluate(`document.querySelector('#scenery-reset').click();document.querySelector('#scenery-play').click()`);
+ assert.ok(await waitFor(p,`document.querySelector('#scenery-time').textContent==='00:00'`,35000),'Real 30-second traversal completes');
+ await p.evaluate(`window.__jfReplaySnap=false;document.querySelector('#map-frame').contentWindow.addEventListener('message',event=>{if(event.origin===location.origin&&event.data?.type==='jf:position'&&event.data.snap)window.__jfReplaySnap=true});document.querySelector('#scenery-play').click()`);
+ assert.ok(await waitFor(p,'window.__jfReplaySnap===true',3000),'Replay explicitly realigns the camera at the start');
+ await p.evaluate(`document.querySelector('#scenery-play').click()`);
+ await p.evaluate(`document.querySelector('#scenery-reset').click();const r=document.querySelector('#scenery-progress');r.value=470;r.dispatchEvent(new Event('input'))`);
+ await waitFor(p,`document.querySelector('#map-frame').contentWindow.ws3d.viewer.scene.globe.tilesLoaded`,15000);
+ assert.ok(await waitFor(p,`(async()=>{const {houseFootprint}=await import('/src/scenery.mjs');const w=document.querySelector('#map-frame').contentWindow,v=w.ws3d.viewer,C=w.Cesium;let owner;for(let i=0;i<v.scene.primitives.length;i++){const item=v.scene.primitives.get(i);if(typeof item.get==='function'&&item.length===105&&item.get(0) instanceof C.Model)owner=item;}if(!owner)return false;let houses=0;for(let i=0;i<owner.length;i++){const model=owner.get(i),point=C.Cartographic.fromCartesian(C.Matrix4.getTranslation(model.modelMatrix,new C.Cartesian3)),height=v.scene.globe.getHeight(point);if(model.id.startsWith('jf-scenery-house-')){houses++;const index=model.id.split('-').at(-1),foundation=v.entities.getById('jf-foundation-'+index);if(!foundation)return false;const time=v.clock.currentTime,center=C.Cartographic.fromCartesian(foundation.position.getValue(time)),depth=foundation.box.dimensions.getValue(time).z;if(Math.abs(center.height+depth/2-point.height)>.05)return false;const q=foundation.orientation.getValue(time),matrix=C.Matrix3.fromQuaternion(q),right=C.Matrix3.getColumn(matrix,0,new C.Cartesian3),north=C.Transforms.eastNorthUpToFixedFrame(C.Cartesian3.fromDegrees(C.Math.toDegrees(point.longitude),C.Math.toDegrees(point.latitude))),local=C.Matrix4.multiplyByPointAsVector(C.Matrix4.inverseTransformation(north,new C.Matrix4),right,new C.Cartesian3),heading=C.Math.toDegrees(Math.atan2(-local.y,local.x));const heights=houseFootprint({lon:C.Math.toDegrees(point.longitude),lat:C.Math.toDegrees(point.latitude),heading}).map(p=>v.scene.globe.getHeight(C.Cartographic.fromDegrees(p.lon,p.lat)));if(heights.some(h=>!Number.isFinite(h)))return false;if(Math.abs(point.height-Math.max(...heights)-.04)>.3||center.height-depth/2>Math.min(...heights))return false;}else if(Number.isFinite(height)&&Math.abs(point.height-height+((model.id.startsWith('jf-scenery-grass-')||model.id.startsWith('jf-scenery-shrub-'))?.03:.15))>.3)return false;}return houses===5})()`,10000),'Vegetation follows terrain; house foundations span all footprint corners');
+ const clip=await p.evaluate(`(()=>{const r=document.querySelector('#scene').getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,scale:1}})()`);
+ const shot=await p.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip});
+ await writeFile(path.join(root,'tmp/journey-focus-scenery-final.png'),Buffer.from(shot.data,'base64'));
+ const supported=await p.evaluate(`(()=>{const v=document.querySelector('#map-frame').contentWindow.ws3d.viewer;return v.entities.values.filter(e=>e.id.startsWith('jf-foundation-')&&e.show).map(e=>e.box.dimensions.getValue(v.clock.currentTime).z)})()`);
+ assert.ok(supported.length>=1,'At least one suitable house plot is available');
+ assert.ok(supported.every(depth=>depth<=2.8),'Steep plots never become tall foundation walls');
+ for(const remaining of [28,22,17,11]){
+   await p.evaluate(`(()=>{const slider=document.querySelector('#scenery-progress');slider.value=${Math.round((30-remaining)/30*1000)};slider.dispatchEvent(new Event('input'))})()`);
+   await waitFor(p,`document.querySelector('#map-frame').contentWindow.ws3d.viewer.scene.globe.tilesLoaded`,10000);
+   await sleep(300);
+   const shot=await p.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,clip});
+   await writeFile(path.join(root,`tmp/journey-focus-scenery-${remaining}s.png`),Buffer.from(shot.data,'base64'));
+ }
+ await p.evaluate(`document.querySelector('#scenery-close').click()`);
+ await sleep(300);
+ const restored=await p.evaluate(`(()=>{const v=document.querySelector('#map-frame').contentWindow.ws3d.viewer;return{entities:v.entities.values.length,all:v.map.getElementById('facility_build_all').visible}})()`);
+ assert.deepEqual(restored,original);
+ assert.ok(await p.evaluate(`document.querySelector('#pause').textContent.includes('이어가기')`));
+ await p.evaluate(`document.querySelector('#stop').click();document.querySelector('#dialog-close').click()`);
+ await p.send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+ await p.evaluate(`document.querySelector('#scenery-toggle').click()`);
+ assert.equal(await p.evaluate(`document.documentElement.scrollWidth>innerWidth`),false);
+ await p.evaluate(`document.querySelector('#scenery-close').click()`);
+ assert.equal(p.errors.length,0,'No browser errors');
+ console.log(JSON.stringify({passed:['cancel while loading','actual glTF models','study timer isolation','preview pause','30-second completion','scrub','footprint foundations','steep plot omission','28/22/17/11-second views','model cleanup','layer restore','mobile layout'],loaded,supportedHouseDepths:supported,pageErrors:p.errors.length}));
+}catch(error){console.log(JSON.stringify({failed:error.message,pageErrors:p.errors.map(e=>e.split('\n')[0]).slice(0,5)}));process.exitCode=1;}
+finally{p.close();}

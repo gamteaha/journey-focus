@@ -1,0 +1,308 @@
+{
+  "license": "CC0-1.0",
+  "licenseUrl": "https://polyhaven.com/license",
+  "sources": [
+    {
+      "id": "pine_sapling_small",
+      "source": "https://polyhaven.com/a/pine_sapling_small",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "shrub_03",
+      "source": "https://polyhaven.com/a/shrub_03",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "clay_roof_tiles_02",
+      "source": "https://polyhaven.com/a/clay_roof_tiles_02",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "plastered_wall_02",
+      "source": "https://polyhaven.com/a/plastered_wall_02",
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "journey-focus-house",
+      "source": "scripts/build-scenery-house.py",
+      "license": "project-owned geometry; CC0 textures listed separately"
+    },
+    {
+      "id": "shrub_sorrel_01",
+      "source": "https://polyhaven.com/a/shrub_sorrel_01",
+      "license": "CC0-1.0",
+      "author": "Rico Cilliers",
+      "metadataProof": "shrub_sorrel_01/provenance.json"
+    },
+    {
+      "id": "journey-focus-grass",
+      "source": "scripts/build-scenery-grass.mjs",
+      "license": "project-owned geometry"
+    },
+    {
+      "id": "pine_sapling_lod",
+      "source": "https://polyhaven.com/a/pine_sapling_small",
+      "license": "CC0-1.0",
+      "derivation": "scripts/prepare-pine-lod.py; meshoptimizer gltfpack 1.3",
+      "metadataProof": "pine_sapling_lod/provenance.json"
+    },
+    {
+      "id": "leafy_tree_lod",
+      "source": "https://polyhaven.com/a/tree_small_02",
+      "license": "CC0-1.0",
+      "author": "Rico Cilliers",
+      "derivation": "scripts/prepare-leafy-tree-lod.py; official gltfpack 1.3",
+      "metadataProof": "leafy_tree_lod/provenance.json"
+    }
+  ],
+  "files": [
+    {
+      "path": "pine_sapling_small/model.gltf",
+      "bytes": 7703,
+      "sha256": "10c93e174784e1146df6c61d6c018037444d6fc8a6137b04f13871942270064a",
+      "originalSha256": "f358c01926861dd082f32dba60f7c9fba232b585a985cf38c0d2229eecf4bc48"
+    },
+    {
+      "path": "pine_sapling_small/textures/pine_sapling_small_twig_arm_1k.jpg",
+      "bytes": 394056,
+      "sha256": "2eb0aa44124b5a4ae9401e00b23b3c916f4c3f421616ce1bb932f248fc061288"
+    },
+    {
+      "path": "pine_sapling_small/textures/pine_sapling_small_twig_diff_1k.jpg",
+      "bytes": 477942,
+      "sha256": "54af7d6fb664b5a38bcb118b557bc50e01e86ec54d6f1a573c3e32c649a53362"
+    },
+    {
+      "path": "pine_sapling_small/textures/pine_sapling_small_bark_nor_gl_1k.jpg",
+      "bytes": 1016849,
+      "sha256": "05c46455531781b6cf18cae0648cf627f60ee942adaa8bcbfd1592fc2506a9e0"
+    },
+    {
+      "path": "pine_sapling_small/pine_sapling_small.bin",
+      "bytes": 17771796,
+      "sha256": "b4d2fc73d53f1d8717eb5ef9a2c66957d2a53152787e543aace88fcd6fca94ef"
+    },
+    {
+      "path": "pine_sapling_small/textures/pine_sapling_small_bark_diff_1k.jpg",
+      "bytes": 725265,
+      "sha256": "5c76836b01c3536fa0e24207b67bf4f3315b53ebe2b4ecc6f08dfcf3f8d74929"
+    },
+    {
+      "path": "pine_sapling_small/textures/pine_sapling_small_bark_arm_1k.jpg",
+      "bytes": 801278,
+      "sha256": "336a4680cd571b6076b67afee2310b290b8900d9d126eb39ec1ae92e95be2ea9"
+    },
+    {
+      "path": "pine_sapling_small/textures/pine_sapling_small_twig_nor_gl_1k.jpg",
+      "bytes": 692711,
+      "sha256": "76af87821d7ff00e25768d5d97a449394fe64a21ae55d099da7f5ed46d9098c8"
+    },
+    {
+      "path": "shrub_03/model.gltf",
+      "bytes": 4866,
+      "sha256": "571262f608396973fede1c3b459fef1dad9ad290f73238bcfa2d022dd6981e2b",
+      "originalSha256": "b76d7c14bc027e834e82d3f984c32b5d060e62908aa90ff9420a637ca253a8ea"
+    },
+    {
+      "path": "shrub_03/shrub_03.bin",
+      "bytes": 238684,
+      "sha256": "bf4df21e6d2a2bc5f00b4c9142f776171fe7da00cf960001825748067af542b6"
+    },
+    {
+      "path": "shrub_03/textures/shrub_03_arm_1k.jpg",
+      "bytes": 396238,
+      "sha256": "3e2b16812a623037138eedace958210c5f3443a827bbe69663045bba5612f815"
+    },
+    {
+      "path": "shrub_03/textures/shrub_03_diff_1k.jpg",
+      "bytes": 481841,
+      "sha256": "3cadc7aba46d3aabbd7d6d2b1d04aa32e2a7da0bc87c2d38ef3cb1ee42cb03ec"
+    },
+    {
+      "path": "shrub_03/textures/shrub_03_nor_gl_1k.jpg",
+      "bytes": 504734,
+      "sha256": "ff856bacfce859b8a7555dd9a3b92fbd36b2e775d486be71df485afb4235d6c9"
+    },
+    {
+      "path": "house/roof-color.jpg",
+      "bytes": 903929,
+      "sha256": "227a062b38b170e02c27eaa513dae45dc8bc893a62cbd8d0c08e2c32b381fc25"
+    },
+    {
+      "path": "house/roof-normal.jpg",
+      "bytes": 990101,
+      "sha256": "1548d3ebce335a4590d9e421556c4189a7b63852c793a568c71b9e533f8b62d5"
+    },
+    {
+      "path": "house/wall-color.jpg",
+      "bytes": 436395,
+      "sha256": "0a316ffd3f953a902325c06afb5a5863bbf71d13a353f9d85378562adca79603"
+    },
+    {
+      "path": "house/wall-normal.jpg",
+      "bytes": 960241,
+      "sha256": "0f1b4ea0c4707ea133f133c020923bddd8610a43a153281dad15d49f39ad9624"
+    },
+    {
+      "path": "house/house.bin",
+      "bytes": 22464,
+      "sha256": "793ad2f4adf85302502465a04d8c13d06dabf1b33a6d1a993c5946b0176519c2"
+    },
+    {
+      "path": "house/house.gltf",
+      "bytes": 3822,
+      "sha256": "2382570c9313ca93163b05c60cd51286fffc080cad2b613309b0356f948811ae"
+    },
+    {
+      "path": "shrub_sorrel_01/model.gltf",
+      "bytes": 10744,
+      "sha256": "0a7d2064e47b038116b197e97cf7c1ad18aa0ec62eb6f0788d7d067445ee5fe8",
+      "originalSha256": "97e2c9b564610a1077de9e15de07acbf19f2e66619016aeebb7987e191ad3ce1",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/shrub_sorrel_01/shrub_sorrel_01_1k.gltf",
+      "providerMd5": "d56d50a8492bd7d7c7a0a571f42239c6"
+    },
+    {
+      "path": "shrub_sorrel_01/textures/shrub_sorrel_01_nor_gl_1k.jpg",
+      "bytes": 470891,
+      "sha256": "0bb2e2aba7831a4e642ad6b1985ad82b0a574930ec6982f9a1a66ad8b41a94b3",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_sorrel_01/shrub_sorrel_01_nor_gl_1k.jpg",
+      "providerMd5": "71c6c432b91a8d64f2c480366fd61dfb"
+    },
+    {
+      "path": "shrub_sorrel_01/shrub_sorrel_01.bin",
+      "bytes": 110936,
+      "sha256": "725f46bf6d330486bf22d4b897fa1d8ef01cdc77a72f1400a3939f86740b4e5d",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/shrub_sorrel_01/shrub_sorrel_01.bin",
+      "providerMd5": "5b6481fc43f4dc36ab4e80d79a19119f"
+    },
+    {
+      "path": "shrub_sorrel_01/textures/shrub_sorrel_01_arm_1k.jpg",
+      "bytes": 201949,
+      "sha256": "a1b49322e2b0ea988336fca959145dbb53b483b8f9ff2ec5f23dda20c486bdb8",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_sorrel_01/shrub_sorrel_01_arm_1k.jpg",
+      "providerMd5": "6230445a48867ef8196ee1ab052d346d"
+    },
+    {
+      "path": "shrub_sorrel_01/textures/shrub_sorrel_01_diff_1k.jpg",
+      "bytes": 385129,
+      "sha256": "9aa62e57767f5b964b8d52e6406ebadb0205fa469d5a369a946fba13a3bc950f",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_sorrel_01/shrub_sorrel_01_diff_1k.jpg",
+      "providerMd5": "bef299def81bd55c2b378d53dad803b5"
+    },
+    {
+      "path": "shrub_sorrel_01/provenance.json",
+      "bytes": 3634,
+      "sha256": "35e70957dffd17a2bd16ba2ae9cb3d6c1e65d65e3231c86a2acf8373a714d1a8"
+    },
+    {
+      "path": "grass/model.gltf",
+      "bytes": 185213,
+      "sha256": "1c8f7ef836847195b2129e81147868cd30ce2ed6ffe9d7c44762800971b840e5"
+    },
+    {
+      "path": "pine_sapling_lod/textures/pine_sapling_small_bark_nor_gl_1k.jpg",
+      "bytes": 1016849,
+      "sha256": "05c46455531781b6cf18cae0648cf627f60ee942adaa8bcbfd1592fc2506a9e0"
+    },
+    {
+      "path": "pine_sapling_lod/textures/pine_sapling_small_bark_diff_1k.jpg",
+      "bytes": 725265,
+      "sha256": "5c76836b01c3536fa0e24207b67bf4f3315b53ebe2b4ecc6f08dfcf3f8d74929"
+    },
+    {
+      "path": "pine_sapling_lod/textures/pine_sapling_small_bark_arm_1k.jpg",
+      "bytes": 801278,
+      "sha256": "336a4680cd571b6076b67afee2310b290b8900d9d126eb39ec1ae92e95be2ea9"
+    },
+    {
+      "path": "pine_sapling_lod/textures/pine_sapling_small_twig_nor_gl_1k.jpg",
+      "bytes": 692711,
+      "sha256": "76af87821d7ff00e25768d5d97a449394fe64a21ae55d099da7f5ed46d9098c8"
+    },
+    {
+      "path": "pine_sapling_lod/textures/pine_sapling_small_twig_diff_1k.jpg",
+      "bytes": 477942,
+      "sha256": "54af7d6fb664b5a38bcb118b557bc50e01e86ec54d6f1a573c3e32c649a53362"
+    },
+    {
+      "path": "pine_sapling_lod/textures/pine_sapling_small_twig_arm_1k.jpg",
+      "bytes": 394056,
+      "sha256": "2eb0aa44124b5a4ae9401e00b23b3c916f4c3f421616ce1bb932f248fc061288"
+    },
+    {
+      "path": "pine_sapling_lod/model.bin",
+      "bytes": 1637856,
+      "sha256": "c7381b4a8c71e6032131bdc769a9015753f37d71ac0512455282d765ce3d5856"
+    },
+    {
+      "path": "pine_sapling_lod/model.gltf",
+      "bytes": 3172,
+      "sha256": "55d0643b675ba3be46e4a1aa6e03aa19c7984c30792b3cca6b4c6c98cc7eacb8"
+    },
+    {
+      "path": "pine_sapling_lod/provenance.json",
+      "bytes": 2541,
+      "sha256": "f80c8507b16c99f1c8cb2453d6e45599853c1f85251a66def383bd92c64969f6"
+    },
+    {
+      "path": "leafy_tree_lod/textures/tree_small_02_branch_nor_gl_1k.jpg",
+      "bytes": 581596,
+      "sha256": "a2efae9e7fede259601188cd5cb7e561fc502bd87e04d862a9532b2d8e647a62"
+    },
+    {
+      "path": "leafy_tree_lod/textures/tree_small_02_branch_diff_1k.jpg",
+      "bytes": 449977,
+      "sha256": "a71b768e330c0c6cca097e30314f6b4e842ef724a1370f6aab14b4434eec64cb"
+    },
+    {
+      "path": "leafy_tree_lod/textures/tree_small_02_branch_arm_1k.jpg",
+      "bytes": 375732,
+      "sha256": "8968b46d76c67da09ebbf4eed04b8123c9e0ddf5b55d123968b35b32aa76d27a"
+    },
+    {
+      "path": "leafy_tree_lod/textures/tree_small_02_leaves_nor_gl_1k.jpg",
+      "bytes": 681604,
+      "sha256": "8c72e04fb23e16ae1df79c01385a638473d1dd4dede3d51e83d70153c129f09b"
+    },
+    {
+      "path": "leafy_tree_lod/textures/tree_small_02_leaves_diff_1k.jpg",
+      "bytes": 340003,
+      "sha256": "261e7d7a5ac7d2e16ea8823ff8510be8f3f615999724232994039ad2885e5c36"
+    },
+    {
+      "path": "leafy_tree_lod/textures/tree_small_02_leaves_arm_1k.jpg",
+      "bytes": 633698,
+      "sha256": "71f81374daf5a8f3e6eb2c694264a1769fdb0bea508178e4105618eecea83c3e"
+    },
+    {
+      "path": "leafy_tree_lod/textures/tree_small_02_nor_gl_1k.jpg",
+      "bytes": 1228646,
+      "sha256": "9c83be074c950ea1b94c732c0c0291b53b9ba357f932d378bafe3ca3b4418871"
+    },
+    {
+      "path": "leafy_tree_lod/textures/tree_small_02_diff_1k.jpg",
+      "bytes": 863246,
+      "sha256": "4e0093f407b3a1120a36de49a48ebe5a465a9a9b77e361c7a3e66866e115e404"
+    },
+    {
+      "path": "leafy_tree_lod/textures/tree_small_02_arm_1k.jpg",
+      "bytes": 708242,
+      "sha256": "891c5a1bb124292984b01558e9f2b0302d27d2fa3ccf9dfc6c34f9ea4ca24e6c"
+    },
+    {
+      "path": "leafy_tree_lod/model.bin",
+      "bytes": 3331352,
+      "sha256": "64d225f2dcd517a899bf4e4dd8cca08a176f8b8f0aea2950ffaeef8cd67b2b24"
+    },
+    {
+      "path": "leafy_tree_lod/model.gltf",
+      "bytes": 4458,
+      "sha256": "6eab521ebc31625d5c0bea55b44b558fa506e775477103513c58e6f522317d7c"
+    },
+    {
+      "path": "leafy_tree_lod/provenance.json",
+      "bytes": 10669,
+      "sha256": "b7eb6be1942e7fb163855935b54c28d21181a48495c0a7ed7ff294730628e4a0"
+    }
+  ]
+}

@@ -1,0 +1,254 @@
+{
+  "id": "baegyangri-gangchon-osm",
+  "from": "백양리",
+  "to": "강촌",
+  "geometry": "osm-rail",
+  "license": "ODbL-1.0",
+  "attribution": "© OpenStreetMap contributors",
+  "copyrightUrl": "https://www.openstreetmap.org/copyright",
+  "licenseUrl": "https://opendatacommons.org/licenses/odbl/1-0/",
+  "source": "https://api.openstreetmap.org/api/0.6/map.json?bbox=127.585,37.801,127.637,37.835",
+  "retrievedAt": "2026-11-02T14:56:04.564883+00:00",
+  "wayIds": [
+    273312665,
+    273312666,
+    273386365,
+    273386366,
+    273386367,
+    273386368,
+    273483699,
+    273483700
+  ],
+  "endpointOffsetsMeters": [
+    14.2,
+    3.2
+  ],
+  "note": "Horizontal rail centerline candidate only; elevation, direction of travel and tunnels not field-verified. Tunnel segments use above-ground viewing.",
+  "points": [
+    {
+      "lon": 127.5891698,
+      "lat": 37.8307979,
+      "tunnel": false
+    },
+    {
+      "lon": 127.5905294,
+      "lat": 37.8305941,
+      "tunnel": false
+    },
+    {
+      "lon": 127.5955312,
+      "lat": 37.8298861,
+      "tunnel": false
+    },
+    {
+      "lon": 127.5970175,
+      "lat": 37.8296717,
+      "tunnel": false
+    },
+    {
+      "lon": 127.5983265,
+      "lat": 37.8294714,
+      "tunnel": false
+    },
+    {
+      "lon": 127.5991754,
+      "lat": 37.8293029,
+      "tunnel": false
+    },
+    {
+      "lon": 127.5997103,
+      "lat": 37.8291733,
+      "tunnel": false
+    },
+    {
+      "lon": 127.6002065,
+      "lat": 37.8290262,
+      "tunnel": false
+    },
+    {
+      "lon": 127.6005786,
+      "lat": 37.8289073,
+      "tunnel": false
+    },
+    {
+      "lon": 127.6009445,
+      "lat": 37.8287852,
+      "tunnel": false
+    },
+    {
+      "lon": 127.6011845,
+      "lat": 37.8287006,
+      "tunnel": false
+    },
+    {
+      "lon": 127.6015741,
+      "lat": 37.8285377,
+      "tunnel": false
+    },
+    {
+      "lon": 127.6019783,
+      "lat": 37.8283449,
+      "tunnel": true
+    },
+    {
+      "lon": 127.602443,
+      "lat": 37.8280609,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6031962,
+      "lat": 37.8276254,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6039703,
+      "lat": 37.8270877,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6046001,
+      "lat": 37.8265576,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6052669,
+      "lat": 37.8259161,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6057814,
+      "lat": 37.8253214,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6062209,
+      "lat": 37.8247504,
+      "tunnel": false
+    },
+    {
+      "lon": 127.6063545,
+      "lat": 37.8245543,
+      "tunnel": false
+    },
+    {
+      "lon": 127.6067881,
+      "lat": 37.8238972,
+      "tunnel": false
+    },
+    {
+      "lon": 127.6069672,
+      "lat": 37.8236258,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6141883,
+      "lat": 37.8124385,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6147548,
+      "lat": 37.8116201,
+      "tunnel": true
+    },
+    {
+      "lon": 127.615347,
+      "lat": 37.8108149,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6161061,
+      "lat": 37.809988,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6169939,
+      "lat": 37.8091959,
+      "tunnel": true
+    },
+    {
+      "lon": 127.617953,
+      "lat": 37.808508,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6189599,
+      "lat": 37.8079045,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6199314,
+      "lat": 37.8074345,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6210322,
+      "lat": 37.806964,
+      "tunnel": true
+    },
+    {
+      "lon": 127.622111,
+      "lat": 37.8065745,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6232917,
+      "lat": 37.8062499,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6242584,
+      "lat": 37.8060358,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6252073,
+      "lat": 37.8058481,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6262888,
+      "lat": 37.8056811,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6273145,
+      "lat": 37.8055641,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6281068,
+      "lat": 37.8055272,
+      "tunnel": true
+    },
+    {
+      "lon": 127.6289544,
+      "lat": 37.8055746,
+      "tunnel": false
+    },
+    {
+      "lon": 127.6292507,
+      "lat": 37.8055845,
+      "tunnel": false
+    },
+    {
+      "lon": 127.6294697,
+      "lat": 37.805592,
+      "tunnel": false
+    },
+    {
+      "lon": 127.6306298,
+      "lat": 37.8056318,
+      "tunnel": false
+    },
+    {
+      "lon": 127.6330027,
+      "lat": 37.8056899,
+      "tunnel": false
+    },
+    {
+      "lon": 127.6341157,
+      "lat": 37.8057393,
+      "tunnel": false
+    }
+  ]
+}

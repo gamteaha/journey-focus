@@ -1,0 +1,128 @@
+{
+  "metadataUrl": "https://api.polyhaven.com/assets?t=models",
+  "filesUrl": "https://api.polyhaven.com/files/shrub_sorrel_01",
+  "providerMetadata": {
+    "date_published": 1649376000,
+    "name": "Shrub Sorrel 01",
+    "type": 2,
+    "authors": {
+      "Rico Cilliers": "All"
+    },
+    "categories": [
+      "plants",
+      "flowers",
+      "nature",
+      "collection: smugglers_cove"
+    ],
+    "tags": [
+      "nature",
+      "sorrel",
+      "potplant",
+      "bush",
+      "shrub",
+      "leaf",
+      "leaves",
+      "green",
+      "small",
+      "forest",
+      "field",
+      "floral",
+      "flower"
+    ],
+    "max_resolution": [
+      8192,
+      8192
+    ],
+    "polycount": 3319,
+    "texel_density": 168223.46231941675,
+    "dimensions": [
+      352.09934413433075,
+      146.4103851467371,
+      58.00368043128401
+    ],
+    "files_hash": "65530d7157644eab84ae2b32da08acd26efa07f6",
+    "description": "Free 8K model of small sorrel shrubs: clusters of round scalloped green leaves on thin stems, subtle edge wear and delicate pink five-petaled flowers.",
+    "category_id": "f85fb5e2-abfd-5de4-9860-c9c3d04f12df",
+    "category": "Nature/Plants/Shrubs & Bushes",
+    "collections": [
+      "smugglers_cove"
+    ],
+    "attributes": {
+      "condition": [
+        "clean"
+      ],
+      "material": [
+        "plant"
+      ]
+    },
+    "img_version": "079989cc",
+    "download_count": 47348,
+    "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/shrub_sorrel_01.png?width=256&height=256&format=webp&v=079989cc"
+  },
+  "providerGltf": {
+    "include": {
+      "textures/shrub_sorrel_01_nor_gl_1k.jpg": {
+        "size": 470891,
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_sorrel_01/shrub_sorrel_01_nor_gl_1k.jpg",
+        "md5": "71c6c432b91a8d64f2c480366fd61dfb"
+      },
+      "shrub_sorrel_01.bin": {
+        "size": 110936,
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/shrub_sorrel_01/shrub_sorrel_01.bin",
+        "md5": "5b6481fc43f4dc36ab4e80d79a19119f"
+      },
+      "textures/shrub_sorrel_01_arm_1k.jpg": {
+        "size": 201949,
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_sorrel_01/shrub_sorrel_01_arm_1k.jpg",
+        "md5": "6230445a48867ef8196ee1ab052d346d"
+      },
+      "textures/shrub_sorrel_01_diff_1k.jpg": {
+        "size": 385129,
+        "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/shrub_sorrel_01/shrub_sorrel_01_diff_1k.jpg",
+        "md5": "bef299def81bd55c2b378d53dad803b5"
+      }
+    },
+    "size": 17428,
+    "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/shrub_sorrel_01/shrub_sorrel_01_1k.gltf",
+    "md5": "d56d50a8492bd7d7c7a0a571f42239c6"
+  },
+  "selectedNode": 4,
+  "selectedName": "shrub_sorrel_01_d",
+  "selectedPlantTriangles": 990,
+  "clumpTriangles": 2970,
+  "selectedPlantBoundsMin": [
+    -0.028412042185664177,
+    -0.0006238591740839183,
+    -0.025109700858592987
+  ],
+  "selectedPlantBoundsMax": [
+    0.03251050412654877,
+    0.05378488078713417,
+    0.023555153980851173
+  ],
+  "clumpNodes": [
+    11,
+    12,
+    13
+  ],
+  "boundsMin": [
+    -0.049150235857814556,
+    0.0,
+    -0.037109700858592984
+  ],
+  "boundsMax": [
+    0.05751050412654877,
+    0.05440873996121809,
+    0.04667074166238308
+  ],
+  "dimensionsMeters": [
+    0.10666073998436332,
+    0.05440873996121809,
+    0.08378044252097606
+  ],
+  "suggestedDisplayScale": [
+    6,
+    10
+  ],
+  "note": "Combined bounds from glTF POSITION accessors transformed by each active node scale/translation. Scale 6-10 is an artistic preview size, not a geographic measurement."
+}

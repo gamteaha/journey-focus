@@ -1,0 +1,23 @@
+# Local credentials
+.env
+.env.*
+!.env.example
+.dev.vars*
+*.pem
+
+# Dependencies, generated builds and machine-specific state
+node_modules/
+dist/
+.next/
+.vinext/
+.wrangler/
+.sites-runtime/
+.agents/
+.codex/
+tmp/
+outputs/
+coverage/
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db

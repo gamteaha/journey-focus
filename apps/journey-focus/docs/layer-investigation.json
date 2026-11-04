@@ -1,0 +1,30 @@
+{
+  "dateKST": "2026-11-03",
+  "note": "One camera viewpoint near Baegyang-ri. Selected feature count is a private SDK diagnostic, not a building census or proof of complete regional coverage.",
+  "results": [
+    {
+      "mode": "all",
+      "longitude": 127.58916980000001,
+      "latitude": 37.83079789999999,
+      "altitude": 85.69151054259845,
+      "pitch": -4.000000000000031,
+      "fov": 65,
+      "layerVisible": true,
+      "tilesLoaded": true,
+      "selectedFeatures": 251,
+      "selectedTiles": 16
+    },
+    {
+      "mode": "lod4",
+      "longitude": 127.58916980000001,
+      "latitude": 37.83079789999999,
+      "altitude": 85.69151054259845,
+      "pitch": -4.000000000000031,
+      "fov": 65,
+      "layerVisible": true,
+      "tilesLoaded": true,
+      "selectedFeatures": 0,
+      "selectedTiles": 0
+    }
+  ]
+}

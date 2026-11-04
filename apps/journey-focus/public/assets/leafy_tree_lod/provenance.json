@@ -1,0 +1,287 @@
+{
+  "status": "experimental, not integrated by preparation",
+  "source": "https://polyhaven.com/a/tree_small_02",
+  "license": "CC0-1.0",
+  "providerMetadata": {
+    "metadata": {
+      "date_published": 1682640000,
+      "sponsors": [
+        "11109006"
+      ],
+      "name": "Tree Small 02",
+      "type": 2,
+      "tags": [
+        "tree",
+        "natural",
+        "nature",
+        "plant",
+        "outdoor",
+        "green",
+        "botany",
+        "leaf",
+        "leaves",
+        "forest",
+        "jungle",
+        "foliage",
+        "geometry nodes",
+        "trunk",
+        "bark",
+        "medium",
+        "garden",
+        "branches",
+        "burkea africana",
+        "wild syringa",
+        "small"
+      ],
+      "authors": {
+        "Rico Cilliers": "All"
+      },
+      "info": null,
+      "geonodes": true,
+      "categories": [
+        "nature",
+        "plants",
+        "trees",
+        "collection: verdant_trail"
+      ],
+      "max_resolution": [
+        8192,
+        8192
+      ],
+      "polycount": 4652585,
+      "files_hash": "5fe4637be7454be81ee92fc68a7938b56d20c613",
+      "texel_density": 35294.28602250067,
+      "dimensions": [
+        2921.434998512268,
+        4292.873501777649,
+        4649.933725595474
+      ],
+      "lods": true,
+      "description": "Free 8K model: small tree with a slender curved trunk, detailed bark and branches, and a dense, airy canopy of clustered green leaves.",
+      "category_id": "accb9301-4212-5378-9483-fc02b73a900a",
+      "category": "Nature/Trees/Broadleaf Trees",
+      "collections": [
+        "verdant_trail"
+      ],
+      "attributes": {
+        "condition": [
+          "clean"
+        ],
+        "material": [
+          "wood"
+        ],
+        "lods": true,
+        "geonodes": true
+      },
+      "img_version": "3743831d",
+      "download_count": 164505,
+      "thumbnail_url": "https://cdn.polyhaven.com/asset_img/thumbs/tree_small_02.png?width=256&height=256&format=webp&v=3743831d"
+    },
+    "gltf": {
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/tree_small_02/tree_small_02_1k.gltf",
+      "md5": "63f42b19687332f7b3a5c8b531734d8e",
+      "size": 9075,
+      "include": {
+        "textures/tree_small_02_branch_nor_gl_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_branch_nor_gl_1k.jpg",
+          "md5": "00a3eed0d4d28e7e890d9ec6ac0619af",
+          "size": 581596
+        },
+        "textures/tree_small_02_branch_diff_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_branch_diff_1k.jpg",
+          "md5": "88b531469f5dba2fc44ca85df3776e7c",
+          "size": 449977
+        },
+        "textures/tree_small_02_branch_arm_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_branch_arm_1k.jpg",
+          "md5": "9ec3d8428295d87ae363bf0d1e0a8288",
+          "size": 375732
+        },
+        "textures/tree_small_02_leaves_nor_gl_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_leaves_nor_gl_1k.jpg",
+          "md5": "b06c87e73f54d9654f66d67e9de7aa85",
+          "size": 681604
+        },
+        "textures/tree_small_02_leaves_diff_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_leaves_diff_1k.jpg",
+          "md5": "315cbc2cebfb399e649ccd39112c109a",
+          "size": 340003
+        },
+        "textures/tree_small_02_leaves_arm_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_leaves_arm_1k.jpg",
+          "md5": "3dad5bafc732f7692db32a262530bbab",
+          "size": 633698
+        },
+        "textures/tree_small_02_nor_gl_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_nor_gl_1k.jpg",
+          "md5": "115a20da8621cd3e034e9b1bbe574746",
+          "size": 1228646
+        },
+        "textures/tree_small_02_diff_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_diff_1k.jpg",
+          "md5": "a7287a3f4e7f0d4577cb949b245f5b14",
+          "size": 863246
+        },
+        "textures/tree_small_02_arm_1k.jpg": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_arm_1k.jpg",
+          "md5": "44b6ed4bf32d7cd67cb3e9d5faeacc38",
+          "size": 708242
+        },
+        "tree_small_02.bin": {
+          "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/tree_small_02/tree_small_02.bin",
+          "md5": "7a7019a87e6fe0d7475c0fa2e08d8962",
+          "size": 95102324
+        }
+      }
+    },
+    "metadataUrl": "https://api.polyhaven.com/assets?t=models",
+    "filesUrl": "https://api.polyhaven.com/files/tree_small_02"
+  },
+  "originalFiles": [
+    {
+      "path": "model.gltf",
+      "bytes": 9075,
+      "sha256": "3062a709614c05b80fdc1e56583998bc3cb1027b0d52f956c8ecfb882ff8ca6d",
+      "providerMd5": "63f42b19687332f7b3a5c8b531734d8e",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/1k/tree_small_02/tree_small_02_1k.gltf"
+    },
+    {
+      "path": "textures/tree_small_02_branch_nor_gl_1k.jpg",
+      "bytes": 581596,
+      "sha256": "a2efae9e7fede259601188cd5cb7e561fc502bd87e04d862a9532b2d8e647a62",
+      "providerMd5": "00a3eed0d4d28e7e890d9ec6ac0619af",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_branch_nor_gl_1k.jpg"
+    },
+    {
+      "path": "textures/tree_small_02_branch_diff_1k.jpg",
+      "bytes": 449977,
+      "sha256": "a71b768e330c0c6cca097e30314f6b4e842ef724a1370f6aab14b4434eec64cb",
+      "providerMd5": "88b531469f5dba2fc44ca85df3776e7c",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_branch_diff_1k.jpg"
+    },
+    {
+      "path": "textures/tree_small_02_branch_arm_1k.jpg",
+      "bytes": 375732,
+      "sha256": "8968b46d76c67da09ebbf4eed04b8123c9e0ddf5b55d123968b35b32aa76d27a",
+      "providerMd5": "9ec3d8428295d87ae363bf0d1e0a8288",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_branch_arm_1k.jpg"
+    },
+    {
+      "path": "textures/tree_small_02_leaves_nor_gl_1k.jpg",
+      "bytes": 681604,
+      "sha256": "8c72e04fb23e16ae1df79c01385a638473d1dd4dede3d51e83d70153c129f09b",
+      "providerMd5": "b06c87e73f54d9654f66d67e9de7aa85",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_leaves_nor_gl_1k.jpg"
+    },
+    {
+      "path": "textures/tree_small_02_leaves_diff_1k.jpg",
+      "bytes": 340003,
+      "sha256": "261e7d7a5ac7d2e16ea8823ff8510be8f3f615999724232994039ad2885e5c36",
+      "providerMd5": "315cbc2cebfb399e649ccd39112c109a",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_leaves_diff_1k.jpg"
+    },
+    {
+      "path": "textures/tree_small_02_leaves_arm_1k.jpg",
+      "bytes": 633698,
+      "sha256": "71f81374daf5a8f3e6eb2c694264a1769fdb0bea508178e4105618eecea83c3e",
+      "providerMd5": "3dad5bafc732f7692db32a262530bbab",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_leaves_arm_1k.jpg"
+    },
+    {
+      "path": "textures/tree_small_02_nor_gl_1k.jpg",
+      "bytes": 1228646,
+      "sha256": "9c83be074c950ea1b94c732c0c0291b53b9ba357f932d378bafe3ca3b4418871",
+      "providerMd5": "115a20da8621cd3e034e9b1bbe574746",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_nor_gl_1k.jpg"
+    },
+    {
+      "path": "textures/tree_small_02_diff_1k.jpg",
+      "bytes": 863246,
+      "sha256": "4e0093f407b3a1120a36de49a48ebe5a465a9a9b77e361c7a3e66866e115e404",
+      "providerMd5": "a7287a3f4e7f0d4577cb949b245f5b14",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_diff_1k.jpg"
+    },
+    {
+      "path": "textures/tree_small_02_arm_1k.jpg",
+      "bytes": 708242,
+      "sha256": "891c5a1bb124292984b01558e9f2b0302d27d2fa3ccf9dfc6c34f9ea4ca24e6c",
+      "providerMd5": "44b6ed4bf32d7cd67cb3e9d5faeacc38",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/1k/tree_small_02/tree_small_02_arm_1k.jpg"
+    },
+    {
+      "path": "tree_small_02.bin",
+      "bytes": 95102324,
+      "sha256": "8da6c3c389ad8748286d1b7488cd827f75ebdad9d8f59ef7dfb0916df5edc634",
+      "providerMd5": "7a7019a87e6fe0d7475c0fa2e08d8962",
+      "sourceUrl": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/tree_small_02/tree_small_02.bin"
+    }
+  ],
+  "tool": {
+    "name": "gltfpack",
+    "version": "1.3",
+    "binarySha256": "a082a0db2332908133100332caeeddaa304afcf5e8094adc755ebdea8c720984",
+    "archiveSha256": "f6e9c09d66af23da3da71b86f0652d2413e81c734e0aecd1cd3d0e6e6e8645c0",
+    "release": "https://github.com/zeux/meshoptimizer/releases/tag/v1.3",
+    "options": [
+      "-si",
+      "0.025",
+      "-se",
+      "0.0045",
+      "-sv",
+      "-sp",
+      "-noq",
+      "-km",
+      "-tr",
+      "-kv"
+    ]
+  },
+  "before": {
+    "triangles": 2062487,
+    "boundsMin": [
+      -1.3089934587478638,
+      -0.02410384640097618,
+      -1.3826267719268799
+    ],
+    "boundsMax": [
+      1.6077065467834473,
+      4.532637119293213,
+      2.9098503589630127
+    ],
+    "dimensionsMeters": [
+      2.916700005531311,
+      4.556740965694189,
+      4.292477130889893
+    ]
+  },
+  "after": {
+    "triangles": 58792,
+    "boundsMin": [
+      -1.3083008527755737,
+      -0.024031998589634895,
+      -1.360244631767273
+    ],
+    "boundsMax": [
+      1.5974994897842407,
+      4.51993465423584,
+      2.8509068489074707
+    ],
+    "dimensionsMeters": [
+      2.9058003425598145,
+      4.543966652825475,
+      4.211151480674744
+    ]
+  },
+  "dimensionRelativeDeviation": [
+    0.003736984589030808,
+    0.00280338798384346,
+    0.018946088175964014
+  ],
+  "acceptedExperimentalBoundsTolerance": 0.03,
+  "triangleRatio": 0.028505391791560385,
+  "displayScaleForHeight8To10Meters": [
+    1.7605763006701505,
+    2.200720375837688
+  ],
+  "compatibilityNote": "Preserves source KHR_texture_transform, UV0/UV1, BLEND, double-sided and normal-map materials. No new required extension. Old VWorld SDK UV-transform compatibility remains subject to visual verification.",
+  "changes": "Geometry simplified by official gltfpack; original raster bytes and exact source material properties retained. No geometry rescaling to conceal silhouette shrinkage."
+}
