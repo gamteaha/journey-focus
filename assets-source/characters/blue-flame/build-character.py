@@ -8,6 +8,7 @@ import sys
 import numpy as np
 from pathlib import Path
 from mathutils import Vector, Quaternion
+from mathutils.bvhtree import BVHTree
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
@@ -56,61 +57,6 @@ for mat in materials.values():
     model.data.materials.append(mat)
 indices = {name:i for i,name in enumerate(materials)}
 
-def ellipse(x,z,cx,cz,rx,rz):
-    return ((x-cx)/rx)**2 + ((z-cz)/rz)**2 < 1
-
-def width_at(z):
-    samples = [(.30,.015),(.34,.11),(.40,.158),(.47,.17),(.53,.155),(.58,.125),(.63,.077),(.71,0)]
-    for (a,x),(b,y) in zip(samples,samples[1:]):
-        if a <= z <= b:
-            return x+(y-x)*(z-a)/(b-a)
-    return 0
-
-def region(p):
-    x,y,z = p / HEIGHT
-    face_x = x + .012
-    if z >= .295:
-        if y < -.065:
-            if ellipse(x,z,-.112,.636,.034,.038) or ellipse(x,z,.098,.636,.034,.038):
-                return 'Ivory'
-            if abs(face_x) < width_at(z):
-                if any(ellipse(face_x,z,s*.108,.449,.043,.035) for s in (-1,1)):
-                    return 'Cheeks'
-                if any(ellipse(face_x,z,s*.061,.519,.027,.030) for s in (-1,1)):
-                    return 'Eyes'
-                if .025 < abs(face_x) < .103 and abs(z-(.548+.18*abs(face_x))) < .007:
-                    return 'Eyes'
-                if ellipse(face_x,z,0,.480,.019,.012):
-                    return 'Nose'
-                if abs(face_x) < .036 and abs(z-(.418+.007*(face_x/.036)**2)) < .0035:
-                    return 'Mouth'
-                return 'Ivory'
-        return 'Flame'
-    # The tail is behind the body, not the sleeve on the same side.
-    if x > .055 and y > .06 and z < .18:
-        return 'Flame'
-    if z < .10:
-        return 'Ivory' if z < .027 else 'Trousers'
-    if z > .280 and abs(x) < .075:
-        return 'Ivory'
-    if abs(x) > .080 and .12 < z < .280:
-        if .145 < z < .172:
-            return 'Ivory' if (.150 < z < .154 or .162 < z < .166) else 'Suit'
-        return 'Ivory'
-    if .104 < z < .110:
-        return 'Ivory'
-    if y < -.025:
-        if abs(x) < .0035 and any(abs(z-v) < .0035 for v in [.16,.19,.22,.25]):
-            return 'Ivory'
-        # Small varsity I on the original jacket's chest.
-        if .036 < x < .056 and (.212 < z < .216 or .235 < z < .239 or (.043 < x < .049 and .212 < z < .239)):
-            return 'Ivory'
-    return 'Suit'
-
-for face in model.data.polygons:
-    center = sum((model.data.vertices[i].co for i in face.vertices),Vector()) / len(face.vertices)
-    face.material_index = indices[region(center)]
-
 # Paint into an unwrapped atlas instead of assigning triangle-shaped colour
 # boundaries. Every texel is evaluated from its original 3D surface position.
 bpy.context.view_layer.objects.active = model
@@ -118,13 +64,106 @@ bpy.ops.object.mode_set(mode='EDIT')
 bpy.ops.mesh.select_all(action='SELECT')
 bpy.ops.uv.smart_project(angle_limit=math.radians(66),island_margin=.012)
 bpy.ops.object.mode_set(mode='OBJECT')
+# Give front-visible surfaces continuous planar charts. Smart projection alone
+# cuts raised brows/ears into tiny islands; a cylinder overlaps the front and
+# back of an ear. Hidden/side surfaces retain unique smart-projected charts.
+uv_layer = model.data.uv_layers.active.data
+bvh = BVHTree.FromPolygons([v.co for v in model.data.vertices],[p.vertices[:] for p in model.data.polygons],all_triangles=True)
+front_visible = []
+for polygon in model.data.polygons:
+    vertices = [model.data.vertices[i].co / HEIGHT for i in polygon.vertices]
+    center = polygon.center
+    hit,_,_,_ = bvh.ray_cast(Vector((center.x,-HEIGHT,center.z)),Vector((0,1,0)))
+    visible = hit is not None and abs(hit.y-center.y)<HEIGHT*.0005
+    front_visible.append(visible)
+    head_chart = min(p.z for p in vertices)>=.29
+    if visible:
+        for loop,p in zip(polygon.loop_indices,vertices):
+            if head_chart:
+                uv_layer[loop].uv = (.015+.675*(p.x+.28)/.57,.34+.645*(p.z-.29)/.71)
+            else:
+                uv_layer[loop].uv = (.015+.675*(p.x+.23)/.54,.015+.30*p.z/.30)
+    else:
+        for loop in polygon.loop_indices:
+            old = uv_layer[loop].uv.copy()
+            uv_layer[loop].uv = (.72+.265*old.x,(.34+.645*old.y) if head_chart else (.015+.30*old.y))
+# Repack the hidden head by itself. Reusing a shrunken whole-character unwrap
+# wastes most of this chart and makes single-texel white specks near the ears.
+hidden_head = [p.index for p in model.data.polygons if not front_visible[p.index] and min(model.data.vertices[i].co.z for i in p.vertices)>=HEIGHT*.29]
+bpy.context.tool_settings.mesh_select_mode = (False,False,True)
+bpy.ops.object.mode_set(mode='EDIT')
+bpy.ops.mesh.select_all(action='DESELECT')
+bpy.ops.object.mode_set(mode='OBJECT')
+for index in hidden_head:
+    model.data.polygons[index].select = True
+bpy.ops.object.mode_set(mode='EDIT')
+bpy.ops.uv.smart_project(angle_limit=math.radians(89),island_margin=.025,margin_method='FRACTION')
+bpy.ops.object.mode_set(mode='OBJECT')
+uv_layer = model.data.uv_layers.active.data
+for index in hidden_head:
+    polygon = model.data.polygons[index]
+    for loop in polygon.loop_indices:
+        old = uv_layer[loop].uv.copy()
+        uv_layer[loop].uv = (.72+.265*old.x,.34+.645*old.y)
 palette = {name:np.array([int(color[i:i+2],16)/255 for i in (0,2,4)],dtype=np.float32) for name,color in {
     'Flame':'315fc1','Suit':'263452','Ivory':'f7f6ef','Cheeks':'ffda32','Eyes':'244689','Nose':'244781','Trousers':'d4d9df','Mouth':'39465e'
 }.items()}
 
-def paint(positions):
+# The relief is asymmetric: generic mirrored ellipses put paint below the
+# sculpted eyes/nose and leave blue crescents on the ears. These contours are
+# measured on this mesh, with a dense lookup baked once for fast texel painting.
+landmarks = json.loads((HERE / 'face-paint.json').read_text(encoding='utf8'))
+face_size = 2048
+face_bounds = (-.25,.25,.29,.76)  # xmin,xmax,zmin,zmax, divided by HEIGHT
+face_labels = np.full((face_size,face_size),indices['Flame'],dtype=np.uint8)
+
+def smooth_contour(points):
+    points = np.array(points,dtype=np.float64)
+    result = []
+    for i in range(len(points)):
+        a,b,c,d = (points[j % len(points)] for j in (i-1,i,i+1,i+2))
+        for t in np.linspace(0,1,10,endpoint=False):
+            result.append(.5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t*t+(-a+3*b-3*c+d)*t*t*t))
+    return np.array(result)
+
+def fill_contour(name,color):
+    points = smooth_contour(landmarks['contours'][name])
+    points[:,0] = (points[:,0]-face_bounds[0])/(face_bounds[1]-face_bounds[0])*(face_size-1)
+    points[:,1] = (points[:,1]-face_bounds[2])/(face_bounds[3]-face_bounds[2])*(face_size-1)
+    other = np.roll(points,-1,axis=0)
+    for row in range(max(0,math.ceil(points[:,1].min())),min(face_size,math.floor(points[:,1].max())+1)):
+        crossing = (points[:,1]>row)!=(other[:,1]>row)
+        a,b = points[crossing],other[crossing]
+        hits = np.sort(a[:,0]+(row-a[:,1])*(b[:,0]-a[:,0])/(b[:,1]-a[:,1]))
+        for start,end in zip(hits[::2],hits[1::2]):
+            face_labels[row,max(0,math.ceil(start)):min(face_size,math.floor(end)+1)] = indices[color]
+
+for name in ['face','earLeft','earRight']:
+    fill_contour(name,'Ivory')
+# Cover the bevel at the sculpted white boundary instead of leaving a row of
+# blue pinholes when a triangle crosses the edge of the measured silhouette.
+white = face_labels==indices['Ivory']
+for _ in range(3):
+    white |= np.roll(white,1,axis=0)|np.roll(white,-1,axis=0)|np.roll(white,1,axis=1)|np.roll(white,-1,axis=1)
+face_labels[white] = indices['Ivory']
+for name,color in [('cheekLeft','Cheeks'),('cheekRight','Cheeks'),
+                   ('eyeLeft','Eyes'),('eyeRight','Eyes'),
+                   ('browLeft','Eyes'),('browRight','Eyes'),('nose','Nose'),('mouth','Mouth')]:
+    fill_contour(name,color)
+face_palette = np.array(list(palette.values()))
+
+# Only colour the front relief, not the hidden flame surface behind an ear or
+# the underside behind a brow. A first-hit depth field supplies the 3D check.
+depth_size = 512
+front_depth = np.ones((depth_size,depth_size),dtype=np.float32)
+for row,z in enumerate(np.linspace(face_bounds[2],face_bounds[3],depth_size)):
+    for column,x in enumerate(np.linspace(face_bounds[0],face_bounds[1],depth_size)):
+        hit,_,_,_ = bvh.ray_cast(Vector((x*HEIGHT,-HEIGHT,z*HEIGHT)),Vector((0,1,0)))
+        if hit is not None:
+            front_depth[row,column] = hit.y/HEIGHT
+
+def paint(positions,visible_surface=False):
     x,y,z = (positions / HEIGHT).T
-    xf = x+.012
     colors = np.tile(palette['Suit'],(len(x),1))
     def put(name,mask):
         colors[mask] = palette[name]
@@ -142,27 +181,39 @@ def paint(positions):
     head = z>=.295
     put('Flame',head)
     front = head&(y<-.065)
-    knots = np.array([.30,.34,.40,.47,.53,.58,.63,.71])
-    values = np.array([.015,.11,.158,.17,.155,.125,.077,0])
-    slopes = np.gradient(values,knots)
-    segment = np.clip(np.searchsorted(knots,z)-1,0,len(knots)-2)
-    span = knots[segment+1]-knots[segment]
-    t = np.clip((z-knots[segment])/span,0,1)
-    widths = (2*t**3-3*t**2+1)*values[segment]+(t**3-2*t**2+t)*span*slopes[segment]+(-2*t**3+3*t**2)*values[segment+1]+(t**3-t**2)*span*slopes[segment+1]
-    widths[(z<knots[0])|(z>knots[-1])] = 0
-    face = front&(np.abs(xf)<widths)
-    put('Ivory',face)
+    in_bounds = front&(x>=face_bounds[0])&(x<=face_bounds[1])&(z>=face_bounds[2])&(z<=face_bounds[3])
+    columns = np.clip(np.rint((x-face_bounds[0])/(face_bounds[1]-face_bounds[0])*(face_size-1)).astype(int),0,face_size-1)
+    rows = np.clip(np.rint((z-face_bounds[2])/(face_bounds[3]-face_bounds[2])*(face_size-1)).astype(int),0,face_size-1)
+    depth_columns = np.rint(columns*(depth_size-1)/(face_size-1)).astype(int)
+    depth_rows = np.rint(rows*(depth_size-1)/(face_size-1)).astype(int)
+    if not visible_surface:
+        in_bounds &= y<=front_depth[depth_rows,depth_columns]+.016
+    # At the ear/forehead silhouette one triangle can be partly occluded. An
+    # exact per-texel ray avoids both coarse depth-field holes on the bevel and
+    # white fragments on the flame behind it. Only this small region needs it.
+    for i in np.flatnonzero(in_bounds&(z>.605)):
+        hit,_,_,_ = bvh.ray_cast(Vector((x[i]*HEIGHT,-HEIGHT,z[i]*HEIGHT)),Vector((0,1,0)))
+        if hit is not None and y[i]-hit.y/HEIGHT>.001:
+            in_bounds[i] = False
+    colors[in_bounds] = face_palette[face_labels[rows[in_bounds],columns[in_bounds]]]
     def ell(cx,cz,rx,rz):
         return ((x-cx)/rx)**2+((z-cz)/rz)**2<1
-    put('Ivory',front&(ell(-.112,.636,.034,.038)|ell(.098,.636,.034,.038)))
-    put('Cheeks',face&(ell(-.120,.449,.043,.035)|ell(.096,.449,.043,.035)))
-    put('Eyes',face&(ell(-.073,.519,.027,.030)|ell(.049,.519,.027,.030)))
-    put('Eyes',face&(np.abs(xf)>.025)&(np.abs(xf)<.103)&(np.abs(z-(.548+.18*np.abs(xf)))<.007))
-    put('Nose',face&ell(-.012,.480,.019,.012))
-    put('Mouth',face&(np.abs(xf)<.036)&(np.abs(z-(.418+.007*(xf/.036)**2))<.0035))
     # Small highlights stay with the eye pixels, rather than separate objects.
-    put('Ivory',face&(ell(-.078,.530,.005,.005)|ell(.044,.530,.005,.005)))
+    put('Ivory',front&(ell(-.079,.550,.005,.005)|ell(.048,.550,.005,.005)))
+    # The pale ear/forehead face ends at its bevel. Hidden upper surfaces are
+    # the blue hood; keeping that chart uniformly blue also prevents white
+    # island padding from showing as disconnected flecks in an oblique view.
+    if not visible_surface:
+        put('Flame',head&(z>.605))
     return colors
+
+# Use the same paint function for material labels and the texture so there is
+# no second set of stale feature coordinates after editing a contour.
+centers = np.array([p.center[:] for p in model.data.polygons])
+center_colors = paint(centers,visible_surface=True)
+material_ids = np.argmin(np.sum((center_colors[:,None,:]-face_palette[None,:,:])**2,axis=2),axis=1)
+for face,material_id in zip(model.data.polygons,material_ids):
+    face.material_index = int(material_id)
 
 size = 2048
 pixels = np.ones((size,size,4),dtype=np.float32)
@@ -187,7 +238,7 @@ for face in model.data.polygons:
     if not np.any(inside):
         continue
     world = a[inside,None]*xyz[0]+b[inside,None]*xyz[1]+c[inside,None]*xyz[2]
-    pixels[yy[inside],xx[inside],:3] = paint(world)
+    pixels[yy[inside],xx[inside],:3] = paint(world,visible_surface=front_visible[face.index])
     filled[yy[inside],xx[inside]] = True
 for _ in range(5):
     old = filled.copy()
@@ -241,6 +292,7 @@ rig['avatarHeight'] = HEIGHT
 rig['avatarHipHeight'] = HIP
 rig['sourceModel'] = 'user-supplied white_mesh.glb'
 rig['rigVersion'] = 1
+rig['paintVersion'] = 2
 model.parent = rig
 modifier = model.modifiers.new('Flame armature','ARMATURE')
 modifier.object = rig
@@ -335,7 +387,7 @@ model.select_set(True)
 bpy.context.view_layer.objects.active = rig
 bpy.ops.export_scene.gltf(filepath=str(PUBLIC / 'blue-flame.glb'),export_format='GLB',use_selection=True,export_animations=True,export_animation_mode='ACTIONS',export_anim_single_armature=True,export_extras=True)
 
-report = {'height':HEIGHT,'hipHeight':HIP,'triangles':sum(len(p.vertices)-2 for p in model.data.polygons),'bones':list(groups),'actions':list(actions),'materials':list(materials),'source':'white_mesh.glb','output':'apps/journey-focus/public/models/blue-flame.glb'}
+report = {'height':HEIGHT,'hipHeight':HIP,'triangles':sum(len(p.vertices)-2 for p in model.data.polygons),'bones':list(groups),'actions':list(actions),'materials':list(materials),'paintVersion':2,'faceContours':'face-paint.json','source':'white_mesh.glb','output':'apps/journey-focus/public/models/blue-flame.glb'}
 with (HERE / 'rig-info.json').open('w',encoding='utf8') as handle:
     json.dump(report,handle,ensure_ascii=False,indent=2)
 
@@ -383,7 +435,16 @@ bpy.ops.object.select_all(action='DESELECT')
 model.select_set(True)
 bpy.context.view_layer.objects.active = model
 bpy.ops.wm.save_as_mainfile(filepath=str(HERE / 'blue-flame-rigged.blend'))
-if '--render' in sys.argv or '--render-sit' in sys.argv:
+if '--render-face' in sys.argv:
+    scene.render.resolution_x = 1000
+    scene.render.resolution_y = 1000
+    camera.data.ortho_scale = HEIGHT*.59
+    for name,pos in [('04-face-front',(0,-4,HEIGHT*.515)),('05-face-quarter',(2,-4,HEIGHT*.58))]:
+        camera.location = pos
+        aim(camera,(0,0,HEIGHT*.515))
+        scene.render.filepath = str(REVIEW / (name+'.png'))
+        bpy.ops.render.render(write_still=True)
+elif '--render' in sys.argv or '--render-sit' in sys.argv:
     for name,action,frame,pos in [('01-painted-front','Idle',1,(0,-4,HEIGHT*.56)),('02-walking','Walk',7,(2.5,-4,HEIGHT*.70)),('03-seated','Sit',13,(2.5,-4,HEIGHT*.65))]:
         if '--render-sit' in sys.argv and action != 'Sit':
             continue

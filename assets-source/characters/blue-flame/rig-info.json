@@ -32,6 +32,8 @@
     "Trousers",
     "Mouth"
   ],
+  "paintVersion": 2,
+  "faceContours": "face-paint.json",
   "source": "white_mesh.glb",
   "output": "apps/journey-focus/public/models/blue-flame.glb"
 }

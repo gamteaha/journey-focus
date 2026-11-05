@@ -7,6 +7,7 @@ const out='../../tmp/avatar-qa';await fs.mkdir(out,{recursive:true});let session
 const C=expression=>p.evaluate(expression,session);
 try{
  await p.send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+ await p.send('Page.addScriptToEvaluateOnNewDocument',{source:'localStorage.clear();sessionStorage.clear();'});
  await p.send('Page.navigate',{url:'http://localhost:5173/'});await boardTrain(p,{duration:300,character:'blue'});
  const target=(await p.send('Target.getTargets')).targetInfos.find(t=>t.type==='iframe'&&t.url.includes('/cabin-frame'));
  session=(await p.send('Target.attachToTarget',{targetId:target.targetId,flatten:true})).sessionId;await p.send('Runtime.enable',{},session);
