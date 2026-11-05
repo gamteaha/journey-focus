@@ -70,6 +70,13 @@ test('rejects a foreign Origin and unsupported methods without fetching upstream
  assert.equal((await call(worker,'/api/stations',{method:'POST'})).status,405);
  assert.equal((await call(worker,'/api/unknown')).status,404);
 });
+
+test('accepts all seven supported stations including qualified T Data station names',async()=>{
+ const names=['한양대','뚝섬','성수','건대입구','구의(광진구청)','강변(동서울터미널)','잠실나루'];
+ const worker=createWorker(async()=>Response.json(names.map(stnKrNm=>({lineNm:'2호선',stnKrNm,convX:127.05,convY:37.54}))));
+ const response=await call(worker,'/api/stations');assert.equal(response.status,200);
+ assert.deepEqual((await response.json()).stations.map(s=>s.name),['한양대','뚝섬','성수','건대입구','구의','강변','잠실나루']);
+});
 test('handles missing keys and upstream errors without leaking their details, then allows retry',async()=>{
  let count=0;
  const worker=createWorker(async()=>{

@@ -8,6 +8,7 @@ import {readPreferences,savePreferences} from '/src/preferences.mjs';
 import {CABIN_SEATS} from '/src/cabin.mjs';
 import {createBoarding} from '/boarding.mjs';
 import {characterById,formatDuration} from '/src/boarding.mjs';
+import {recommendJourney,validDuration} from '/src/journey.mjs';
 
 const $ = id => document.getElementById(id);
 let preferenceStorage;
@@ -26,6 +27,16 @@ function publishCabinSession(force=false){
  if(force||key!==lastCabinSession){lastCabinSession=key;cabin.setSession(session);}
 }
 let boarding=null,boardingTicket=null;
+function journeyRecommendation(){return recommendJourney(state.stations,$('from').value,state.duration,state.railShape);}
+function applyRecommendation(){const recommendation=journeyRecommendation();if(recommendation){$('to').value=recommendation.to;chooseRoute();}}
+function changeDuration(duration){
+ if(!validDuration(duration)||['running','paused'].includes(clock.state))return;
+ resetSessionPreview();state.duration=duration;
+ document.querySelectorAll('[data-duration]').forEach(b=>{const selected=Number(b.dataset.duration)===duration;b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));});
+ const recommendation=journeyRecommendation();if(recommendation)$('to').value=recommendation.to;
+ if(state.stations.length>1)chooseRoute();else boarding?.update();
+ saveUserSettings();
+}
 let cabinFailed=false,entryProgress=()=>{},activeEntry=null,entrySequence=0,entryViewId=null,entryViewReady=false;
 function setExperience(mode){
   experienceMode=mode==='window'?'window':'cabin';
@@ -129,9 +140,10 @@ async function loadStations() {
   try {
     const [response, shape] = await Promise.all([
       fetch('/api/stations', { signal: AbortSignal.timeout(25000) }),
-      fetch('/data/seongsu-konkuk.json').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/data/line2-surface.json').then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
     state.railShape = shape;
+    if(!shape?.stationAnchors?.length)throw new Error('실제 선로를 불러오지 못했습니다.');
     if (!response.ok) throw new Error('역 API 연결 실패');
     const data = await response.json();
     if (!Array.isArray(data.stations) || data.stations.length < 2) throw new Error('역 정보가 없습니다');
@@ -276,16 +288,13 @@ function tick(now) {
 $('start').onclick = begin;
 $('pause').onclick = togglePause;
 $('stop').onclick = () => { clock.stop(); update(); finish(); };
-$('from').onchange = chooseRoute; $('to').onchange = chooseRoute;
+$('from').onchange = () => {if(journeyRecommendation())applyRecommendation();else chooseRoute();}; $('to').onchange = chooseRoute;
 $('swap').onclick = () => { const from = $('from').value; $('from').value = $('to').value; $('to').value = from; chooseRoute(); };
 document.querySelectorAll('[data-duration]').forEach(button => {
   button.setAttribute('aria-pressed', String(button.classList.contains('selected')));
   button.onclick = () => {
     resetSessionPreview();
-    state.duration = Number(button.dataset.duration);
-    document.querySelectorAll('[data-duration]').forEach(b => { b.classList.toggle('selected', b === button); b.setAttribute('aria-pressed', String(b === button)); });
-    preview();
-    saveUserSettings();
+    changeDuration(Number(button.dataset.duration));
   };
 });
 function setView(view) {
@@ -303,11 +312,11 @@ $('focus-button').onclick = () => {
 };
 $('map-retry').onclick = loadMap;
 $('retry').onclick = () => { if (state.stationError) loadStations(); if (state.mapFailed) loadMap(); };
-$('about-button').onclick = () => dialog('창밖으로 떠나는 집중.', '<p>Journey Focus는 책상이나 도서관에 앉아, 열차에 타고 이동하는 느낌으로 나만의 집중 시간을 보내는 서비스입니다.</p><h3>작은 여행을 시작하는 방법</h3><ol><li>출발역과 도착역을 선택하세요.</li><li>집중하고 싶은 시간을 정하세요. 처음이라면 1분 체험을 추천해요.</li><li>여정을 시작하고, 잠시 나에게 집중하세요.</li></ol><p>브이월드의 실제 3D 공간정보와 서울시 T Data의 역 좌표를 사용합니다. 기본 구간인 성수–건대입구은 OpenStreetMap 철도 선형을 따라갑니다. 다른 구간은 역 사이 보간 경로입니다. 선로 높이와 열차 시각표는 미검증이며, 터널 구간은 지상에서 조망합니다. 창가 시점의 높이는 설정에 따라 달라지고, 넓게 보기는 항공 조망입니다. 300m 근경 미리보기는 지형 위 약 6m의 재구성 시점이며 실제 선로 표고는 미검증입니다.</p>');
+$('about-button').onclick = () => dialog('창밖으로 떠나는 집중.', '<p>Journey Focus는 책상이나 도서관에 앉아, 열차에 타고 이동하는 느낌으로 나만의 집중 시간을 보내는 서비스입니다.</p><h3>작은 여행을 시작하는 방법</h3><ol><li>출발역과 도착역을 선택하세요.</li><li>집중하고 싶은 시간을 정하세요. 처음이라면 1분 체험을 추천해요.</li><li>여정을 시작하고, 잠시 나에게 집중하세요.</li></ol><p>브이월드의 실제 3D 공간정보와 서울시 T Data의 역 좌표를 사용합니다. 한양대–잠실나루의 지원 구간은 OpenStreetMap 철도 선형을 따라갑니다. 집중시간을 고르면 비슷한 이동 속도로 갈 수 있는 실제 도착역을 추천합니다. 선로 높이와 열차 시각표는 미검증이며, 터널 구간은 지상에서 조망합니다. 창가 시점의 높이는 설정에 따라 달라지고, 넓게 보기는 항공 조망입니다. 300m 근경 미리보기는 지형 위 약 6m의 재구성 시점이며 실제 선로 표고는 미검증입니다.</p>');
 function showData() {
   const time = state.fetchedAt ? new Date(state.fetchedAt).toLocaleString('ko-KR') : '미수신';
   const rail = state.route?.geometry === 'osm-rail';
-  dialog('실제 데이터, 정확한 구분.', `<div class="data-grid"><div class="data-item"><strong>브이월드 3D API 3.0</strong><span>${state.mapReady ? '지도 렌더러 연결됨' : '지도 연결 확인 필요'}</span></div><div class="data-item"><strong>T Data 2호선 역사마스터</strong><span>${state.stations.length}개 역 · 좌표 수신</span></div></div><h3>현재 확인된 것</h3><p>브이월드 공식 SDK를 통해 지도와 지형을 요청합니다. 역 이름과 좌표는 서울특별시 교통정책지원시스템(TAIMS)의 지하철역_GEOM 응답입니다. 수신 시각: ${escape(time)}.</p><h3>지금 선택한 이동 경로</h3><p>${rail ? '성수–건대입구의 OpenStreetMap 철도 선형 13개 좌표를 사용합니다. 공식 OSM API에서 가져온 수평 선형 후보이며, 현장 측량 또는 운영기관 검증 자료는 아닙니다. 터널 구간도 지형 위에서 조망합니다.' : '이 구간은 역 좌표를 연결한 보간 경로입니다. 산이나 건물을 가로지를 수 있으며 실제 선로와 일치하지 않습니다. 기본 구간 성수–건대입구에서는 OSM 철도 선형을 사용할 수 있습니다.'} 표시 거리는 선택한 경로를 계산한 값입니다.</p><h3>아직 검증하지 않은 것</h3><p>선로 높이, 터널 내부, 정차시간과 운행 시각표입니다. 창가 시점은 지형 위 설정한 높이의 조망이며, 넓게 보기는 항공 시점입니다. 실제 열차 창문 높이가 아닙니다. 집중시간에 맞춰 이동하므로 실제 운행시간을 뜻하지 않습니다.</p><h3>데이터 이용과 기록</h3><p>브이월드 지형·3D 자산은 별도 저장하지 않습니다. 여정 기록은 이 브라우저에만 보관됩니다. 화면 우측 FPS는 현재 기기의 지도 렌더 횟수 측정치이며 품질을 보장하는 수치가 아닙니다.</p><p><a href="https://www.vworld.kr/" target="_blank" rel="noopener noreferrer">VWorld 공간정보 오픈플랫폼 ↗</a><br><a href="https://t-data.seoul.go.kr/category/dataviewopenapi.do?data_id=1036" target="_blank" rel="noopener noreferrer">서울특별시 T Data · 지하철역 좌표정보 (저작자 표시) ↗</a><br><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">철도 선형 © OpenStreetMap contributors · ODbL 1.0 ↗</a><br><a href="https://polyhaven.com/license" target="_blank" rel="noopener noreferrer">근경 식생·재질: Poly Haven CC0 ↗</a></p>`, 'DATA & SOURCES');
+  dialog('실제 데이터, 정확한 구분.', `<div class="data-grid"><div class="data-item"><strong>브이월드 3D API 3.0</strong><span>${state.mapReady ? '지도 렌더러 연결됨' : '지도 연결 확인 필요'}</span></div><div class="data-item"><strong>T Data 2호선 역사마스터</strong><span>${state.stations.length}개 역 · 좌표 수신</span></div></div><h3>현재 확인된 것</h3><p>브이월드 공식 SDK를 통해 지도와 지형을 요청합니다. 역 이름과 좌표는 서울특별시 교통정책지원시스템(TAIMS)의 지하철역_GEOM 응답입니다. 수신 시각: ${escape(time)}.</p><h3>지금 선택한 이동 경로</h3><p>${rail ? '한양대–잠실나루의 연결된 OSM 선로 81개 좌표에서 선택한 구간을 사용합니다. 7개 역의 위치를 원래 선로 위에 투영했으며 선로를 건물 회피용으로 옮기지 않았습니다. 실제 높이와 운영 방향은 현장 검증 자료가 아닙니다.' : '이 구간은 역 좌표를 연결한 보간 경로입니다. 산이나 건물을 가로지를 수 있으며 실제 선로와 일치하지 않습니다. 기본 구간 성수–건대입구에서는 OSM 철도 선형을 사용할 수 있습니다.'} 표시 거리는 선택한 경로를 계산한 값입니다.</p><h3>아직 검증하지 않은 것</h3><p>선로 높이, 터널 내부, 정차시간과 운행 시각표입니다. 창가 시점은 지형 위 설정한 높이의 조망이며, 넓게 보기는 항공 시점입니다. 실제 열차 창문 높이가 아닙니다. 집중시간에 맞춰 이동하므로 실제 운행시간을 뜻하지 않습니다.</p><h3>데이터 이용과 기록</h3><p>브이월드 지형·3D 자산은 별도 저장하지 않습니다. 여정 기록은 이 브라우저에만 보관됩니다. 화면 우측 FPS는 현재 기기의 지도 렌더 횟수 측정치이며 품질을 보장하는 수치가 아닙니다.</p><p><a href="https://www.vworld.kr/" target="_blank" rel="noopener noreferrer">VWorld 공간정보 오픈플랫폼 ↗</a><br><a href="https://t-data.seoul.go.kr/category/dataviewopenapi.do?data_id=1036" target="_blank" rel="noopener noreferrer">서울특별시 T Data · 지하철역 좌표정보 (저작자 표시) ↗</a><br><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">철도 선형 © OpenStreetMap contributors · ODbL 1.0 ↗</a><br><a href="https://polyhaven.com/license" target="_blank" rel="noopener noreferrer">근경 식생·재질: Poly Haven CC0 ↗</a></p>`, 'DATA & SOURCES');
 }
 $('data-button').onclick = showData; $('geometry-info').onclick = showData;
 $('history-button').onclick = () => {
@@ -443,12 +452,12 @@ async function enterTrain(ticket,{signal,onProgress=()=>{}}={}){
   await waitForEntry(()=>state.mapReady,()=>state.mapFailed?'창밖 풍경에 연결하지 못했어요. 연결을 확인하고 다시 시도해 주세요.':null,65000,signal);
   onProgress({progress:90,stage:'world',label:'열차가 곧 도착해요.',detail:'처음 보이는 풍경이 채워질 때까지 기다리고 있어요.'});
   entryViewId='entry-'+(++entrySequence);entryViewReady=false;post('entry-prepare',{id:entryViewId,position:positionAt(state.route,0)});
-  await waitForEntry(()=>entryViewReady,()=>state.mapFailed?'창밖 풍경 준비가 중단됐어요. 다시 시도해 주세요.':null,35000,signal);
+  await waitForEntry(()=>entryViewReady,()=>state.mapFailed?'창밖 풍경 준비가 중단됐어요. 다시 시도해 주세요.':null,60000,signal);
   onProgress({progress:98,stage:'world',label:'탑승할 준비가 됐어요.',detail:'객실 문을 열고 있어요.'});
   cabin?.setActive(true);await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);signal?.throwIfAborted();
  }catch(error){if(activeEntry===token){cabin?.setActive(false);if(!signal?.aborted){if(!cabinPrepared)cabinFailed=true;else state.mapFailed=true;}}throw error;}finally{if(activeEntry===token){activeEntry=null;entryProgress=()=>{};}}
 }
-boarding=createBoarding({host:$('boarding-screen'),context:()=>({from:$('from').value,to:$('to').value,duration:state.duration,ready:Boolean(state.route&&state.stations.length>1&&!state.loading&&!state.stationError),error:state.stationError}),onBoarded:enterTrain,onEntered:()=>{document.body.classList.remove('entry-preparing');$('journey-workspace').inert=false;cabin?.setActive(experienceMode==='cabin');},onRetry:loadStations,onOpen:()=>{document.body.classList.remove('entry-preparing');$('journey-workspace').inert=false;cabin?.setActive(false);post('cabin',{active:true});comparison?.close();setControls(false);document.querySelector('.header-center').textContent='다음 여정을 준비하는 시간';}});
+boarding=createBoarding({host:$('boarding-screen'),context:()=>({from:$('from').value,to:$('to').value,duration:state.duration,recommendation:journeyRecommendation(),ready:Boolean(state.route?.geometry==='osm-rail'&&state.stations.length>1&&!state.loading&&!state.stationError),error:state.stationError}),onDurationChange:changeDuration,onApplyRecommendation:applyRecommendation,onBoarded:enterTrain,onEntered:()=>{document.body.classList.remove('entry-preparing');$('journey-workspace').inert=false;cabin?.setActive(experienceMode==='cabin');},onRetry:loadStations,onOpen:()=>{document.body.classList.remove('entry-preparing');$('journey-workspace').inert=false;cabin?.setActive(false);post('cabin',{active:true});comparison?.close();setControls(false);document.querySelector('.header-center').textContent='다음 여정을 준비하는 시간';}});
 $('boarding-reopen').onclick=()=>{if(['running','paused'].includes(clock.state)){dialog('나의 승차권', '<p>'+escape(boardingTicket.from)+' → '+escape(boardingTicket.to)+'</p><div class="result-big">'+escape(formatDuration(boardingTicket.duration))+'</div><p>'+escape(characterById(boardingTicket.character).name)+' · '+escape(boardingTicket.id)+'</p><p>여정을 마친 뒤 새 승차권을 준비할 수 있어요.</p>','MY BOARDING PASS');}else boarding.open();};
 setupGameHUD();
 document.querySelector('.header-center').textContent='다음 여정을 준비하는 시간';

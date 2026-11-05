@@ -13,7 +13,7 @@ test('defaults malformed input without coercion or inherited properties', () => 
 });
 
 test('preserves reversed valid routes and all allowed durations and views', () => {
-  for (const duration of [60, 300, 1500, 3000, 3600, 7200]) {
+  for (const duration of [60, 120, 300, 2220, 1500, 3000, 3600, 5400, 7200]) {
     const value = { from: '춘천', to: '신내', duration, view: 'overview' };
     assert.deepEqual(normalizePreferences(value), value);
   }
@@ -22,7 +22,7 @@ test('preserves reversed valid routes and all allowed durations and views', () =
 test('rejects unknown stations, identical endpoints, and invalid duration types', () => {
   assert.deepEqual(normalizePreferences({ from: 'unknown', to: null }), defaults);
   assert.deepEqual(normalizePreferences({ from: '춘천', to: '춘천' }), defaults);
-  for (const duration of [0, -60, 120, NaN, Infinity, '300', new Number(300), null]) {
+  for (const duration of [0, -60, 90, 7260, NaN, Infinity, '300', new Number(300), null]) {
     assert.equal(normalizePreferences({ duration }).duration, 1500);
   }
   assert.deepEqual(normalizePreferences({ from: '강촌' }), defaults);

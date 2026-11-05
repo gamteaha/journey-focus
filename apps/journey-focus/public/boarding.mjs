@@ -1,4 +1,5 @@
 import {CHARACTERS,characterById,createBoardingPass,formatDuration,cardTouchesReader,createTicketCut} from '/src/boarding.mjs';
+import {createJourneyPicker} from '/journey-picker.mjs';
 
 function createBoardingFeedback(){
  let context,utterance,enabled=true;
@@ -12,7 +13,7 @@ function createBoardingFeedback(){
 
 const avatar=(id='blue')=>`<svg class="pass-avatar" viewBox="0 0 160 190" aria-hidden="true" style="--avatar-color:${characterById(id).color};--avatar-suit:${characterById(id).suit}"><ellipse cx="80" cy="177" rx="36" ry="6" fill="#173d2f" opacity=".08"/><path d="M55 135q-18 8-16 27l12 2 10-19m44-10q18 8 16 27l-12 2-10-19" fill="#e6e9e0"/><path d="M60 158v18q8 10 16 0v-16m8 0v16q8 10 16 0v-18" fill="var(--avatar-suit)"/><path d="M55 134q25-13 50 0l4 28q-29 18-58 0z" fill="var(--avatar-suit)"/><path d="M80 7c-4 28-35 37-44 65-16 45 8 70 44 70s60-25 44-70c-2-9-4-18-2-27-7 5-11 12-12 18C103 37 91 24 80 7z" fill="var(--avatar-color)"/><circle cx="56" cy="78" r="12" fill="#f8f8ec"/><circle cx="104" cy="78" r="12" fill="#f8f8ec"/><path d="M80 68c-13 11-31 27-31 43 0 22 62 22 62 0 0-16-18-32-31-43z" fill="#fbfaf2"/><ellipse cx="66" cy="101" rx="4" ry="5" fill="#294776"/><ellipse cx="94" cy="101" rx="4" ry="5" fill="#294776"/><circle cx="59" cy="113" r="7" fill="#f4d263"/><circle cx="101" cy="113" r="7" fill="#f4d263"/><path d="M75 111q5-5 10 0-1 6-5 6t-5-6m-2 9q7 6 14 0" fill="none" stroke="#294776" stroke-width="3" stroke-linecap="round"/><path d="M80 135v26" stroke="#e2e7dc" stroke-width="1.5" stroke-dasharray="2 5"/></svg>`;
 
-export function createBoarding({host,context,onBoarded,onEntered,onRetry,onOpen}){
+export function createBoarding({host,context,onBoarded,onEntered,onRetry,onOpen,onDurationChange,onApplyRecommendation}){
  let character='blue',medium='ticket',issued=null,busy=false,completed=false,drag=null;
  let enterAttempt=0,entryAbort,loadingProgress=0;
  const feedback=createBoardingFeedback();
@@ -21,12 +22,12 @@ export function createBoarding({host,context,onBoarded,onEntered,onRetry,onOpen}
  <div class="boarding-station" aria-hidden="true"><span class="station-line">02</span><span>FOCUS LINE</span><i></i><span>YOUR NEXT STOP</span></div>
  <section class="boarding-panel boarding-choose" id="boarding-choose" aria-labelledby="boarding-title">
   <div class="boarding-heading"><div><span class="boarding-eyebrow">JOURNEY FOCUS · TICKET OFFICE</span><h1 id="boarding-title">오늘의 여정을 발급하세요.</h1><p>어디로, 얼마나, 누구와 떠날까요?</p></div><div class="boarding-medium" role="group" aria-label="승차권 종류"><button data-medium="ticket">종이 승차권</button><button data-medium="card">교통카드</button></div></div>
-  <div class="pass-size-stage" id="pass-size-stage"><div class="boarding-pass" id="boarding-pass">
+  <div class="pass-size-stage" id="pass-size-stage"><div class="boarding-pass-slot" id="boarding-pass-slot"><div class="boarding-pass" id="boarding-pass">
    <img class="card-front-image" id="card-choice-art" src="/images/inu-transit-card.jpg" alt="인천대학교 횃불이 교통카드 앞면" draggable="false" hidden>
    <div class="card-choice-heading"><span class="card-print-brand">JF<small>FOCUS LINE</small></span><div><strong>승 차 권</strong><small>집중 여정 교통카드</small></div><span class="card-contactless" aria-hidden="true">)))</span></div>
-   <div class="pass-main"><div class="pass-masthead"><strong>FOCUS EXPRESS <span>↗</span></strong><span>자유석 · 편도</span></div><div class="boarding-field-title"><span>01</span> 여정 선택</div><div id="boarding-route-fields"></div><div class="boarding-field-title"><span>02</span> 집중시간</div><div id="boarding-duration-fields"></div><div class="pass-fineprint">천천히 흘러가는 풍경과 함께하는 나만의 시간.</div></div>
+   <div class="pass-main"><div class="pass-masthead"><strong>FOCUS EXPRESS <span>↗</span></strong><span>자유석 · 편도</span></div><div class="printed-journey"><small>DEPARTURE</small><strong data-boarding-from>성수</strong><span>↓</span><small>ARRIVAL</small><strong data-boarding-to>건대입구</strong><div>집중시간 <b data-boarding-duration>25분</b></div></div><div class="pass-fineprint">천천히 흘러가는 풍경과 함께하는 나만의 시간.</div></div>
    <aside class="pass-stub"><span class="boarding-eyebrow">YOUR TRAVELER</span><div id="boarding-avatar-preview"></div><strong data-boarding-character>블루</strong><span>기본 캐릭터 · 색상 선택</span><div class="pass-barcode" aria-hidden="true"></div><span class="pass-stub-note">좌석은 열차 안에서<br>직접 골라 주세요.</span></aside>
-  </div><div class="card-journey-fields" id="card-journey-fields" hidden></div></div>
+  </div></div><div class="card-journey-fields journey-booking-fields" id="card-journey-fields"><div class="boarding-field-title"><span>01</span> 어디서 출발할까요?</div><div id="boarding-route-fields"></div><div class="boarding-field-title"><span>02</span> 나에게 필요한 집중시간</div><div id="boarding-duration-fields"></div></div></div>
   <div class="boarding-lower"><fieldset class="boarding-characters"><legend>03 <span>함께할 캐릭터</span></legend><div>${CHARACTERS.map(c=>`<button type="button" data-character="${c.id}" aria-pressed="false" style="--swatch:${c.color}">${avatar(c.id)}<span>${c.name}</span><i aria-hidden="true">✓</i></button>`).join('')}</div></fieldset><div class="boarding-issue"><span id="boarding-summary"></span><button id="boarding-next" disabled>승차권 발급하기 <span>↗</span></button><p id="boarding-status" role="status">노선을 준비하고 있어요.</p><button id="boarding-retry" class="boarding-text-button" hidden>노선 다시 불러오기</button></div></div>
  </section>
  <section class="boarding-panel boarding-inspect" id="boarding-inspect" hidden aria-labelledby="inspect-title">
@@ -53,27 +54,25 @@ export function createBoarding({host,context,onBoarded,onEntered,onRetry,onOpen}
  </section>
  <div class="boarding-foot"><span>BAI · JOURNEY FOCUS</span><span>탑승 후 원하는 자리에 앉으면 여정을 시작할 수 있어요.</span><span>YOUR TIME. YOUR JOURNEY.</span></div>`;
  const $=id=>host.querySelector('#'+id);
- const passMain=$('boarding-pass').querySelector('.pass-main'),passStub=$('boarding-pass').querySelector('.pass-stub');
  // Shared display scale: 5 design pixels per millimetre. Paper dimensions
  // are an app design choice; ID-1 card dimensions are 85.60 x 53.98 mm.
- function fitPasses(){const choosing=!$('boarding-choose').hidden,area=choosing?$('pass-size-stage'):$('boarding-gate'),r=area.getBoundingClientRect(),style=getComputedStyle(area);let height=choosing?r.height:r.height-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom);if(choosing&&medium==='card'&&getComputedStyle(area).flexDirection==='column')height=200;if(r.width>0&&height>0)host.style.setProperty('--pass-zoom',String(Math.min(1.2,r.width/700,height/428)));}
+ function fitPasses(){const choosing=!$('boarding-choose').hidden,area=choosing?$('boarding-pass-slot'):$('boarding-gate'),r=area.getBoundingClientRect(),style=getComputedStyle(area);const height=choosing?r.height:r.height-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom);if(r.width>0&&height>0)host.style.setProperty('--pass-zoom',String(Math.min(1.2,r.width/700,height/428)));}
  const sizeObserver=new ResizeObserver(fitPasses);sizeObserver.observe($('pass-size-stage'));sizeObserver.observe($('boarding-gate'));sizeObserver.observe(host);
  $('boarding-route-fields').append(document.querySelector('.station-selects'),document.querySelector('#route-summary'));
- $('boarding-duration-fields').append(document.querySelector('.durations'));
+ $('boarding-duration-fields').append(document.querySelector('#duration-picker'));
+ const picker=createJourneyPicker({host:$('duration-picker'),context,onChange:onDurationChange,onApply:onApplyRecommendation,onValidityChange:()=>update()});
  const rideBar=document.querySelector('#ride-bar');rideBar.append(document.querySelector('#start'),document.querySelector('#connection'),document.querySelector('#data-button'));
  function update(){
   const c=context(),traveler=characterById(character),p=issued||{...c,character,medium};
   host.dataset.medium=medium;host.style.setProperty('--boarding-color',traveler.color);host.style.setProperty('--boarding-suit',traveler.suit);
-  $('card-choice-art').hidden=medium!=='card';$('card-journey-fields').hidden=medium!=='card';
-  const fieldsParent=medium==='card'?$('card-journey-fields'):$('boarding-pass');
-  if(passMain.parentElement!==fieldsParent){if(medium==='card')fieldsParent.append(passMain);else fieldsParent.insertBefore(passMain,passStub);}
+  $('card-choice-art').hidden=medium!=='card';picker.update(c.recommendation);
   host.querySelectorAll('[data-medium]').forEach(b=>{b.classList.toggle('selected',b.dataset.medium===medium);b.setAttribute('aria-pressed',String(b.dataset.medium===medium));});
   host.querySelectorAll('[data-character]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.character===character)));
   $('boarding-avatar-preview').innerHTML=avatar(character);
   for(const [field,value]of Object.entries({from:p.from||'출발역',to:p.to||'도착역',duration:formatDuration(p.duration),character:characterById(p.character).name,id:p.id||'',date:p.date||''}))host.querySelectorAll(`[data-boarding-${field}]`).forEach(el=>el.textContent=value);
   $('boarding-summary').textContent=c.ready?`${c.from} → ${c.to} · ${formatDuration(c.duration)}`:'여정을 준비하고 있어요';
-  $('boarding-next').disabled=!c.ready||busy;$('boarding-next').innerHTML=medium==='card'?'교통카드 준비하기 <span>↗</span>':'승차권 발급하기 <span>↗</span>';
-  $('boarding-status').textContent=c.error?'노선을 불러오지 못했어요. 다시 시도해 주세요.':c.ready?'선택한 시간에 맞춰 풍경이 흘러가요.':'노선을 준비하고 있어요.';$('boarding-retry').hidden=!c.error;
+  $('boarding-next').disabled=!c.ready||!picker.valid||busy;$('boarding-next').innerHTML=medium==='card'?'교통카드 준비하기 <span>↗</span>':'승차권 발급하기 <span>↗</span>';
+  $('boarding-status').textContent=c.error?'노선을 불러오지 못했어요. 다시 시도해 주세요.':!picker.valid?'1분부터 2시간까지 골라 주세요.':c.ready?'시간을 바꾸면 어울리는 실제 도착역을 추천해요.':'노선을 준비하고 있어요.';$('boarding-retry').hidden=!c.error;
  }
  for(const button of host.querySelectorAll('[data-character]'))button.onclick=()=>{if(busy)return;character=button.dataset.character;update();};
  for(const button of host.querySelectorAll('[data-medium]'))button.onclick=()=>{if(busy)return;medium=button.dataset.medium;update();};

@@ -18,7 +18,7 @@ export function createWorker(fetcher=(...args)=>fetch(...args)){
    const response=await fetcher(url,{signal:AbortSignal.timeout(20000)});
    if(!response.ok)throw new Error('TDATA_UNAVAILABLE');
    const rows=normalizeStations(await response.json(),'2호선');
-   if(rows.length!==2)throw new Error('TDATA_NO_STATIONS');
+   if(rows.length<2)throw new Error('TDATA_NO_STATIONS');
    return cached={stations:rows,fetchedAt:Date.now(),source:'서울특별시 T Data · 교통정책지원시스템(TAIMS)',geometry:'역 좌표만 제공 · 선로 선형 미검증'};
   })();
   try{return await pending;}finally{pending=null;}

@@ -1,0 +1,101 @@
+/* The ticket stays at its physical proportions; the controls live beside it. */
+.boarding-screen .pass-size-stage,
+.boarding-screen[data-medium=card] .pass-size-stage {
+  display:grid; grid-template-columns:minmax(270px,.85fr) minmax(480px,1.15fr);
+  gap:32px; align-items:center; padding:0; min-height:300px;
+}
+.boarding-pass-slot { display:flex; align-items:center; justify-content:center; min-width:0; height:100%; min-height:300px; }
+.boarding-screen .journey-booking-fields { width:100%; max-width:none; min-width:0; flex:none; }
+.boarding-screen .journey-booking-fields .boarding-field-title { margin:0 0 6px; font-size:11px; }
+.boarding-screen .journey-booking-fields .select-fields { gap:38px; }
+.boarding-screen .journey-booking-fields .select-fields select { font-size:24px; padding:2px 22px 5px 0; }
+.boarding-screen .journey-booking-fields #route-summary { margin:5px 0 13px; font-size:10px; }
+.printed-journey { display:grid; grid-template-columns:1fr; gap:3px; }
+.printed-journey small { font-size:9px; letter-spacing:2px; color:#8a947b; }
+.printed-journey strong { font-size:31px; font-weight:600; line-height:1.25; letter-spacing:-1px; }
+.printed-journey>span { color:#b5ab8e; font-size:21px; line-height:1; margin:3px 0; }
+.printed-journey>div { margin-top:17px; font-size:11px; color:#839077; }
+.printed-journey b { font:25px Georgia,serif; color:#294637; margin-left:12px; }
+.duration-console {
+  display:grid; grid-template-columns:minmax(175px,.9fr) minmax(220px,1.2fr); gap:17px;
+  padding:19px 18px 17px; border:2px solid #0e1725; border-radius:20px;
+  background:linear-gradient(140deg,#29374e,#1d293e 65%,#263246); color:#faf4df;
+  box-shadow:inset 0 1px 1px #ffffff45,inset 0 -3px 4px #09101d66,0 10px 20px #1c293410;
+}
+.flip-controls { display:flex; align-items:center; justify-content:center; gap:5px; min-width:0; }
+.flip-unit { display:flex; flex:1; min-width:0; flex-direction:column; align-items:center; }
+.boarding-screen .flip-unit>button { border:0; background:transparent; color:#ff925d; font-size:20px; width:100%; min-height:29px; padding:0; line-height:1; text-shadow:0 2px #09101b; }
+.boarding-screen .flip-unit>button:hover:not(:disabled) { color:#ffd097; transform:scale(1.08); }
+.boarding-screen .flip-unit>button:disabled { opacity:.25; }
+.flip-tile { position:relative; width:100%; border:2px solid #10192a; border-radius:10px; background:linear-gradient(#344159,#29354b 49.7%,#142033 49.7%,#142033 51%,#303c53 51%); box-shadow:inset 0 2px 7px #111a3466,0 1px 1px #61708c88; overflow:hidden; }
+.flip-tile input { width:100%; min-width:0; box-sizing:border-box; border:0; background:transparent; color:#fbf6df; font:600 clamp(38px,4.4vw,61px)/1.6 'DM Sans',system-ui,sans-serif; font-variant-numeric:tabular-nums; letter-spacing:-3px; text-align:center; padding:0; border-radius:8px; caret-color:#ffad70; }
+.flip-tile i { position:absolute; height:2px; top:50%; left:0; right:0; background:#101929; box-shadow:0 1px #8d9aac33; pointer-events:none; }
+.flip-tile:before,.flip-tile:after { content:''; position:absolute; top:43%; height:14%; width:5px; border:2px solid #101929; border-radius:3px; background:#344159; pointer-events:none; z-index:1; }
+.flip-tile:before { left:-3px; }.flip-tile:after { right:-3px; }
+.flip-colon { font-size:25px; color:#afbbc8; margin-bottom:31px; }
+.flip-unit label { font-size:12px; font-weight:600; line-height:1.2; text-align:center; margin-top:3px; }
+.flip-unit label small { display:block; font-size:8px; letter-spacing:1.5px; opacity:.7; margin-top:4px; }
+.stop-display { min-width:0; display:flex; flex-direction:column; justify-content:center; padding:14px 12px 10px; border:2px solid #111b22; border-radius:14px; background:linear-gradient(145deg,#2c3026,#24291f); box-shadow:inset 0 2px 8px #10170e55,0 1px #60708055; text-align:center; }
+.stop-display-title { font-size:clamp(13px,1.25vw,19px); font-weight:700; color:#ff955b; white-space:nowrap; }
+.stop-display-title strong { color:#ffda63; margin-left:3px; }
+#recommended-route { margin:5px 0 0; font-size:10px; color:#dedec9; min-height:15px; }
+.stop-track { position:relative; padding-top:26px; margin:0 2px; min-height:68px; }
+#recommended-stops { --stop-count:2; position:relative; display:grid; grid-template-columns:repeat(var(--stop-count),minmax(0,1fr)); list-style:none; padding:0; margin:0; }
+#recommended-stops:before { content:''; position:absolute; left:calc(50% / var(--stop-count)); right:calc(50% / var(--stop-count)); top:7px; height:4px; background:#f9cf55; box-shadow:0 1px #b58e29; }
+#recommended-stops li { position:relative; display:flex; flex-direction:column; align-items:center; gap:5px; min-width:0; }
+#recommended-stops i { width:14px; height:14px; border:2px solid #111b1e; background:#ffd760; border-radius:50%; box-shadow:0 1px #65705a; z-index:1; }
+#recommended-stops .arrival i { background:#ff985e; }
+#recommended-stops span { font-size:9px; letter-spacing:-.5px; color:#e7e7d0; white-space:nowrap; }
+#recommended-stops small { font-size:8px; color:#a6b49a; margin-top:-3px; }
+.stop-train { position:absolute; width:25px; height:23px; top:3px; left:calc(50% - 12px); fill:#ff8e53; color:#ff8e53; }
+.boarding-screen #recommend-apply { align-self:center; border:1px solid #ffd06455; background:#ffd26512; color:#f7d980; font-size:9px; padding:5px 9px; margin-top:5px; border-radius:6px; }
+.boarding-screen #recommend-apply:disabled { opacity:1; color:#adbca3; border-color:transparent; background:none; }
+.boarding-screen .duration-presets { display:flex; gap:5px; flex-wrap:wrap; margin-top:9px; }
+.boarding-screen .duration-presets button { flex:1; min-width:42px; min-height:26px; padding:4px 5px; font:10px/1.4 system-ui,sans-serif; color:#73836e; border:1px solid #cbd2bf; border-radius:6px; background:#f7f5e9; }
+.boarding-screen .duration-presets button.selected { background:#2c483b; color:#faf5e3; border-color:#2c483b; box-shadow:none; }
+.boarding-screen[data-medium=card] .journey-booking-fields .select-fields { border:0; gap:38px; }
+.boarding-screen[data-medium=card] .journey-booking-fields .select-fields label { padding:0; border:0; }
+.boarding-screen[data-medium=card] .journey-booking-fields .select-fields label:after { display:block; right:4px; bottom:10px; }
+.boarding-screen[data-medium=card] .journey-booking-fields .select-fields select { border-bottom:1px solid #c4cbb2; color:#263d31; }
+.boarding-screen[data-medium=card] .journey-booking-fields .duration-presets { border:0; gap:5px; }
+.boarding-screen[data-medium=card] .journey-booking-fields .duration-presets button { min-height:26px; padding:4px 5px; font:10px/1.4 system-ui,sans-serif; color:#73836e; border:1px solid #cbd2bf; border-radius:6px; background:#f7f5e9; box-shadow:none; }
+.boarding-screen[data-medium=card] .journey-booking-fields .duration-presets button.selected { background:#2c483b; color:#faf5e3; border-color:#2c483b; }
+.pace-note { font-size:10px; color:#75836d; line-height:1.5; margin:7px 0 0; }
+.duration-error { color:#b34a28; font-size:11px; margin:7px 0 0; }
+@media(min-width:1000px) { .boarding-screen { padding-top:16px; padding-bottom:16px; gap:12px; }.boarding-screen .boarding-heading { margin-bottom:14px; }.boarding-screen .boarding-lower { margin-top:14px; } }
+@media(max-height:740px) and (min-width:900px) {
+  .boarding-screen { padding-top:12px; padding-bottom:12px; gap:8px; }
+  .boarding-screen .boarding-heading h1 { font-size:29px; line-height:1.15; margin:5px 0; }
+  .boarding-screen .boarding-heading { margin-bottom:7px; }
+  .boarding-screen .pass-size-stage { flex:1 0 auto; min-height:300px; }
+  .boarding-pass-slot { min-height:280px; }
+  .journey-booking-fields>.boarding-field-title:first-child { display:none; }
+  .boarding-screen .journey-booking-fields .select-fields select { font-size:21px; line-height:1.2; padding-top:1px; padding-bottom:4px; }
+  .boarding-screen .journey-booking-fields #route-summary { margin:4px 0 8px; }
+  .duration-console { padding:10px 12px; gap:12px; }
+  .flip-tile input { font-size:44px; line-height:1.25; }
+  .boarding-screen .flip-unit>button { min-height:24px; font-size:18px; }
+  .flip-unit label { font-size:10px; }.flip-unit label small { font-size:7px; margin-top:2px; }
+  .stop-display { padding:9px 10px 7px; }.stop-display-title { font-size:16px; }
+  .stop-track { padding-top:24px; min-height:60px; }
+  .boarding-screen .duration-presets,.boarding-screen[data-medium=card] .journey-booking-fields .duration-presets { margin-top:6px; }
+  .boarding-screen .duration-presets button,.boarding-screen[data-medium=card] .journey-booking-fields .duration-presets button { min-height:23px; padding:3px 4px; font-size:9px; }
+  .pace-note { font-size:9px; margin-top:4px; }
+  .boarding-screen .boarding-lower { margin-top:9px; }
+  .boarding-characters .pass-avatar { height:42px; width:36px; }.boarding-characters button { min-width:100px; padding-top:3px; padding-bottom:3px; }
+  .boarding-issue #boarding-next { min-height:42px; padding:9px 16px; }.boarding-issue p { display:none; }.boarding-issue>span { font-size:10px; margin-bottom:6px; }
+  .boarding-screen .boarding-foot { display:none; }
+}
+@media(max-width:1000px) and (min-width:800px) { .boarding-screen .pass-size-stage,.boarding-screen[data-medium=card] .pass-size-stage { grid-template-columns:minmax(210px,.7fr) minmax(440px,1.3fr); gap:18px; }.duration-console { padding:13px 12px; gap:12px; grid-template-columns:minmax(160px,.9fr) minmax(200px,1.2fr); }.flip-tile input { font-size:49px; } }
+@media(max-width:799px) {
+  .boarding-screen .pass-size-stage,.boarding-screen[data-medium=card] .pass-size-stage { display:flex; flex-direction:column; gap:15px; min-height:0; flex:none; padding:0; }
+  .boarding-pass-slot { height:155px; min-height:155px; width:100%; flex:none; }
+  .boarding-screen .journey-booking-fields { width:100%; max-width:560px; }
+  .duration-console { grid-template-columns:minmax(125px,.85fr) minmax(160px,1.15fr); gap:11px; padding:12px 11px; border-radius:16px; }
+  .flip-tile input { font-size:43px; line-height:1.5; letter-spacing:-2px; }
+  .flip-unit>button { min-height:26px!important; font-size:18px!important; }
+  .flip-unit label { font-size:10px; }.flip-unit label small { font-size:7px; }.flip-colon { font-size:20px; }
+  .stop-display { padding:10px 7px 7px; }.stop-display-title { font-size:13px; }#recommended-stops span { font-size:8px; letter-spacing:-.8px; white-space:normal; word-break:break-all; max-width:100%; }#recommended-stops i { width:11px; height:11px; }#recommended-stops:before { top:5px; }
+  .boarding-screen .duration-presets { gap:4px; }.boarding-screen .duration-presets button { font-size:9px; min-width:34px; padding:4px 3px; }
+}
+@media(prefers-reduced-motion:reduce) { .flip-unit>button:hover { transform:none!important; } }

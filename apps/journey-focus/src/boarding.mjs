@@ -1,5 +1,6 @@
 import {CITY_ORDER} from './route.mjs';
-export const BOARDING_DURATIONS=Object.freeze([60,300,1500,3000,3600,7200]);
+import {DURATION_PRESETS,validDuration} from './journey.mjs';
+export const BOARDING_DURATIONS=DURATION_PRESETS;
 export const CHARACTERS=Object.freeze([
  Object.freeze({id:'blue',name:'블루',color:'#3866b6',suit:'#263b69'}),
  Object.freeze({id:'mint',name:'민트',color:'#408b82',suit:'#244d4a'}),
@@ -9,7 +10,7 @@ export const characterById=id=>CHARACTERS.find(c=>c.id===id)||CHARACTERS[0];
 export function formatDuration(seconds){const minutes=Math.round(seconds/60);return minutes>=60?`${Math.floor(minutes/60)}시간${minutes%60?' '+minutes%60+'분':''}`:`${minutes}분`;}
 export function createBoardingPass(input,{id=crypto.randomUUID().slice(0,8).toUpperCase(),date=new Date()}={}){
  if(!input||!CITY_ORDER.includes(input.from)||!CITY_ORDER.includes(input.to)||input.from===input.to)throw new Error('출발역과 도착역을 선택해 주세요.');
- if(!BOARDING_DURATIONS.includes(input.duration))throw new Error('집중시간을 선택해 주세요.');
+ if(!validDuration(input.duration))throw new Error('집중시간을 선택해 주세요.');
  if(!CHARACTERS.some(c=>c.id===input.character))throw new Error('함께할 캐릭터를 선택해 주세요.');
  if(!['ticket','card'].includes(input.medium))throw new Error('승차권 종류를 선택해 주세요.');
  const day=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);

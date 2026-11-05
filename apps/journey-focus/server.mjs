@@ -21,6 +21,9 @@ try {
 } catch { /* The app still works without the optional scenery assets. */ }
 const PUBLIC = new Map([
   ['/boarding.mjs', ['public/boarding.mjs', 'text/javascript']],
+  ['/journey-picker.mjs', ['public/journey-picker.mjs', 'text/javascript']],
+  ['/journey-picker.css', ['public/journey-picker.css', 'text/css']],
+  ['/src/journey.mjs', ['src/journey.mjs', 'text/javascript']],
   ['/boarding.css', ['public/boarding.css', 'text/css']],
   ['/images/inu-transit-card.jpg', ['public/images/inu-transit-card.jpg', 'image/jpeg']],
   ['/src/boarding.mjs', ['src/boarding.mjs', 'text/javascript']],
@@ -64,6 +67,7 @@ const PUBLIC = new Map([
   ['/favicon.svg', ['public/favicon.svg', 'image/svg+xml']],
   ['/data/baegyangri-gangchon.json', ['public/data/baegyangri-gangchon.json', 'application/json']],
   ['/data/seongsu-konkuk.json', ['public/data/seongsu-konkuk.json', 'application/json']],
+  ['/data/line2-surface.json', ['public/data/line2-surface.json', 'application/json']],
 ]);
 for(const file of ['build/three.module.js','examples/jsm/loaders/FBXLoader.js','examples/jsm/loaders/GLTFLoader.js','examples/jsm/utils/BufferGeometryUtils.js','examples/jsm/libs/fflate.module.js','examples/jsm/curves/NURBSCurve.js','examples/jsm/curves/NURBSUtils.js'])PUBLIC.set('/vendor/three/'+file,['public/vendor/three/'+file,'text/javascript']);
 // Local comparison gallery: explicit captures only, never arbitrary tmp files.
