@@ -1,0 +1,37 @@
+{
+  "height": 1.25,
+  "hipHeight": 0.11875,
+  "triangles": 20000,
+  "bones": [
+    "Root",
+    "Hips",
+    "Spine",
+    "Head",
+    "UpperArm.R",
+    "Forearm.R",
+    "UpperArm.L",
+    "Forearm.L",
+    "Thigh.R",
+    "Shin.R",
+    "Thigh.L",
+    "Shin.L",
+    "Tail"
+  ],
+  "actions": [
+    "Idle",
+    "Walk",
+    "Sit"
+  ],
+  "materials": [
+    "Flame",
+    "Suit",
+    "Ivory",
+    "Cheeks",
+    "Eyes",
+    "Nose",
+    "Trousers",
+    "Mouth"
+  ],
+  "source": "white_mesh.glb",
+  "output": "apps/journey-focus/public/models/blue-flame.glb"
+}

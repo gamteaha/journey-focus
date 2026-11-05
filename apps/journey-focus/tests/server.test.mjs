@@ -26,6 +26,8 @@ test('server protects secrets, handles API failure safely, and serves the map wi
   assert.deepEqual(modelBytes,await readFile(new URL('../public/assets/house/house.bin',import.meta.url)));
   const car=await fetch(base+'/models/subway-car.fbx');assert.equal(car.headers.get('content-type'),'application/octet-stream');
   assert.deepEqual(Buffer.from(await car.arrayBuffer()),await readFile(new URL('../../../assets-source/subway-car/SubwayCar_Compiled.fbx',import.meta.url)));
+  const avatar=await fetch(base+'/models/blue-flame.glb');assert.equal(avatar.headers.get('content-type'),'model/gltf-binary');
+  assert.deepEqual(Buffer.from(await avatar.arrayBuffer()),await readFile(new URL('../public/models/blue-flame.glb',import.meta.url)),'GLB must be served as binary, never UTF-8 text');
   for(const route of ['/cabin.mjs','/avatar.mjs','/cabin.css','/src/cabin.mjs','/vendor/three/build/three.module.js'])assert.equal((await fetch(base+route)).status,200);
   const otherLocal=`http://localhost:${app.address().port}`,frame=await fetch(base+'/cabin-frame',{headers:{Referer:otherLocal+'/', 'Sec-Fetch-Site':'cross-site'}});
   assert.equal(frame.status,200);assert.ok(frame.headers.get('content-security-policy').includes(otherLocal));assert.equal(frame.headers.get('x-frame-options'),null);

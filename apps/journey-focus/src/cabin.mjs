@@ -1,4 +1,5 @@
 // Metre-like display coordinates calibrated to the supplied FBX, not surveyed dimensions.
+export const CABIN_FLOOR_Y=.123;
 const bays=[-7.57655,-7.07007,-6.56820,-4.19614,-3.68966,-3.18778,-2.68591,-2.18404,-1.68217,-1.17569,1.17569,1.68217,2.18404,2.68591,3.18778,3.68966,4.19614,6.56820,7.07007,7.57655];
 export const CABIN_SEATS=Object.freeze(['A','B'].flatMap((side)=>bays.map((z,i)=>Object.freeze({id:`${side}${String(i+1).padStart(2,'0')}`,side,x:side==='A'?-.93:.93,z,y:.52,label:`${side}${String(i+1).padStart(2,'0')} · ${side==='A'?'왼쪽':'오른쪽'} 창가`,heading:side==='A'?Math.PI/2:-Math.PI/2}))));
 export function cabinStudyFrame(seatId,aspect=16/9,height=900){

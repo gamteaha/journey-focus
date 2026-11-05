@@ -26,7 +26,8 @@ while(pending.length){
  if(seen.has(url))continue;
  seen.add(url);
  const code=await readFile(path.join(output,url),'utf8');
- for(const match of code.matchAll(/\b(?:from\s+|import\s*(?:\(\s*)?)['"]([^'"]+)['"]/g)){
+ // Match declarations, not prose such as BufferGeometryUtils' "from 'srgb-linear'" comment.
+ for(const match of code.matchAll(/(?:^\s*import\s+(?:[^;'"\x60]*?\bfrom\s*)?|^\s*export\s+(?:\*|\{[^}]*\})\s+from\s*|\bimport\s*\(\s*)['"]([^'"]+)['"]/gm)){
   const specifier=match[1];
   if(/^https?:/.test(specifier))continue;
   if(!specifier.startsWith('/')&&!specifier.startsWith('.'))throw new Error(`Unmapped browser import: ${specifier}`);

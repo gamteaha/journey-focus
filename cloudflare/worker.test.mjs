@@ -89,6 +89,11 @@ test('serves the bundled train model, rail shape and browser modules',async()=>{
  const model=await call(worker,'/models/subway-car.fbx');
  assert.equal(model.status,200);
  assert.ok((await model.arrayBuffer()).byteLength>4_000_000);
+ const avatar=await call(worker,'/models/blue-flame.glb');
+ assert.equal(avatar.status,200);
+ const avatarBytes=new Uint8Array(await avatar.arrayBuffer());
+ assert.deepEqual([...avatarBytes.slice(0,4)],[0x67,0x6c,0x54,0x46]);
+ assert.ok(avatarBytes.length<2_000_000);
  const route=await (await call(worker,'/data/seongsu-konkuk.json')).json();
  assert.equal(route.from,'성수');
  assert.equal(route.to,'건대입구');

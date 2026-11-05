@@ -11,6 +11,7 @@
 - `apps/journey-focus/`: Node.js로 바로 실행하는 로컬 앱, 테스트, 렌더링 문서, 풍경 모델.
 - `hosted/`: 배포 사이트의 서버와 소스. Sites / Cloudflare Workers 환경용입니다.
 - `assets-source/subway-car/`: 사용자가 제공한 지하철 모델 원본과 이미지. 로컬 객실 테스트에서 FBX를 불러옵니다.
+- `assets-source/characters/blue-flame/`: 사용자 제공 캐릭터 원형과 채색·관절·걷기/앉기 작업본. 실행용 GLB는 `apps/journey-focus/public/models/blue-flame.glb`입니다.
 - `.env.example`: 필요한 API 설정 이름. 실제 키는 저장소에 포함하지 않습니다.
 
 ## 다른 컴퓨터에서 실행
@@ -40,7 +41,7 @@ npm.cmd test
 npm.cmd run check
 ```
 
-최근 변경은 [승차권 입장 흐름](apps/journey-focus/docs/boarding-flow.md), [객실 전체 화면과 좌석 상호작용](apps/journey-focus/docs/immersive-game.md), [캐릭터 객실 테스트](apps/journey-focus/docs/cabin-prototype.md)에 있습니다. 승차권에서 노선·시간·캐릭터 색상을 고르고, 절취선을 일자로 그어 종이표를 자르거나, 카드를 단말기에 끌어 놓아 입장합니다. 태그음·한국어 승차 안내·지원 기기 진동을 연결했습니다. 확인 후에는 [열차 도착 로딩 화면](apps/journey-focus/docs/arrival-loading.md)에서 객실 렌더링과 초기 창밖 지형 준비를 기다린 뒤 입장합니다. 객실은 브라우저 화면을 채우며 역 안내는 위쪽 전광판, 시간은 출발 후 오른쪽 위에 표시합니다. 의자를 클릭해 선택한 색을 확인하고 캐릭터 옆 ‘앉기’ 버튼으로 확정합니다. 출발 후 [캐릭터 공부 화면](apps/journey-focus/docs/study-character-view.md)은 좌석을 정면으로 바라보며 머리 위에 누적 집중시간을 표시합니다. 캐릭터는 임시 모델이며 친구 접속은 아직 구현하지 않았습니다.
+최근 변경은 [승차권 입장 흐름](apps/journey-focus/docs/boarding-flow.md), [객실 전체 화면과 좌석 상호작용](apps/journey-focus/docs/immersive-game.md), [캐릭터 객실 테스트](apps/journey-focus/docs/cabin-prototype.md)에 있습니다. 승차권에서 노선·시간·캐릭터 색상을 고르고, 절취선을 일자로 그어 종이표를 자르거나, 카드를 단말기에 끌어 놓아 입장합니다. 태그음·한국어 승차 안내·지원 기기 진동을 연결했습니다. 확인 후에는 [열차 도착 로딩 화면](apps/journey-focus/docs/arrival-loading.md)에서 객실 렌더링과 초기 창밖 지형 준비를 기다린 뒤 입장합니다. 객실은 브라우저 화면을 채우며 역 안내는 위쪽 전광판, 시간은 출발 후 오른쪽 위에 표시합니다. 의자를 클릭해 선택한 색을 확인하고 캐릭터 옆 ‘앉기’ 버튼으로 확정합니다. 출발 후 [캐릭터 공부 화면](apps/journey-focus/docs/study-character-view.md)은 좌석을 정면으로 바라보며 머리 위에 누적 집중시간을 표시합니다. 사용자 제공 모델에 채색·관절을 추가해 대기·걷기·앉기를 연결했습니다. 친구 접속은 아직 구현하지 않았습니다.
 
 ## 로컬 비교 화면
 

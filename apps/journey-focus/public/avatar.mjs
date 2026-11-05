@@ -1,23 +1,60 @@
 import * as T from '/vendor/three/build/three.module.js';
+import {GLTFLoader} from '/vendor/three/examples/jsm/loaders/GLTFLoader.js';
 import {characterById} from '/src/boarding.mjs';
 
-// Replace this group with the user's rigged character when a model is available.
-export function createAvatar(character='blue'){
- const palette=characterById(character);
- const root=new T.Group(),blue=new T.MeshStandardMaterial({color:palette.color,roughness:.7}),white=new T.MeshStandardMaterial({color:0xf8f6e7,roughness:.8}),navy=new T.MeshStandardMaterial({color:palette.suit,roughness:.8}),yellow=new T.MeshStandardMaterial({color:0xffd456,roughness:.75}),dark=new T.MeshStandardMaterial({color:0x172a46});
- function ball(parent,material,x,y,z,sx,sy,sz){const m=new T.Mesh(new T.SphereGeometry(1,20,14),material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);parent.add(m);return m;}
- ball(root,navy,0,.60,0,.19,.22,.14);ball(root,blue,0,1.0,0,.28,.30,.24);
- const flame=new T.Mesh(new T.ConeGeometry(.16,.34,20),blue);flame.position.set(.075,1.31,-.02);flame.rotation.z=-.22;root.add(flame);
- ball(root,white,0,1.0,.205,.205,.215,.06);
- for(const x of [-.13,.13]){ball(root,white,x,1.20,.12,.075,.075,.04);ball(root,dark,x*.65,1.045,.264,.024,.030,.012);ball(root,yellow,x, .97,.253,.045,.04,.012);}
- ball(root,navy,0,1.005,.273,.035,.024,.016);ball(root,dark,0,.956,.267,.027,.01,.01);
- const arms=[],legs=[];
- for(const sign of [-1,1]){
-  const arm=new T.Group();arm.position.set(sign*.20,.74,0);ball(arm,white,sign*.035,-.12,0,.065,.15,.065);ball(arm,navy,sign*.035,-.23,0,.068,.045,.07);root.add(arm);arms.push(arm);
-  const thigh=new T.Group();thigh.position.set(sign*.085,.43,0);ball(thigh,navy,0,-.11,0,.073,.13,.075);const shin=new T.Group();shin.position.y=-.21;ball(shin,white,0,-.095,0,.065,.11,.065);ball(shin,navy,0,-.18,.035,.073,.055,.11);thigh.add(shin);root.add(thigh);legs.push({thigh,shin});
+export async function createAvatar(character='blue',{onProgress}={}){
+ const gltf=await new GLTFLoader().loadAsync('/models/blue-flame.glb',onProgress);
+ const root=gltf.scene,rig=root.getObjectByName('FlameRig');
+ if(!rig||!gltf.animations?.length)throw new Error('캐릭터 관절 데이터를 불러오지 못했습니다.');
+ root.name='supplied-player';root.userData.source='blue-flame.glb';
+ const height=Number(rig.userData.avatarHeight)||1.25,hipHeight=Number(rig.userData.avatarHipHeight)||.11875;
+ const mixer=new T.AnimationMixer(root),actions=new Map(gltf.animations.map(clip=>[clip.name,mixer.clipAction(clip)]));
+ for(const name of ['Idle','Walk','Sit'])if(!actions.has(name))throw new Error('캐릭터 동작이 누락되었습니다.');
+ let current=null,lastTime=null;
+ const materials=new Set();root.traverse(o=>{if(o.isMesh)for(const m of [o.material].flat())materials.add(m);});
+ const originalMap=[...materials].find(m=>m.map)?.map;
+ const maps=new Map([['blue',originalMap]]);
+ function mapFor(palette){
+  if(maps.has(palette.id))return maps.get(palette.id);
+  if(!originalMap?.image)return originalMap;
+  const image=originalMap.image,canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(image,0,0);
+  const pixels=ctx.getImageData(0,0,canvas.width,canvas.height),data=pixels.data;
+  const rgb=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
+  const replacements=[{from:[49,95,193],to:rgb(palette.color)},{from:[38,52,82],to:rgb(palette.suit)}];
+  for(let i=0;i<data.length;i+=4){
+   for(const {from,to}of replacements){
+    if(Math.abs(data[i]-from[0])+Math.abs(data[i+1]-from[1])+Math.abs(data[i+2]-from[2])<35){
+     data[i]=to[0];data[i+1]=to[1];data[i+2]=to[2];break;
+    }
+   }
+  }
+  ctx.putImageData(pixels,0,0);
+  const texture=new T.CanvasTexture(canvas);texture.flipY=false;texture.colorSpace=T.SRGBColorSpace;
+  texture.wrapS=originalMap.wrapS;texture.wrapT=originalMap.wrapT;
+  maps.set(palette.id,texture);return texture;
  }
- const tail=new T.Mesh(new T.ConeGeometry(.07,.22,12),blue);tail.position.set(.18,.47,-.23);tail.rotation.x=-1.0;root.add(tail);
- root.name='temporary-player';
- root.userData.character=palette.id;
- return {root,setCharacter(id){const c=characterById(id);blue.color.set(c.color);navy.color.set(c.suit);root.userData.character=c.id;},pose({seated=false,moving=false,time=0}){for(let i=0;i<2;i++){const swing=moving?Math.sin(time*9+i*Math.PI)*.50:0;arms[i].rotation.x=seated?-.15:-swing;legs[i].thigh.rotation.x=seated?-Math.PI/2:swing;legs[i].shin.rotation.x=seated?Math.PI/2:Math.max(0,-swing)*.5;}root.children[0].rotation.z=moving?Math.sin(time*9)*.025:0;}};
+ function setCharacter(id){
+  const palette=characterById(id),map=mapFor(palette);
+  for(const material of materials){if(material.map){material.map=map;material.needsUpdate=true;}}
+  root.userData.character=palette.id;
+ }
+ setCharacter(character);
+ return {
+  root,height,seatOffset:.525-hipHeight,
+  setCharacter,
+  pose({seated=false,moving=false,time=0}={}){
+   const name=seated?'Sit':moving?'Walk':'Idle';
+   if(name!==current){
+    const previous=actions.get(current),next=actions.get(name);
+    next.reset().setEffectiveWeight(1).setEffectiveTimeScale(1);
+    next.setLoop(name==='Sit'?T.LoopOnce:T.LoopRepeat,name==='Sit'?1:Infinity);next.clampWhenFinished=name==='Sit';next.play();
+    if(previous){previous.fadeOut(.18);next.fadeIn(.18);}
+    current=name;
+   }
+   const delta=lastTime===null?0:Math.max(0,Math.min(.1,time-lastTime));lastTime=time;mixer.update(delta);
+   root.userData.pose=name;root.updateMatrixWorld(true);
+  },
+  dispose(){mixer.stopAllAction();mixer.uncacheRoot(root);for(const texture of new Set(maps.values()))texture?.dispose();},
+ };
 }

@@ -384,6 +384,7 @@ function onCabinMessage(event){
  if(event.data?.type==='jf:cabin-error'){cabinFailed=true;}
  if(event.data?.type==='jf:cabin-progress'){
   const p=event.data.progress||{};
+  if(p.phase==='character')entryProgress({progress:8,stage:'cabin',label:'함께할 캐릭터를 준비하고 있어요.',detail:'캐릭터의 모습과 움직임을 불러오고 있어요.'});
   if(p.phase==='download')entryProgress({progress:p.total>0?10+Math.min(1,p.loaded/p.total)*32:15,stage:'cabin',label:'열차 객실을 불러오고 있어요.',detail:'내가 앉을 좌석과 객실을 준비하고 있어요.'});
   if(p.phase==='materials')entryProgress({progress:46,stage:'cabin',label:'객실을 꾸미고 있어요.',detail:'의자와 캐릭터의 모습을 준비하고 있어요.'});
   if(p.phase==='shaders')entryProgress({progress:54,stage:'cabin',label:'객실에 불을 켜고 있어요.',detail:'처음 화면이 부드럽게 보이도록 미리 그려보고 있어요.'});

@@ -29,6 +29,7 @@ const PUBLIC = new Map([
   ['/cabin.css', ['public/cabin.css', 'text/css']],
   ['/src/cabin.mjs', ['src/cabin.mjs', 'text/javascript']],
   ['/models/subway-car.fbx', ['../../assets-source/subway-car/SubwayCar_Compiled.fbx', 'application/octet-stream']],
+  ['/models/blue-flame.glb', ['public/models/blue-flame.glb', 'model/gltf-binary']],
   ['/render-study', ['public/review/realism-comparison/index.html', 'text/html']],
   ['/render-study/', ['public/review/realism-comparison/index.html', 'text/html']],
   ['/render-study/front-light.html', ['public/review/realism-comparison/front-light.html', 'text/html']],
@@ -63,7 +64,7 @@ const PUBLIC = new Map([
   ['/data/baegyangri-gangchon.json', ['public/data/baegyangri-gangchon.json', 'application/json']],
   ['/data/seongsu-konkuk.json', ['public/data/seongsu-konkuk.json', 'application/json']],
 ]);
-for(const file of ['build/three.module.js','examples/jsm/loaders/FBXLoader.js','examples/jsm/libs/fflate.module.js','examples/jsm/curves/NURBSCurve.js','examples/jsm/curves/NURBSUtils.js'])PUBLIC.set('/vendor/three/'+file,['public/vendor/three/'+file,'text/javascript']);
+for(const file of ['build/three.module.js','examples/jsm/loaders/FBXLoader.js','examples/jsm/loaders/GLTFLoader.js','examples/jsm/utils/BufferGeometryUtils.js','examples/jsm/libs/fflate.module.js','examples/jsm/curves/NURBSCurve.js','examples/jsm/curves/NURBSUtils.js'])PUBLIC.set('/vendor/three/'+file,['public/vendor/three/'+file,'text/javascript']);
 // Local comparison gallery: explicit captures only, never arbitrary tmp files.
 for(const name of ['01-original','02-grade','03-ao','04-light','05-ao-light','06-combined','07-ai-concept','08-pbr','09-ibl','10-material-combined','11-front-soft','12-front-medium','13-front-shadow','14-front-high']){
  PUBLIC.set(`/render-study/${name}.png`,[`public/review/realism-comparison/${name}.png`,'image/png']);
@@ -150,7 +151,7 @@ export function createApp(config, fetcher = fetch) {
       }
       const entry = PUBLIC.get(url.pathname);
       if (!entry) return send(res, 404, { error: 'NOT_FOUND' });
-      return send(res, 200, await readFile(path.join(ROOT, entry[0]), entry[1]==='image/png'||entry[1].startsWith('video/')||entry[1]==='application/octet-stream'?undefined:'utf8'), entry[1]);
+      return send(res, 200, await readFile(path.join(ROOT, entry[0]), entry[1]==='image/png'||entry[1].startsWith('video/')||entry[1]==='application/octet-stream'||entry[1]==='model/gltf-binary'?undefined:'utf8'), entry[1]);
     } catch { return send(res, 500, { error: 'SERVER_ERROR' }); }
   });
 }
