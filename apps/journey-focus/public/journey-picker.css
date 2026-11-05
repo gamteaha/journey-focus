@@ -1,4 +1,4 @@
-/* The ticket stays at its physical proportions; the controls live beside it. */
+/* The editable paper contains the controls; the issued ticket keeps its ratio. */
 .duration-modes { display:flex; justify-content:flex-end; gap:3px; margin:-27px 0 7px; }
 .boarding-screen .duration-modes button { border:1px solid #bfcab5; border-radius:6px; background:#f4f3e8; color:#72806b; font-size:10px; padding:5px 9px; }
 .boarding-screen .duration-modes button[aria-pressed=true] { background:#2c483b; color:#faf5e3; border-color:#2c483b; }
@@ -116,3 +116,101 @@
   .boarding-screen .duration-presets { gap:4px; }.boarding-screen .duration-presets button { font-size:9px; min-width:34px; padding:4px 3px; }
 }
 @media(prefers-reduced-motion:reduce) { .flip-unit>button:hover { transform:none!important; } }
+
+/* Paper ticket editor: route and time are part of the main sheet. */
+.boarding-screen[data-medium=ticket] .pass-size-stage { display:flex; flex:1 1 0; gap:0; min-height:0; }
+.boarding-screen[data-medium=ticket] .boarding-pass-slot { width:100%; flex:1; min-height:0; }
+.boarding-screen[data-medium=ticket] #boarding-pass { width:1120px; height:520px; min-height:520px; zoom:var(--editor-zoom,1); border-radius:18px; box-shadow:0 18px 42px #34412816,inset 0 1px #fff; }
+.boarding-screen[data-medium=ticket] #boarding-pass>.pass-main { padding:26px 30px; display:flex; flex-direction:column; min-width:0; line-height:1.3; }
+.boarding-screen[data-medium=ticket] #boarding-pass .printed-journey,
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-main>.pass-fineprint { display:none; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-masthead { margin-bottom:17px; flex:none; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-masthead strong { font-size:23px; letter-spacing:1.6px; }
+.boarding-screen[data-medium=ticket] #boarding-pass #boarding-pass-kind { font-size:12px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields { flex:1; width:100%; max-width:none; display:flex; flex-direction:column; min-height:0; line-height:1.3; }
+.boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields>.boarding-field-title { display:block; margin:0 0 7px; font-size:14px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields .select-fields { gap:52px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields .select-fields label { font-size:12px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields .select-fields select { font-size:29px; line-height:1.25; padding:3px 24px 6px 0; }
+.boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields .station-selects { padding-right:48px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields #swap { height:37px; width:36px; top:16px; font-size:21px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields #route-summary { font-size:12px; margin:6px 0 14px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .duration-modes { margin:-29px 0 8px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .duration-modes button { font-size:12px; padding:5px 12px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .duration-console { grid-template-columns:minmax(215px,.85fr) minmax(300px,1.15fr); gap:19px; padding:15px 18px; border-radius:17px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .flip-tile input { font-size:65px; line-height:1.28; }
+.boarding-screen[data-medium=ticket] #boarding-pass .flip-unit>button { min-height:30px; font-size:23px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .flip-unit label { font-size:13px; margin-top:3px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .flip-unit label small { font-size:9px; margin-top:3px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .stop-display { padding:11px 13px 9px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .stop-display-title { font-size:20px; }
+.boarding-screen[data-medium=ticket] #boarding-pass #recommended-route { font-size:12px; }
+.boarding-screen[data-medium=ticket] #boarding-pass #recommended-stops span { font-size:11px; }
+.boarding-screen[data-medium=ticket] #boarding-pass #recommended-stops small { font-size:10px; }
+.boarding-screen[data-medium=ticket] #boarding-pass #recommend-apply { font-size:11px; padding:5px 10px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .stop-track { min-height:69px; padding-top:26px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .duration-presets { margin-top:9px; gap:6px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .duration-presets button { min-height:28px; font-size:12px; padding:4px 7px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pace-note { font-size:12px; margin:7px 0 0; }
+.boarding-screen[data-medium=ticket] #boarding-pass .infinity-dial { min-height:175px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .infinity-dial>strong { font-size:115px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .infinity-dial>span { font-size:16px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .infinity-dial>small { font-size:11px; }
+.boarding-screen[data-medium=ticket] #boarding-pass>.pass-stub { flex:0 0 235px; padding:27px 20px; border-radius:0 18px 18px 0; gap:8px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub>.boarding-eyebrow { font-size:10px; }
+.boarding-screen[data-medium=ticket] #boarding-pass #boarding-avatar-preview .pass-avatar { width:114px; height:136px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub>strong { font-size:19px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub>span:not(.boarding-eyebrow) { font-size:11px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub>.pass-barcode { height:25px; margin:7px 0; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters { width:100%; margin-top:8px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters legend { text-align:center; font-size:14px; margin-bottom:8px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters legend span { font-size:12px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters>div { display:flex; gap:5px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters button { min-width:0; flex:1; justify-content:center; padding:9px 2px; font-size:12px; gap:4px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters button:before { content:''; display:block; width:8px; height:8px; border-radius:50%; background:var(--swatch); }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters .pass-avatar { display:none; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters i { font-size:8px; right:3px; top:3px; }
+.boarding-screen[data-medium=ticket] .boarding-lower { grid-template-columns:1fr minmax(270px,330px); }
+.boarding-screen[data-medium=ticket] .boarding-issue { grid-column:2; }
+@media(max-width:799px) {
+  .boarding-screen[data-medium=ticket] .pass-size-stage { flex:none; }
+  .boarding-screen[data-medium=ticket] .boarding-pass-slot { height:auto; min-height:0; }
+  .boarding-screen[data-medium=ticket] #boarding-pass { width:100%; height:auto; min-height:0; zoom:1; flex-direction:column; }
+  .boarding-screen[data-medium=ticket] #boarding-pass>.pass-main { padding:17px 13px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .pass-masthead { margin-bottom:18px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .pass-masthead strong { font-size:15px; letter-spacing:.5px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass #boarding-pass-kind { font-size:9px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields>.boarding-field-title { font-size:11px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields .select-fields { gap:17px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields .select-fields select { font-size:21px; padding:3px 17px 5px 0; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields .select-fields label { font-size:10px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields .station-selects { padding-right:37px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields #swap { height:30px; width:28px; top:14px; font-size:16px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields #route-summary { font-size:10px; margin-bottom:15px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .duration-modes { margin:0 0 8px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .duration-modes button { font-size:10px; padding:5px 9px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .duration-console { grid-template-columns:minmax(110px,.85fr) minmax(145px,1.15fr); gap:8px; padding:11px 10px; border-radius:13px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .flip-tile input { font-size:32px; line-height:1.5; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .flip-unit>button { min-height:29px!important; font-size:19px!important; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .flip-unit label { font-size:10px; }.boarding-screen[data-medium=ticket] #boarding-pass .flip-unit label small { font-size:7px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .stop-display { padding:10px 6px 7px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .stop-display-title { font-size:12px; }.boarding-screen[data-medium=ticket] #boarding-pass #recommended-route { font-size:9px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass #recommended-stops span { font-size:8px; }.boarding-screen[data-medium=ticket] #boarding-pass #recommended-stops small { font-size:8px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass #recommend-apply { font-size:9px; padding:5px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .duration-presets { gap:4px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .duration-presets button { min-height:29px; min-width:34px; padding:4px; font-size:9px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .pace-note { font-size:10px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .infinity-dial { min-height:150px; }.boarding-screen[data-medium=ticket] #boarding-pass .infinity-dial>strong { font-size:87px; }.boarding-screen[data-medium=ticket] #boarding-pass .infinity-dial>span { font-size:12px; }.boarding-screen[data-medium=ticket] #boarding-pass .infinity-dial>small { font-size:8px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass>.pass-stub { flex:none; display:grid; grid-template-columns:65px 1fr; gap:7px 12px; padding:15px 13px; border-left:0; border-top:2px dashed #b7c2a3; border-radius:0 0 18px 18px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .pass-stub:before,.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub:after { top:-13px; bottom:auto; left:-13px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .pass-stub:after { left:auto; right:-13px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .pass-stub>.boarding-eyebrow,.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub>strong,.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub>span:not(.pass-stub-note),.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub>.pass-barcode { display:none; }
+  .boarding-screen[data-medium=ticket] #boarding-pass #boarding-avatar-preview { grid-column:1; grid-row:1/3; }
+  .boarding-screen[data-medium=ticket] #boarding-pass #boarding-avatar-preview .pass-avatar { width:62px; height:74px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters { grid-column:2; margin:0; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters legend { font-size:11px; margin-bottom:7px; }.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters legend span { font-size:10px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters button { min-height:34px; font-size:10px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .pass-stub>.pass-stub-note { grid-column:2; font-size:9px; line-height:1.5; }
+  .boarding-screen[data-medium=ticket] .boarding-lower { display:block; width:100%; }
+}
+@media(max-width:370px) { .boarding-screen[data-medium=ticket] #boarding-pass .duration-console { grid-template-columns:1fr; }.boarding-screen[data-medium=ticket] #boarding-pass .flip-controls { width:190px; margin:auto; } }

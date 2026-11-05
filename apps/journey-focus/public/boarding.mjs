@@ -54,17 +54,25 @@ export function createBoarding({host,context,onBoarded,onEntered,onRetry,onOpen,
  </section>
  <div class="boarding-foot"><span>BAI · JOURNEY FOCUS</span><span>탑승 후 원하는 자리에 앉으면 여정을 시작할 수 있어요.</span><span>YOUR TIME. YOUR JOURNEY.</span></div>`;
  const $=id=>host.querySelector('#'+id);
- // Shared display scale: 5 design pixels per millimetre. Paper dimensions
- // are an app design choice; ID-1 card dimensions are 85.60 x 53.98 mm.
- function fitPasses(){const choosing=!$('boarding-choose').hidden,area=choosing?$('boarding-pass-slot'):$('boarding-gate'),r=area.getBoundingClientRect(),style=getComputedStyle(area);const height=choosing?r.height:r.height-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom);if(r.width>0&&height>0)host.style.setProperty('--pass-zoom',String(Math.min(1.2,r.width/700,height/428)));}
- const sizeObserver=new ResizeObserver(fitPasses);sizeObserver.observe($('pass-size-stage'));sizeObserver.observe($('boarding-gate'));sizeObserver.observe(host);
+ // Issued paper/card keep their shared 5px/mm display scale. The editable
+ // paper ticket has its own enlarged canvas so its controls remain readable.
+ function fitPasses(){const choosing=!$('boarding-choose').hidden,area=choosing?$('boarding-pass-slot'):$('boarding-gate'),r=area.getBoundingClientRect(),style=getComputedStyle(area);const height=choosing?r.height:r.height-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom);if(r.width>0&&height>0){host.style.setProperty('--pass-zoom',String(Math.min(1.2,r.width/700,height/428)));if(choosing&&medium==='ticket')host.style.setProperty('--editor-zoom',String(matchMedia('(max-width:799px)').matches?1:Math.min(1,r.width/1120,height/520)));}}
+ const sizeObserver=new ResizeObserver(fitPasses);sizeObserver.observe($('pass-size-stage'));sizeObserver.observe($('boarding-pass-slot'));sizeObserver.observe($('boarding-gate'));sizeObserver.observe(host);
  $('boarding-route-fields').append(document.querySelector('.station-selects'),document.querySelector('#route-summary'));
  $('boarding-duration-fields').append(document.querySelector('#duration-picker'));
  const picker=createJourneyPicker({host:$('duration-picker'),context,onChange:onDurationChange,onApply:onApplyRecommendation,onValidityChange:()=>update()});
+ const bookingFields=$('card-journey-fields'),passMain=$('boarding-pass').querySelector('.pass-main'),passStub=$('boarding-pass').querySelector('.pass-stub'),characters=host.querySelector('.boarding-characters'),lower=host.querySelector('.boarding-lower'),issue=host.querySelector('.boarding-issue');
+ function placeTicketControls(){
+  const target=medium==='ticket'?passMain:$('pass-size-stage');
+  if(bookingFields.parentElement!==target)target.append(bookingFields);
+  const characterTarget=medium==='ticket'?passStub:lower;
+  if(characters.parentElement!==characterTarget){if(medium==='ticket')passStub.append(characters);else lower.insertBefore(characters,issue);}
+ }
  const rideBar=document.querySelector('#ride-bar');rideBar.append(document.querySelector('#start'),document.querySelector('#connection'),document.querySelector('#data-button'));
  function update(){
   const c=context(),traveler=characterById(character),p=issued||{...c,character,medium};
   host.dataset.medium=medium;host.style.setProperty('--boarding-color',traveler.color);host.style.setProperty('--boarding-suit',traveler.suit);
+  placeTicketControls();
   $('card-choice-art').hidden=medium!=='card';picker.update(c.recommendation);
   $('boarding-pass-kind').textContent=p.duration===null?'자유석 · 무제한 순환':'자유석 · 편도';$('boarding-end-label').textContent=p.duration===null?'CIRCLE LINE':'ARRIVAL';
   host.querySelectorAll('[data-medium]').forEach(b=>{b.classList.toggle('selected',b.dataset.medium===medium);b.setAttribute('aria-pressed',String(b.dataset.medium===medium));});
@@ -74,6 +82,7 @@ export function createBoarding({host,context,onBoarded,onEntered,onRetry,onOpen,
   $('boarding-summary').textContent=c.ready?c.duration===null?`${c.from} 출발 · ∞ 무제한 순환`:`${c.from} → ${c.to} · ${formatDuration(c.duration)}`:'여정을 준비하고 있어요';
   $('boarding-next').disabled=!c.ready||!picker.valid||busy;$('boarding-next').innerHTML=medium==='card'?'교통카드 준비하기 <span>↗</span>':'승차권 발급하기 <span>↗</span>';
   $('boarding-status').textContent=c.error?'노선을 불러오지 못했어요. 다시 시도해 주세요.':!picker.valid?'1분부터 2시간까지 골라 주세요.':c.ready?c.duration===null?'원할 때 종료할 수 있는 2호선 순환권이에요.':'시간을 바꾸면 어울리는 실제 도착역을 추천해요.':'노선을 준비하고 있어요.';$('boarding-retry').hidden=!c.error;
+  fitPasses();
  }
  for(const button of host.querySelectorAll('[data-character]'))button.onclick=()=>{if(busy)return;character=button.dataset.character;update();};
  for(const button of host.querySelectorAll('[data-medium]'))button.onclick=()=>{if(busy)return;medium=button.dataset.medium;update();};

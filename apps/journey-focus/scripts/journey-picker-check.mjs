@@ -37,7 +37,7 @@ try{
   const layout=await p.evaluate(`(()=>{const s=document.querySelector('#boarding-screen'),r=document.querySelector('#boarding-next').getBoundingClientRect(),c=document.querySelector('.duration-console').getBoundingClientRect(),ticket=document.querySelector('#boarding-pass').getBoundingClientRect();return {width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,innerScroll:s.scrollHeight,innerHeight:s.clientHeight,buttonBottom:r.bottom,consoleWidth:c.width,consoleRight:c.right,fieldsBottom:document.querySelector('.journey-booking-fields').getBoundingClientRect().bottom,lowerTop:document.querySelector('.boarding-lower').getBoundingClientRect().top,documentHeight:document.documentElement.scrollHeight,ratio:ticket.width/ticket.height}})()`);
   assert.ok(layout.scrollWidth<=width,JSON.stringify(layout));assert.ok(layout.consoleRight<=width,JSON.stringify(layout));
   if(width>=1000)assert.ok(layout.buttonBottom<=height&&layout.innerScroll<=layout.innerHeight+1&&layout.documentHeight<=height&&layout.fieldsBottom<=layout.lowerTop-7,JSON.stringify(layout));
-  assert.ok(Math.abs(layout.ratio-(medium==='card'?269.9/428:700/325))<.01);
+  if(medium==='card'||width>=800)assert.ok(Math.abs(layout.ratio-(medium==='card'?269.9/428:700/325))<.01);
   layouts.push({...layout,medium});await p.screenshot(`${out}/layout-${width}-${medium}.png`);
  }
  await p.send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
