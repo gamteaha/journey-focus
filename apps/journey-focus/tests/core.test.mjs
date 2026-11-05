@@ -15,7 +15,7 @@ test('pause and resume exclude paused time and completion clamps elapsed time', 
   assert.equal(clock.snapshot().elapsed, 15);
   clock.resume();
   now += 50000;
-  assert.deepEqual(clock.snapshot(), { state: 'completed', elapsed: 60, duration: 60, progress: 1 });
+  assert.deepEqual(clock.snapshot(), { state: 'completed', elapsed: 60, duration: 60, progress: 1, unlimited:false });
 });
 test('stop retains partial time and restart starts from zero', () => {
   let now = 0;
@@ -37,7 +37,7 @@ test('a late pause cannot turn an already complete session into a paused one', (
 test('reset clears a previous session when choosing a new route or duration', () => {
   let now = 0; const clock = new SessionClock(() => now);
   clock.start(60); now = 20000; clock.stop(); clock.reset();
-  assert.deepEqual(clock.snapshot(), { state: 'idle', elapsed: 0, duration: 0, progress: 0 });
+  assert.deepEqual(clock.snapshot(), { state: 'idle', elapsed: 0, duration: 0, progress: 0, unlimited:false });
 });
 const stations = [
   { name: '가평', lon: 127.510739, lat: 37.814536 },

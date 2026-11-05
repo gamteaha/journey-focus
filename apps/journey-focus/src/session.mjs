@@ -3,12 +3,14 @@ export class SessionClock {
     this.now = now;
     this.state = 'idle';
     this.duration = 0;
+    this.unlimited = false;
     this.accumulated = 0;
     this.startedAt = 0;
   }
   start(duration) {
-    if (!Number.isFinite(duration) || duration <= 0) throw new Error('Invalid duration');
+    if (duration!==null&&(!Number.isFinite(duration) || duration <= 0)) throw new Error('Invalid duration');
     this.duration = duration;
+    this.unlimited = duration===null;
     this.accumulated = 0;
     this.startedAt = this.now();
     this.state = 'running';
@@ -22,7 +24,7 @@ export class SessionClock {
       this.accumulated = elapsed;
       this.state = 'completed';
     }
-    return { state: this.state, elapsed, duration: this.duration, progress: this.duration ? elapsed / this.duration : 0 };
+    return { state: this.state, elapsed, duration: this.duration, progress: this.duration ? elapsed / this.duration : 0, unlimited:this.unlimited };
   }
   pause() {
     const snapshot = this.snapshot();
@@ -41,7 +43,7 @@ export class SessionClock {
     return this.snapshot();
   }
   reset() {
-    this.state = 'idle'; this.duration = 0; this.accumulated = 0; this.startedAt = 0;
+    this.state = 'idle'; this.duration = 0; this.unlimited=false; this.accumulated = 0; this.startedAt = 0;
     return this.snapshot();
   }
 }

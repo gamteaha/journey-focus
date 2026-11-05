@@ -68,6 +68,7 @@ const PUBLIC = new Map([
   ['/data/baegyangri-gangchon.json', ['public/data/baegyangri-gangchon.json', 'application/json']],
   ['/data/seongsu-konkuk.json', ['public/data/seongsu-konkuk.json', 'application/json']],
   ['/data/line2-surface.json', ['public/data/line2-surface.json', 'application/json']],
+  ['/data/line2-loop.json', ['public/data/line2-loop.json', 'application/json']],
 ]);
 for(const file of ['build/three.module.js','examples/jsm/loaders/FBXLoader.js','examples/jsm/loaders/GLTFLoader.js','examples/jsm/utils/BufferGeometryUtils.js','examples/jsm/libs/fflate.module.js','examples/jsm/curves/NURBSCurve.js','examples/jsm/curves/NURBSUtils.js'])PUBLIC.set('/vendor/three/'+file,['public/vendor/three/'+file,'text/javascript']);
 // Local comparison gallery: explicit captures only, never arbitrary tmp files.

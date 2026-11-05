@@ -1,6 +1,6 @@
 # Journey Focus
 
-실제 공간정보와 3D 풍경을 이용한 집중 타이머 프로젝트입니다. 로컬 앱의 기본 여정은 2호선 성수→건대입구 실제 OSM 선로입니다.
+실제 공간정보와 3D 풍경을 이용한 집중 여정 프로젝트입니다. 2호선 본선 43개 역의 OSM 선로에서 시간별 도착역을 추천하며, `∞ 무제한`을 선택하면 같은 속도로 계속 순환합니다. 누적 공부 시간과 완료한 바퀴 수를 표시합니다. [무제한 순환 안내](apps/journey-focus/docs/unlimited-loop.md).
 
 **배포 사이트:** https://journey-focus-train.indigonova38.chatgpt.site
 

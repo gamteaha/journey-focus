@@ -1,6 +1,6 @@
 # Journey Focus · 창밖으로 떠나는 집중
 
-경춘선 실제 역 좌표와 브이월드 3D 지도 API를 사용하는 로컬 프리뷰 앱입니다. 기존 발표 HTML과 별개의 실행 가능한 앱입니다.
+2호선 본선 43개 역의 실제 OSM 선로, 서울 T Data 역 정보와 브이월드 3D 지도 API를 사용하는 실행 앱입니다. 시간별 도착역 추천과 [∞ 무제한 순환](docs/unlimited-loop.md)을 지원합니다. 경춘선 관련 자료는 이전 풍경 실험으로 남아 있습니다.
 
 최신 완성도 개선과 검증: [release-candidate.md](docs/release-candidate.md). 실사 렌더링의 다음 단계: [rendering-roadmap.md](docs/rendering-roadmap.md).
 

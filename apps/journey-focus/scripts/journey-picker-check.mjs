@@ -10,10 +10,10 @@ try{
  await p.send('Page.navigate',{url:'http://localhost:5173/'});
  await p.send('Page.bringToFront');
  assert.ok(await waitFor(p,`document.querySelector('#boarding-next')?.disabled===false`,35000));
- assert.equal(await p.evaluate(`document.querySelector('#from').options.length`),7);
+ assert.equal(await p.evaluate(`document.querySelector('#from').options.length`),43);
  await p.screenshot(`${out}/01-ticket-25min.png`);
  const destinations=[];
- for(const [h,m,to,count]of [[0,25,'건대입구',1],[1,0,'구의',2],[1,30,'강변',3],[2,0,'잠실나루',4]]){
+ for(const [h,m,to,count]of [[0,25,'건대입구',1],[1,0,'구의',2],[1,30,'신당',5],[2,0,'동대문역사문화공원',6]]){
   await setTime(h,m);assert.equal(await p.evaluate(`document.querySelector('#to').value`),to);
   assert.equal(await p.evaluate(`document.querySelector('#recommended-count').textContent`),count+'개');
   destinations.push({minutes:h*60+m,to,count});
@@ -21,7 +21,7 @@ try{
  await setTime(1,30);await p.screenshot(`${out}/02-ticket-90min.png`);
  await p.evaluate(`document.querySelector('#to').value='건대입구';document.querySelector('#to').dispatchEvent(new Event('change'));`);
  assert.equal(await p.evaluate(`document.querySelector('#recommend-apply').disabled`),false);
- await p.evaluate(`document.querySelector('#recommend-apply').click()`);assert.equal(await p.evaluate(`document.querySelector('#to').value`),'강변');
+ await p.evaluate(`document.querySelector('#recommend-apply').click()`);assert.equal(await p.evaluate(`document.querySelector('#to').value`),'신당');
  await p.evaluate(`document.querySelector('[data-time-step="3600"]').click()`);
  assert.equal(await p.evaluate(`document.querySelector('#focus-hours').value+':'+document.querySelector('#focus-minutes').value`),'02:00');
  await setTime(0,37);assert.equal(await p.evaluate(`JSON.parse(localStorage.getItem('journey-focus-preferences')).duration`),2220);
@@ -44,7 +44,7 @@ try{
  await p.evaluate(`document.querySelector('[data-medium="ticket"]').click()`);await setTime(1,30);
  await p.evaluate(`document.querySelector('#boarding-next').click()`);
  assert.equal(await p.evaluate(`document.querySelector('#boarding-screen').dataset.stage`),'inspect');
- assert.ok((await p.evaluate(`document.querySelector('#boarding-receipt').textContent`)).includes('강변'));
+ assert.ok((await p.evaluate(`document.querySelector('#boarding-receipt').textContent`)).includes('신당'));
  assert.ok((await p.evaluate(`document.querySelector('#boarding-receipt').textContent`)).includes('1시간 30분'));
  await p.screenshot(`${out}/03-issued-90min.png`);
  assert.deepEqual(p.errors,[]);await fs.writeFile(`${out}/results.json`,JSON.stringify({destinations,layouts,errors:p.errors},null,2));

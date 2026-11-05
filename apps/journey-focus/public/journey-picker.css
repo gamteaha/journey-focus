@@ -1,4 +1,21 @@
 /* The ticket stays at its physical proportions; the controls live beside it. */
+.duration-modes { display:flex; justify-content:flex-end; gap:3px; margin:-27px 0 7px; }
+.boarding-screen .duration-modes button { border:1px solid #bfcab5; border-radius:6px; background:#f4f3e8; color:#72806b; font-size:10px; padding:5px 9px; }
+.boarding-screen .duration-modes button[aria-pressed=true] { background:#2c483b; color:#faf5e3; border-color:#2c483b; }
+.infinity-dial { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:170px; }
+.infinity-dial>strong { color:#fbf5dc; font:500 115px/.85 Georgia,serif; text-shadow:0 3px #101b2e; }
+.infinity-dial>span { font-size:14px; margin-top:18px; color:#f6df9e; }
+.infinity-dial>small { font-size:9px; color:#b8c4c2; margin-top:8px; }
+.loop-preview { display:flex; flex-direction:column; align-items:center; gap:6px; margin:12px 0 4px; }
+.loop-orbit { position:relative; height:68px; width:88px; border:3px solid #e8c65c; border-radius:50%; display:grid; place-items:center; box-shadow:0 0 0 5px #e8c65c0d; }
+.loop-orbit>span { font:37px Georgia,serif; color:#ffd76b; }
+.loop-orbit>i { position:absolute; inset:-5px; border:0; border-radius:50%; animation:loop-orbit 12s linear infinite; }
+.loop-orbit>i:after { content:''; position:absolute; width:10px; height:10px; background:#ff8f55; border:2px solid #252b22; border-radius:50%; top:7px; left:5px; }
+.loop-preview>small { font-size:9px; color:#c6cdb5; }
+@keyframes loop-orbit { to { transform:rotate(360deg); } }
+@media(max-height:740px) and (min-width:900px) { .duration-modes { margin-top:-24px; margin-bottom:6px; }.boarding-screen .duration-modes button { padding:4px 8px; font-size:9px; }.infinity-dial { min-height:134px; }.infinity-dial>strong { font-size:90px; }.infinity-dial>span { margin-top:13px; font-size:12px; }.loop-orbit { height:52px; width:73px; }.loop-preview { margin:6px 0 3px; } }
+@media(max-width:799px) { .infinity-dial { min-height:150px; }.infinity-dial>strong { font-size:95px; }.infinity-dial>span { font-size:12px; }.infinity-dial>small { font-size:8px; }.duration-modes { margin-top:0; margin-bottom:7px; } }
+@media(prefers-reduced-motion:reduce) { .loop-orbit>i { animation:none; } }
 .boarding-screen .pass-size-stage,
 .boarding-screen[data-medium=card] .pass-size-stage {
   display:grid; grid-template-columns:minmax(270px,.85fr) minmax(480px,1.15fr);

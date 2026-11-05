@@ -71,11 +71,13 @@ test('rejects a foreign Origin and unsupported methods without fetching upstream
  assert.equal((await call(worker,'/api/unknown')).status,404);
 });
 
-test('accepts all seven supported stations including qualified T Data station names',async()=>{
- const names=['한양대','뚝섬','성수','건대입구','구의(광진구청)','강변(동서울터미널)','잠실나루'];
+test('accepts all 43 main-loop stations and excludes the branch lines',async()=>{
+ const shape=JSON.parse(await readFile(path.join(root,'apps/journey-focus/public/data/line2-loop.json'),'utf8'));
+ const names=[...shape.stationAnchors.map(a=>a.name==='강변'?'강변(동서울터미널)':a.name),'신설동','용답','도림천'];
  const worker=createWorker(async()=>Response.json(names.map(stnKrNm=>({lineNm:'2호선',stnKrNm,convX:127.05,convY:37.54}))));
  const response=await call(worker,'/api/stations');assert.equal(response.status,200);
- assert.deepEqual((await response.json()).stations.map(s=>s.name),['한양대','뚝섬','성수','건대입구','구의','강변','잠실나루']);
+ const stations=(await response.json()).stations.map(s=>s.name);assert.equal(stations.length,43);
+ assert.ok(stations.includes('시청')&&stations.includes('강남')&&stations.includes('강변'));assert.ok(!stations.includes('신설동')&&!stations.includes('용답'));
 });
 test('handles missing keys and upstream errors without leaking their details, then allows retry',async()=>{
  let count=0;
@@ -104,6 +106,7 @@ test('serves the bundled train model, rail shape and browser modules',async()=>{
  const route=await (await call(worker,'/data/seongsu-konkuk.json')).json();
  assert.equal(route.from,'성수');
  assert.equal(route.to,'건대입구');
+ const loop=await(await call(worker,'/data/line2-loop.json')).json();assert.equal(loop.stationAnchors.length,43);assert.equal(loop.points[0].id,loop.points.at(-1).id);
  for(const file of ['/app.mjs','/src/boarding.mjs','/src/cabin.mjs','/vendor/three/examples/jsm/loaders/FBXLoader.js'])assert.equal((await call(worker,file)).status,200,file);
  assert.equal((await call(worker,'/.env.local')).status,404);
 });

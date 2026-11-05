@@ -21,7 +21,8 @@ export function normalizePreferences(input) {
   const viewValue = ownValue(input, 'view');
   let from = typeof fromValue === 'string' && STATION_ORDER.includes(fromValue) ? fromValue : DEFAULTS.from;
   let to = typeof toValue === 'string' && STATION_ORDER.includes(toValue) ? toValue : DEFAULTS.to;
-  if (from === to||CITY_ORDER.includes(from)!==CITY_ORDER.includes(to)) ({ from, to } = DEFAULTS);
+  if (durationValue===null){if(!CITY_ORDER.includes(from))from=DEFAULTS.from;to=from;}
+  else if (from === to||CITY_ORDER.includes(from)!==CITY_ORDER.includes(to)) ({ from, to } = DEFAULTS);
   return {
     from,
     to,

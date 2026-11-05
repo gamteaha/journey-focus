@@ -11,11 +11,11 @@ export async function createCabin({host,onSeatChange,onWindow,onState,onProgress
  const $=id=>host.querySelector('#'+id),surface=$('cabin-canvas'),keys=new Set(),held=new Set();
  const studyBadge=document.createElement('div');studyBadge.id='cabin-study-clock';studyBadge.className='cabin-study-clock';studyBadge.hidden=true;studyBadge.setAttribute('role','timer');studyBadge.setAttribute('aria-live','off');studyBadge.setAttribute('aria-label','공부한 누적 시간');studyBadge.innerHTML='<span>공부한 시간</span><strong id="cabin-study-elapsed">00:00</strong><small id="cabin-study-state">집중 중</small>';host.append(studyBadge);
  function setStudySession(value={}){
-  const state=['idle','running','paused','completed','stopped'].includes(value.state)?value.state:'idle',duration=Number.isFinite(value.duration)&&value.duration>0?Math.min(86400,value.duration):0,elapsed=Number.isFinite(value.elapsed)?Math.floor(Math.max(0,Math.min(duration,value.elapsed))):0;
+  const unlimited=value.unlimited===true&&value.duration===null,state=['idle','running','paused','completed','stopped'].includes(value.state)?value.state:'idle',duration=unlimited?null:Number.isFinite(value.duration)&&value.duration>0?Math.min(86400,value.duration):0,elapsed=Number.isFinite(value.elapsed)?Math.floor(Math.max(0,unlimited?value.elapsed:Math.min(duration,value.elapsed))):0,laps=Number.isInteger(value.laps)&&value.laps>=0?value.laps:0;
   if(study.state==='idle'&&state!=='idle')cameraSnap=true;
-  study={state,duration,elapsed};host.dataset.studyElapsed=String(elapsed);studyBadge.dataset.state=state;
-  $('cabin-study-elapsed').textContent=formatTime(elapsed);$('cabin-study-state').textContent=state==='paused'?'잠시 쉬는 중':state==='completed'?'집중 완료':state==='stopped'?'이번 여정의 기록':'집중 중';
-  if(!duration||state==='idle')studyBadge.hidden=true;
+  study={state,duration,elapsed,unlimited,laps};host.dataset.studyElapsed=String(elapsed);host.dataset.studyUnlimited=String(unlimited);studyBadge.dataset.state=state;
+  $('cabin-study-elapsed').textContent=formatTime(elapsed);$('cabin-study-state').textContent=state==='paused'?'잠시 쉬는 중':state==='completed'?'집중 완료':state==='stopped'?'이번 여정의 기록':unlimited?`∞ ${laps}바퀴 · 집중 중`:'집중 중';
+  if((!duration&&!unlimited)||state==='idle')studyBadge.hidden=true;
  }
  const scene=new T.Scene();scene.background=new T.Color(0xb4cecd);scene.fog=new T.Fog(0xb4cecd,25,65);
  const renderer=new T.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','객실 3D 화면. 방향키 또는 WASD로 이동하고 좌석을 클릭하세요.');surface.prepend(renderer.domElement);
@@ -65,7 +65,7 @@ export async function createCabin({host,onSeatChange,onWindow,onState,onProgress
  function keyup(e){keys.delete(e.code);}function clearInput(){keys.clear();held.clear();}
  window.addEventListener('keydown',keydown);window.addEventListener('keyup',keyup);window.addEventListener('blur',clearInput);document.addEventListener('visibilitychange',clearInput);
  for(const b of host.querySelectorAll('[data-walk]')){b.onpointerdown=e=>{e.preventDefault();b.setPointerCapture(e.pointerId);held.add(b.dataset.walk);};b.onpointerup=b.onpointercancel=()=>held.delete(b.dataset.walk);b.onlostpointercapture=()=>held.delete(b.dataset.walk);}
- function cast(e){const rect=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);const s=controller.snapshot(),targets=study.duration>0&&study.state!=='idle'&&s.seatId?markers.filter(m=>Math.sign(m.position.x)===Math.sign(s.x)):markers;return raycaster.intersectObjects(targets,false)[0]?.object.userData.seatId||null;}
+ function cast(e){const rect=renderer.domElement.getBoundingClientRect();pointer.set((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(pointer,camera);const s=controller.snapshot(),targets=(study.unlimited||study.duration>0)&&study.state!=='idle'&&s.seatId?markers.filter(m=>Math.sign(m.position.x)===Math.sign(s.x)):markers;return raycaster.intersectObjects(targets,false)[0]?.object.userData.seatId||null;}
  renderer.domElement.addEventListener('pointermove',e=>{if(!active||!ready||e.pointerType==='touch')return;hoverSeatId=cast(e);renderer.domElement.style.cursor=hoverSeatId?'pointer':'default';sync(controller.snapshot());});
  renderer.domElement.addEventListener('pointerleave',()=>{hoverSeatId=null;sync(controller.snapshot());});
  renderer.domElement.addEventListener('pointerdown',e=>{if(!active||!ready||e.button!==0)return;renderer.domElement.focus({preventScroll:true});const id=cast(e);if(id){selectSeat(id);return;}const hit=raycaster.intersectObject(floor,false)[0];if(hit){controller.clearPreview();controller.moveTo(hit.point.x,hit.point.z);sync(controller.snapshot());}});
@@ -75,7 +75,7 @@ export async function createCabin({host,onSeatChange,onWindow,onState,onProgress
   const s=ready?controller.update(dt,input):controller.snapshot();avatar.root.position.set(s.x,s.seatId ? avatar.seatOffset : CABIN_FLOOR_Y,s.z);avatar.root.rotation.y=s.heading;avatar.pose({seated:!!s.seatId,moving:s.moving,time});host.dataset.avatarPose=avatar.root.userData.pose;shadow.position.set(s.x,CABIN_FLOOR_Y+.006,s.z);sync(s);
   shadow.visible=!s.seatId;
   host.dataset.position=`${s.x.toFixed(2)},${s.z.toFixed(2)}`;
-  const started=study.duration>0&&study.state!=='idle',frame=started&&s.seatId?cabinStudyFrame(s.seatId,camera.aspect,surface.clientHeight):null;
+  const started=(study.unlimited||study.duration>0)&&study.state!=='idle',frame=started&&s.seatId?cabinStudyFrame(s.seatId,camera.aspect,surface.clientHeight):null;
   host.dataset.cameraMode=frame?'study':'follow';
   if(frame)for(const [id,h]of highlights)h.group.visible=id===hoverSeatId||Boolean(s.candidateSeatId)&&(id===s.candidateSeatId||id===s.seatId);
   if(frame){desired.fromArray(frame.position);look.fromArray(frame.target);}else{const fromEnd=s.z>5.5;desired.set(s.seatId?Math.sign(s.x)*-.20:s.x*.45,1.72,fromEnd?s.z-3.1:Math.min(8.05,s.z+3.1));look.set(s.x*.7,.93,s.z+(fromEnd ? .6 : -.6));}

@@ -1,5 +1,5 @@
 import { SessionClock, formatTime } from '/src/session.mjs';
-import { buildRoute, positionAt } from '/src/route.mjs';
+import { buildRoute, buildLoopRoute, positionAt } from '/src/route.mjs';
 import { TrainAudio } from '/audio.mjs';
 import { createComparison } from '/comparison.mjs';
 import { createScenery } from '/scenery.mjs';
@@ -8,14 +8,14 @@ import {readPreferences,savePreferences} from '/src/preferences.mjs';
 import {CABIN_SEATS} from '/src/cabin.mjs';
 import {createBoarding} from '/boarding.mjs';
 import {characterById,formatDuration} from '/src/boarding.mjs';
-import {recommendJourney,validDuration} from '/src/journey.mjs';
+import {recommendJourney,validDuration,journeyMetrics} from '/src/journey.mjs';
 
 const $ = id => document.getElementById(id);
 let preferenceStorage;
 try{preferenceStorage=localStorage;}catch{}
 const savedPreferences=readPreferences(preferenceStorage);
 const clock = new SessionClock();
-const audio = new TrainAudio(() => { if(scenery?.active)return scenery.remaining;const s = clock.snapshot(); return s.duration - s.elapsed; });
+const audio = new TrainAudio(() => { if(scenery?.active)return scenery.remaining;const s = clock.snapshot(); return s.unlimited?Infinity:s.duration - s.elapsed; });
 const state = { stations: [], route: null, railShape: null, duration: savedPreferences.duration, mapReady: false, mapFailed: false, view: savedPreferences.view, recorded: false, stationError: false, loading: false, fetchedAt: null, fps: null };
 let toastTimer, mapTimer, completionTimer, lastUpdate = 0, lastCamera = 0;
 let comparison = null;
@@ -23,11 +23,17 @@ let scenery=null;
 let cabin=null,selectedSeat=null,experienceMode='cabin';
 let lastCabinSession='';
 function publishCabinSession(force=false){
- if(!cabin)return;const s=clock.snapshot(),session={state:s.state,elapsed:Math.floor(s.elapsed),duration:s.duration},key=JSON.stringify(session);
+ if(!cabin)return;const s=clock.snapshot(),session={state:s.state,elapsed:Math.floor(s.elapsed),duration:s.duration,unlimited:s.unlimited,laps:journeyMetrics(state.route,s).laps},key=JSON.stringify(session);
  if(force||key!==lastCabinSession){lastCabinSession=key;cabin.setSession(session);}
 }
 let boarding=null,boardingTicket=null;
-function journeyRecommendation(){return recommendJourney(state.stations,$('from').value,state.duration,state.railShape);}
+let recommendationMemo;
+function routeProgress(snapshot=clock.snapshot()){return journeyMetrics(state.route,snapshot).progress;}
+function journeyRecommendation(){
+ const from=$('from').value;
+ if(recommendationMemo?.shape===state.railShape&&recommendationMemo.stations===state.stations&&recommendationMemo.from===from&&recommendationMemo.duration===state.duration)return recommendationMemo.value;
+ const value=recommendJourney(state.stations,from,state.duration,state.railShape);recommendationMemo={shape:state.railShape,stations:state.stations,from,duration:state.duration,value};return value;
+}
 function applyRecommendation(){const recommendation=journeyRecommendation();if(recommendation){$('to').value=recommendation.to;chooseRoute();}}
 function changeDuration(duration){
  if(!validDuration(duration)||['running','paused'].includes(clock.state))return;
@@ -35,6 +41,7 @@ function changeDuration(duration){
  document.querySelectorAll('[data-duration]').forEach(b=>{const selected=Number(b.dataset.duration)===duration;b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));});
  const recommendation=journeyRecommendation();if(recommendation)$('to').value=recommendation.to;
  if(state.stations.length>1)chooseRoute();else boarding?.update();
+ setControls(false);
  saveUserSettings();
 }
 let cabinFailed=false,entryProgress=()=>{},activeEntry=null,entrySequence=0,entryViewId=null,entryViewReady=false;
@@ -46,7 +53,7 @@ function setExperience(mode){
   cabin?.setActive(experienceMode==='cabin');
   post('cabin',{active:experienceMode==='cabin'});
   if(experienceMode==='cabin'){comparison?.close();scenery?.close();setView('window');}
-  else{setView('window');applySeatView();if(state.route)post('position',{position:positionAt(state.route,clock.snapshot().progress)});}
+  else{setView('window');applySeatView();if(state.route)post('position',{position:positionAt(state.route,routeProgress())});}
   syncGameHUD();
   publishCabinSession(true);
 }
@@ -94,6 +101,8 @@ function connection() {
 }
 function setControls(active) {
   for (const id of ['from', 'to', 'swap']) $(id).disabled = active || state.stations.length < 2;
+  if(state.duration===null){$('to').disabled=true;$('swap').disabled=true;}
+  document.querySelector('label[for="to"]').firstChild.textContent=state.duration===null?'한 바퀴 후 돌아오는 역':'도착역';
   document.querySelectorAll('[data-duration]').forEach(button => { button.disabled = active; });
   $('pause').hidden = !active; $('stop').hidden = !active;
 }
@@ -104,13 +113,13 @@ function preview() {
   $('progress-from').textContent = $('from').value;
   $('progress-to').textContent = $('to').value;
   const rail = state.route.geometry === 'osm-rail';
-  $('route-summary').textContent = `${state.route.stations.length}개 역 · 약 ${(state.route.distance / 1000).toFixed(1)} km`;
+  $('route-summary').textContent = state.duration===null?`2호선 43개 역 순환 · 한 바퀴 약 ${(state.route.distance/1000).toFixed(1)} km`:`${state.route.stations.length}개 역 · 약 ${(state.route.distance / 1000).toFixed(1)} km`;
   $('geometry-label').textContent = rail ? '2호선 실제 선로 · 오른쪽 창가 · 높이 30m 시험값' : '실제 지형 · 역 사이 보간 이동';
   post('geometry', { rail });
   $('scene-description').textContent = `${$('from').value}에서 ${$('to').value}까지, 나에게 집중하는 시간`;
-  $('ticket-duration').textContent = `${state.duration / 60} MIN`;
+  $('ticket-duration').textContent = state.duration===null?'∞ 무제한':`${state.duration / 60} MIN`;
   if (!['running', 'paused'].includes(clock.state)) {
-    $('timer').textContent = formatTime(state.duration);
+    $('timer').textContent = state.duration===null?'∞':formatTime(state.duration);
     $('location-label').textContent = `${$('from').value} → ${$('to').value} · 여정 준비`;
     post('position', { position: positionAt(state.route, 0) });
     $('progress-fill').style.width = '0%'; $('train-dot').style.left = '0%'; $('progress-track').setAttribute('aria-valuenow', '0');
@@ -120,7 +129,7 @@ function preview() {
 }
 function chooseRoute() {
   resetSessionPreview();
-  try { state.route = buildRoute(state.stations, $('from').value, $('to').value, state.railShape); preview(); }
+  try { state.route = state.duration===null?buildLoopRoute(state.stations,$('from').value,state.railShape):buildRoute(state.stations, $('from').value, $('to').value, state.railShape); preview(); }
   catch (error) { state.route = null; $('route-summary').textContent = error.message; }
   connection();
   comparison?.routeChanged();
@@ -140,7 +149,7 @@ async function loadStations() {
   try {
     const [response, shape] = await Promise.all([
       fetch('/api/stations', { signal: AbortSignal.timeout(25000) }),
-      fetch('/data/line2-surface.json').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/data/line2-loop.json').then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
     state.railShape = shape;
     if(!shape?.stationAnchors?.length)throw new Error('실제 선로를 불러오지 못했습니다.');
@@ -153,6 +162,7 @@ async function loadStations() {
     }
     $('from').value = state.stations.some(s => s.name === savedPreferences.from) ? savedPreferences.from : state.stations[0].name;
     $('to').value = state.stations.some(s => s.name === savedPreferences.to) ? savedPreferences.to : state.stations.at(-1).name;
+    if(state.duration===null)$('to').value=$('from').value;
     setControls(false); chooseRoute();
   } catch {
     state.stationError = true;
@@ -187,7 +197,7 @@ window.addEventListener('message', event => {
   if(data?.type==='jf:map-initialized'){
     post('view',{view:state.view});post('rendering',{mode:renderMode});
     post('cabin',{active:experienceMode==='cabin'});
-    if(state.route)post('position',{position:positionAt(state.route,clock.snapshot().progress)});
+    if(state.route)post('position',{position:positionAt(state.route,routeProgress())});
   }
   if (data?.type === 'jf:map-ready') {
     state.mapReadyAt=performance.now();entryProgress({progress:88,stage:'world',label:'창밖 풍경을 채우고 있어요.',detail:'처음 바라볼 곳의 지형과 풍경을 기다리는 중이에요.'});
@@ -195,7 +205,7 @@ window.addEventListener('message', event => {
     $('scene-loading').hidden = true; $('scene').classList.add('map-ready'); $('scene').classList.remove('loading-error');
     post('view', { view: state.view });
     post('geometry', { rail: state.route?.geometry === 'osm-rail' });
-    if (state.route) post('position', { position: positionAt(state.route, clock.snapshot().progress) });
+    if (state.route) post('position', { position: positionAt(state.route, routeProgress()) });
     post('lock', { locked: Boolean(comparison?.active) || ['running', 'paused'].includes(clock.state) });
     comparison?.ready();
     applySeatView();
@@ -233,7 +243,7 @@ function begin() {
 function scheduleCompletion() {
   clearTimeout(completionTimer);
   const snapshot = clock.snapshot();
-  if (snapshot.state === 'running') completionTimer = setTimeout(() => { update(); scheduleCompletion(); }, Math.max(50, (snapshot.duration - snapshot.elapsed) * 1000 + 20));
+  if (snapshot.state === 'running'&&!snapshot.unlimited) completionTimer = setTimeout(() => { update(); scheduleCompletion(); }, Math.max(50, (snapshot.duration - snapshot.elapsed) * 1000 + 20));
   else if (snapshot.state === 'completed') finish();
 }
 function togglePause() {
@@ -249,25 +259,27 @@ function finish() {
   clearTimeout(completionTimer);
   const snapshot = clock.snapshot();
   const completed = snapshot.state === 'completed';
-  const entry = { from: $('from').value, to: $('to').value, elapsed: Math.round(snapshot.elapsed), duration: snapshot.duration, completed, date: new Date().toISOString() };
+  const metrics=journeyMetrics(state.route,snapshot);
+  const entry = { from: $('from').value, to: snapshot.unlimited?positionAt(state.route,metrics.progress).name:$('to').value, elapsed: Math.round(snapshot.elapsed), duration: snapshot.duration, completed, date: new Date().toISOString(),...(snapshot.unlimited?{unlimited:true,laps:metrics.laps,distanceMetres:Math.round(metrics.distance)}:{}) };
   let saved = true;
   try { localStorage.setItem('journey-focus-history', JSON.stringify([entry, ...history()].slice(0, 30))); } catch { saved = false; }
   updateHistoryCount(); setControls(false); audio.setActive(false); post('lock', { locked: Boolean(comparison?.active) }); document.body.classList.remove('running');
   $('session-kicker').textContent = completed ? 'YOU HAVE ARRIVED' : 'A MOMENT WELL SPENT';
   $('session-title').textContent = completed ? '오늘의 여정을 완주했어요.' : '잠시 머문 시간도, 나를 위한 시간.';
   connection();
-  dialog(completed ? '나에게 도착한 시간.' : '오늘의 여정을 마쳤어요.', `<p>${escape(entry.from)}에서 ${escape(entry.to)}까지 ${completed ? '목표 집중시간을 채웠어요.' : '여기까지 함께했어요.'}</p><div class="result-big">${formatTime(entry.elapsed)}</div><p class="result-note">${completed ? '잘 다녀왔어요. 작은 여행이 오늘의 일상에 여유를 더했기를 바라요.' : '다시 떠나고 싶을 때, 언제든 새로운 여정을 시작하세요.'}</p><p>${saved ? '이 브라우저의 여정 기록에 저장했습니다.' : '브라우저 저장이 제한되어 기록을 저장하지 못했습니다.'} 실제 열차 도착이나 운행시간을 의미하지 않습니다.</p>`, completed ? 'JOURNEY COMPLETE' : 'JOURNEY ENDED');
+  dialog(completed ? '나에게 도착한 시간.' : '오늘의 여정을 마쳤어요.', `<p>${entry.unlimited?`2호선 무제한 순환 · ${entry.laps}바퀴 완료 · 약 ${(entry.distanceMetres/1000).toFixed(1)}km`:`${escape(entry.from)}에서 ${escape(entry.to)}까지 ${completed ? '목표 집중시간을 채웠어요.' : '여기까지 함께했어요.'}`}</p><div class="result-big">${formatTime(entry.elapsed)}</div><p class="result-note">${completed ? '잘 다녀왔어요. 작은 여행이 오늘의 일상에 여유를 더했기를 바라요.' : '다시 떠나고 싶을 때, 언제든 새로운 여정을 시작하세요.'}</p><p>${saved ? '이 브라우저의 여정 기록에 저장했습니다.' : '브라우저 저장이 제한되어 기록을 저장하지 못했습니다.'} 실제 열차 도착이나 운행시간을 의미하지 않습니다.</p>`, completed ? 'JOURNEY COMPLETE' : 'JOURNEY ENDED');
 }
 function update() {
   const s = clock.snapshot();
-  if (['running', 'paused', 'completed', 'stopped'].includes(s.state) && s.duration) {
-    $('timer').textContent = formatTime(s.duration - s.elapsed);
-    const percent = s.progress * 100;
+  if (['running', 'paused', 'completed', 'stopped'].includes(s.state) && (s.unlimited||s.duration)) {
+    const metrics=journeyMetrics(state.route,s);
+    $('timer').textContent = formatTime(s.unlimited?Math.floor(s.elapsed):s.duration - s.elapsed);
+    const percent = metrics.progress * 100;
     $('progress-fill').style.width = `${percent}%`; $('train-dot').style.left = `${percent}%`;
     $('progress-track').setAttribute('aria-valuenow', String(Math.round(percent)));
-    $('session-state').textContent = s.state === 'running' ? `${Math.floor(s.elapsed / 60)}분 집중 중 · ${Math.round(percent)}%` : s.state === 'paused' ? '잠시 쉬어가는 중' : s.state === 'completed' ? '여정 완주' : '여정 종료';
+    $('session-state').textContent = s.state === 'running' ? s.unlimited?`${Math.floor(s.elapsed/60)}분 집중 중 · ${metrics.laps}바퀴 완료`:`${Math.floor(s.elapsed / 60)}분 집중 중 · ${Math.round(percent)}%` : s.state === 'paused' ? '잠시 쉬어가는 중' : s.state === 'completed' ? '여정 완주' : '여정 종료';
     if (state.route) {
-      const position = positionAt(state.route, s.progress);
+      const position = positionAt(state.route, metrics.progress);
       const movement = state.route.geometry === 'osm-rail' ? (position.tunnel ? '터널 구간 지상 조망' : '철도 선형 조망') : '보간 경로 이동';
       $('location-label').textContent = s.progress >= 1 ? `${position.name} · 여정 완주` : `${position.name} → ${position.next} · ${s.state === 'paused' ? '잠시 정지' : movement}`;
       if (s.state === 'completed'&&!state.recorded) post('position', { position });
@@ -280,7 +292,7 @@ function update() {
 function tick(now) {
   if (now - lastUpdate > 100) { update(); lastUpdate = now; }
   if (clock.state === 'running' && state.route && now - lastCamera > 30) {
-    post('position', { position: positionAt(state.route, clock.snapshot().progress) });
+    post('position', { position: positionAt(state.route, routeProgress()) });
     lastCamera = now;
   }
   requestAnimationFrame(tick);
@@ -312,16 +324,16 @@ $('focus-button').onclick = () => {
 };
 $('map-retry').onclick = loadMap;
 $('retry').onclick = () => { if (state.stationError) loadStations(); if (state.mapFailed) loadMap(); };
-$('about-button').onclick = () => dialog('창밖으로 떠나는 집중.', '<p>Journey Focus는 책상이나 도서관에 앉아, 열차에 타고 이동하는 느낌으로 나만의 집중 시간을 보내는 서비스입니다.</p><h3>작은 여행을 시작하는 방법</h3><ol><li>출발역과 도착역을 선택하세요.</li><li>집중하고 싶은 시간을 정하세요. 처음이라면 1분 체험을 추천해요.</li><li>여정을 시작하고, 잠시 나에게 집중하세요.</li></ol><p>브이월드의 실제 3D 공간정보와 서울시 T Data의 역 좌표를 사용합니다. 한양대–잠실나루의 지원 구간은 OpenStreetMap 철도 선형을 따라갑니다. 집중시간을 고르면 비슷한 이동 속도로 갈 수 있는 실제 도착역을 추천합니다. 선로 높이와 열차 시각표는 미검증이며, 터널 구간은 지상에서 조망합니다. 창가 시점의 높이는 설정에 따라 달라지고, 넓게 보기는 항공 조망입니다. 300m 근경 미리보기는 지형 위 약 6m의 재구성 시점이며 실제 선로 표고는 미검증입니다.</p>');
+$('about-button').onclick = () => dialog('창밖으로 떠나는 집중.', '<p>Journey Focus는 책상이나 도서관에 앉아, 열차에 타고 이동하는 느낌으로 나만의 집중 시간을 보내는 서비스입니다.</p><h3>작은 여행을 시작하는 방법</h3><ol><li>출발역과 도착역을 선택하세요.</li><li>집중하고 싶은 시간을 정하세요. 처음이라면 1분 체험을 추천해요.</li><li>여정을 시작하고, 잠시 나에게 집중하세요.</li></ol><p>브이월드의 실제 3D 공간정보와 서울시 T Data의 역 좌표를 사용합니다. 2호선 본선 43개 역의 실제 OSM 선로를 사용합니다. 시간에 맞는 도착역을 추천하며, 무제한 모드에서는 한 바퀴 약 90분의 속도로 계속 순환합니다. 지하 구간은 현재 지상 지도에서 조망합니다. 선로 높이와 열차 시각표는 미검증이며, 터널 구간은 지상에서 조망합니다. 창가 시점의 높이는 설정에 따라 달라지고, 넓게 보기는 항공 조망입니다. 300m 근경 미리보기는 지형 위 약 6m의 재구성 시점이며 실제 선로 표고는 미검증입니다.</p>');
 function showData() {
   const time = state.fetchedAt ? new Date(state.fetchedAt).toLocaleString('ko-KR') : '미수신';
   const rail = state.route?.geometry === 'osm-rail';
-  dialog('실제 데이터, 정확한 구분.', `<div class="data-grid"><div class="data-item"><strong>브이월드 3D API 3.0</strong><span>${state.mapReady ? '지도 렌더러 연결됨' : '지도 연결 확인 필요'}</span></div><div class="data-item"><strong>T Data 2호선 역사마스터</strong><span>${state.stations.length}개 역 · 좌표 수신</span></div></div><h3>현재 확인된 것</h3><p>브이월드 공식 SDK를 통해 지도와 지형을 요청합니다. 역 이름과 좌표는 서울특별시 교통정책지원시스템(TAIMS)의 지하철역_GEOM 응답입니다. 수신 시각: ${escape(time)}.</p><h3>지금 선택한 이동 경로</h3><p>${rail ? '한양대–잠실나루의 연결된 OSM 선로 81개 좌표에서 선택한 구간을 사용합니다. 7개 역의 위치를 원래 선로 위에 투영했으며 선로를 건물 회피용으로 옮기지 않았습니다. 실제 높이와 운영 방향은 현장 검증 자료가 아닙니다.' : '이 구간은 역 좌표를 연결한 보간 경로입니다. 산이나 건물을 가로지를 수 있으며 실제 선로와 일치하지 않습니다. 기본 구간 성수–건대입구에서는 OSM 철도 선형을 사용할 수 있습니다.'} 표시 거리는 선택한 경로를 계산한 값입니다.</p><h3>아직 검증하지 않은 것</h3><p>선로 높이, 터널 내부, 정차시간과 운행 시각표입니다. 창가 시점은 지형 위 설정한 높이의 조망이며, 넓게 보기는 항공 시점입니다. 실제 열차 창문 높이가 아닙니다. 집중시간에 맞춰 이동하므로 실제 운행시간을 뜻하지 않습니다.</p><h3>데이터 이용과 기록</h3><p>브이월드 지형·3D 자산은 별도 저장하지 않습니다. 여정 기록은 이 브라우저에만 보관됩니다. 화면 우측 FPS는 현재 기기의 지도 렌더 횟수 측정치이며 품질을 보장하는 수치가 아닙니다.</p><p><a href="https://www.vworld.kr/" target="_blank" rel="noopener noreferrer">VWorld 공간정보 오픈플랫폼 ↗</a><br><a href="https://t-data.seoul.go.kr/category/dataviewopenapi.do?data_id=1036" target="_blank" rel="noopener noreferrer">서울특별시 T Data · 지하철역 좌표정보 (저작자 표시) ↗</a><br><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">철도 선형 © OpenStreetMap contributors · ODbL 1.0 ↗</a><br><a href="https://polyhaven.com/license" target="_blank" rel="noopener noreferrer">근경 식생·재질: Poly Haven CC0 ↗</a></p>`, 'DATA & SOURCES');
+  dialog('실제 데이터, 정확한 구분.', `<div class="data-grid"><div class="data-item"><strong>브이월드 3D API 3.0</strong><span>${state.mapReady ? '지도 렌더러 연결됨' : '지도 연결 확인 필요'}</span></div><div class="data-item"><strong>T Data 2호선 역사마스터</strong><span>${state.stations.length}개 역 · 좌표 수신</span></div></div><h3>현재 확인된 것</h3><p>브이월드 공식 SDK를 통해 지도와 지형을 요청합니다. 역 이름과 좌표는 서울특별시 교통정책지원시스템(TAIMS)의 지하철역_GEOM 응답입니다. 수신 시각: ${escape(time)}.</p><h3>지금 선택한 이동 경로</h3><p>${rail ? 'OSM 내선순환 관계 4729409의 연결된 선로 554개 좌표와 43개 본선 역을 사용합니다. 지선은 제외합니다. 무제한은 닫힌 선로를 계속 순환하며, 지하 구간도 현재 지상 지도에서 조망합니다. 실제 선로 표고와 운행 규칙은 검증하지 않았습니다.' : '이 구간은 역 좌표를 연결한 보간 경로입니다. 산이나 건물을 가로지를 수 있으며 실제 선로와 일치하지 않습니다. 기본 구간 성수–건대입구에서는 OSM 철도 선형을 사용할 수 있습니다.'} 표시 거리는 선택한 경로를 계산한 값입니다.</p><h3>아직 검증하지 않은 것</h3><p>선로 높이, 터널 내부, 정차시간과 운행 시각표입니다. 창가 시점은 지형 위 설정한 높이의 조망이며, 넓게 보기는 항공 시점입니다. 실제 열차 창문 높이가 아닙니다. 집중시간에 맞춰 이동하므로 실제 운행시간을 뜻하지 않습니다.</p><h3>데이터 이용과 기록</h3><p>브이월드 지형·3D 자산은 별도 저장하지 않습니다. 여정 기록은 이 브라우저에만 보관됩니다. 화면 우측 FPS는 현재 기기의 지도 렌더 횟수 측정치이며 품질을 보장하는 수치가 아닙니다.</p><p><a href="https://www.vworld.kr/" target="_blank" rel="noopener noreferrer">VWorld 공간정보 오픈플랫폼 ↗</a><br><a href="https://t-data.seoul.go.kr/category/dataviewopenapi.do?data_id=1036" target="_blank" rel="noopener noreferrer">서울특별시 T Data · 지하철역 좌표정보 (저작자 표시) ↗</a><br><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">철도 선형 © OpenStreetMap contributors · ODbL 1.0 ↗</a><br><a href="https://polyhaven.com/license" target="_blank" rel="noopener noreferrer">근경 식생·재질: Poly Haven CC0 ↗</a></p>`, 'DATA & SOURCES');
 }
 $('data-button').onclick = showData; $('geometry-info').onclick = showData;
 $('history-button').onclick = () => {
   const rows = history();
-  dialog('나에게 남은 여정들.', rows.length ? rows.map(row => `<div class="history-row"><div>${escape(row.from)} → ${escape(row.to)}<small>${escape(new Date(row.date).toLocaleString('ko-KR'))}</small></div><div>${formatTime(row.elapsed)}<small>${row.completed ? '완주' : '중간 종료'}</small></div></div>`).join('') + '<p>기록은 이 브라우저에만 저장됩니다.</p><button class="quiet-button" id="clear-history">기록 모두 지우기</button>' : '<p>아직 기록된 여정이 없어요. 첫 여정을 떠나 보세요.</p>', 'YOUR JOURNEYS');
+  dialog('나에게 남은 여정들.', rows.length ? rows.map(row => `<div class="history-row"><div>${escape(row.from)} → ${escape(row.to)}<small>${escape(new Date(row.date).toLocaleString('ko-KR'))}</small></div><div>${formatTime(row.elapsed)}<small>${row.unlimited===true?'순환 종료 · '+(Number.isInteger(row.laps)?row.laps:0)+'바퀴':row.completed ? '완주' : '중간 종료'}</small></div></div>`).join('') + '<p>기록은 이 브라우저에만 저장됩니다.</p><button class="quiet-button" id="clear-history">기록 모두 지우기</button>' : '<p>아직 기록된 여정이 없어요. 첫 여정을 떠나 보세요.</p>', 'YOUR JOURNEYS');
   const clear = $('clear-history');
   if (clear) clear.onclick = () => { try { localStorage.removeItem('journey-focus-history'); updateHistoryCount(); $('dialog-content').innerHTML = '<p>여정 기록을 지웠습니다.</p>'; } catch { toast('기록을 지우지 못했어요.'); } };
 };
@@ -357,13 +369,13 @@ window.addEventListener('beforeunload', event => {
 window.addEventListener('pagehide',()=>clearTimeout(unloadRecoveryTimer));
 comparison = createComparison({
   toast,
-  context: () => ({ route: state.route, from: $('from').value, to: $('to').value, geometry: state.route?.geometry, sessionProgress: clock.snapshot().progress }),
+  context: () => ({ route: state.route, from: $('from').value, to: $('to').value, geometry: state.route?.geometry, sessionProgress: routeProgress() }),
   applySettings: settings => post('visual', { settings }),
   pause: () => { if (clock.state === 'running') togglePause(); },
   windowView: () => setView('window'),
   seek: position => post('position', { position }),
   lock: locked => post('lock', { locked: locked || ['running', 'paused'].includes(clock.state) }),
-  restore: () => { if (state.route) post('position', { position: positionAt(state.route, clock.snapshot().progress) }); },
+  restore: () => { if (state.route) post('position', { position: positionAt(state.route, routeProgress()) }); },
 });
 scenery=createScenery({
   toast,post,
@@ -376,7 +388,7 @@ scenery=createScenery({
     if(active){for(const id of ['from','to','swap','start','compare-toggle','pause','stop'])$(id).disabled=true;document.querySelectorAll('[data-duration]').forEach(b=>b.disabled=true);}
     else{setControls(['running','paused'].includes(clock.state));$('pause').disabled=false;$('stop').disabled=false;connection();}
   },
-  restore:()=>{post('lock',{locked:['running','paused'].includes(clock.state)});comparison.ready();if(state.route)post('position',{position:positionAt(state.route,clock.snapshot().progress)});},
+  restore:()=>{post('lock',{locked:['running','paused'].includes(clock.state)});comparison.ready();if(state.route)post('position',{position:positionAt(state.route,routeProgress())});},
 });
 document.querySelectorAll('[data-duration]').forEach(b=>{const selected=Number(b.dataset.duration)===state.duration;b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));});
 setView(state.view);
@@ -438,7 +450,7 @@ async function enterTrain(ticket,{signal,onProgress=()=>{}}={}){
  let cabinPrepared=false;
  document.body.classList.add('entry-preparing');$('journey-workspace').inert=true;
  boardingTicket=ticket;selectedSeat=null;clock.reset();state.recorded=false;state.duration=ticket.duration;$('from').value=ticket.from;$('to').value=ticket.to;setControls(false);chooseRoute();document.body.classList.remove('boarding-mode');document.body.classList.add('in-train');$('journey-workspace').hidden=false;
- document.querySelector('.header-center').textContent=ticket.from+' → '+ticket.to+' · '+formatDuration(ticket.duration)+' · '+characterById(ticket.character).name;
+ document.querySelector('.header-center').textContent=(ticket.duration===null?ticket.from+' 출발 · 2호선 순환':ticket.from+' → '+ticket.to)+' · '+formatDuration(ticket.duration)+' · '+characterById(ticket.character).name;
  try{
   signal?.throwIfAborted();onProgress({progress:10,stage:'cabin',label:'열차 객실을 준비하고 있어요.',detail:'마음에 드는 창가 자리를 곧 고를 수 있어요.'});
   if(!$('cabin-frame')||cabinFailed)initCabin(ticket.character);else cabin?.configure(ticket.character,true);
@@ -458,7 +470,7 @@ async function enterTrain(ticket,{signal,onProgress=()=>{}}={}){
  }catch(error){if(activeEntry===token){cabin?.setActive(false);if(!signal?.aborted){if(!cabinPrepared)cabinFailed=true;else state.mapFailed=true;}}throw error;}finally{if(activeEntry===token){activeEntry=null;entryProgress=()=>{};}}
 }
 boarding=createBoarding({host:$('boarding-screen'),context:()=>({from:$('from').value,to:$('to').value,duration:state.duration,recommendation:journeyRecommendation(),ready:Boolean(state.route?.geometry==='osm-rail'&&state.stations.length>1&&!state.loading&&!state.stationError),error:state.stationError}),onDurationChange:changeDuration,onApplyRecommendation:applyRecommendation,onBoarded:enterTrain,onEntered:()=>{document.body.classList.remove('entry-preparing');$('journey-workspace').inert=false;cabin?.setActive(experienceMode==='cabin');},onRetry:loadStations,onOpen:()=>{document.body.classList.remove('entry-preparing');$('journey-workspace').inert=false;cabin?.setActive(false);post('cabin',{active:true});comparison?.close();setControls(false);document.querySelector('.header-center').textContent='다음 여정을 준비하는 시간';}});
-$('boarding-reopen').onclick=()=>{if(['running','paused'].includes(clock.state)){dialog('나의 승차권', '<p>'+escape(boardingTicket.from)+' → '+escape(boardingTicket.to)+'</p><div class="result-big">'+escape(formatDuration(boardingTicket.duration))+'</div><p>'+escape(characterById(boardingTicket.character).name)+' · '+escape(boardingTicket.id)+'</p><p>여정을 마친 뒤 새 승차권을 준비할 수 있어요.</p>','MY BOARDING PASS');}else boarding.open();};
+$('boarding-reopen').onclick=()=>{if(['running','paused'].includes(clock.state)){dialog('나의 승차권', '<p>'+(boardingTicket.duration===null?escape(boardingTicket.from)+' 출발 · 2호선 순환':escape(boardingTicket.from)+' → '+escape(boardingTicket.to))+'</p><div class="result-big">'+escape(formatDuration(boardingTicket.duration))+'</div><p>'+escape(characterById(boardingTicket.character).name)+' · '+escape(boardingTicket.id)+'</p><p>여정을 마친 뒤 새 승차권을 준비할 수 있어요.</p>','MY BOARDING PASS');}else boarding.open();};
 setupGameHUD();
 document.querySelector('.header-center').textContent='다음 여정을 준비하는 시간';
 
@@ -486,16 +498,17 @@ function setupGameHUD(){
 }
 function syncGameHUD(){
  if(!$('game-chrome'))return;
- const s=clock.snapshot(),started=['running','paused','completed','stopped'].includes(s.state)&&Boolean(s.duration),p=state.route?positionAt(state.route,s.progress):null;
+ const s=clock.snapshot(),metrics=journeyMetrics(state.route,s),started=['running','paused','completed','stopped'].includes(s.state)&&(s.unlimited||Boolean(s.duration)),p=state.route?positionAt(state.route,metrics.progress):null;
  const text=(id,value)=>{if($(id).textContent!==value)$(id).textContent=value;};
  $('game-clock').hidden=!started;$('game-departure').hidden=started;
  $('game-chrome').dataset.state=s.state;
- text('game-clock-label',s.state==='paused'?'잠시 쉬어가는 중':s.state==='completed'?'여정 도착':s.state==='stopped'?'여정 종료':'남은 집중시간');
- text('monitor-caption',s.progress>=1?'도착역':s.state==='running'?'지금 지나고 있어요':'이번 역');
+ text('game-clock-label',s.state==='paused'?'잠시 쉬어가는 중':s.state==='completed'?'여정 도착':s.state==='stopped'?'여정 종료':s.unlimited?'누적 집중시간 · ∞':'남은 집중시간');
+ text('monitor-caption',s.unlimited?`∞ ${metrics.laps}바퀴 완료`:s.progress>=1?'도착역':s.state==='running'?'지금 지나고 있어요':'이번 역');
  text('monitor-station',p?.name||$('from').value||'성수');
  text('monitor-next',s.progress>=1?'여정 완료':p?.next||$('to').value||'건대입구');
  text('monitor-next-caption',s.progress>=1?'잘 다녀왔어요':s.state==='paused'?'잠시 정차':'다음 역');
- $('monitor-progress').style.width=`${Math.round(s.progress*100)}%`;
+ $('monitor-progress').style.width=`${Math.round(metrics.progress*100)}%`;
+ $('game-chrome').dataset.laps=String(metrics.laps);$('game-chrome').dataset.unlimited=String(s.unlimited);
  $('landscape-view').disabled=!selectedSeat;
  if($('game-settings').open||$('info-dialog').open)cabin?.setActive(false);
 }
