@@ -1,0 +1,97 @@
+import {before,test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+import path from 'node:path';
+import {createWorker} from './worker.mjs';
+
+const root=fileURLToPath(new URL('../',import.meta.url));
+const base='https://journey-focus.example.workers.dev';
+const rows=[
+ {lineNm:'2호선',stnKrNm:'성수',convX:127.055,convY:37.544},
+ {lineNm:'2호선',stnKrNm:'건대입구',convX:127.070,convY:37.540},
+ {lineNm:'경춘선',stnKrNm:'신내',convX:127.104,convY:37.613},
+];
+const env={VWORLD_API_KEY:'test-vworld-value',TDATA_API_KEY:'test-tdata-value',ASSETS:{async fetch(request){
+ const pathname=new URL(request.url).pathname;
+ try{return new Response(await readFile(path.join(root,'dist/cloudflare',pathname)));}
+ catch{return new Response('Not found',{status:404});}
+}}};
+const call=(worker,route,options,bindings=env)=>worker.fetch(new Request(base+route,options),bindings);
+before(async()=>{await import('./build.mjs');});
+
+test('serves the real boarding and cabin HTML from the asset binding',async()=>{
+ const worker=createWorker();
+ const home=await call(worker,'/');
+ assert.equal(home.status,200);
+ assert.match(await home.text(),/id="boarding-screen"/);
+ for(const route of ['/cabin-frame','/cabin-frame.html']){
+  const cabin=await call(worker,route);
+  assert.match(await cabin.text(),/src="\/cabin-frame.mjs"/);
+  assert.equal(cabin.headers.get('Content-Security-Policy'),"frame-ancestors 'self'");
+  assert.equal(await (await call(worker,route,{method:'HEAD'})).text(),'');
+ }
+});
+test('injects the runtime VWorld SDK URL for both map paths',async()=>{
+ const worker=createWorker();
+ for(const route of ['/map','/map.html']){
+  const map=await call(worker,route);
+  const html=await map.text();
+  assert.equal(map.status,200);
+  assert.ok(html.includes('apiKey=test-vworld-value'));
+  assert.ok(!html.includes('{{VWORLD_SDK_URL}}'));
+  assert.equal(map.headers.get('Cache-Control'),'no-store');
+ }
+});
+test('reports configuration without exposing secret values',async()=>{
+ const worker=createWorker();
+ const status=await (await call(worker,'/api/status')).json();
+ assert.deepEqual(status,{vworldConfigured:true,tdataConfigured:true,serviceUrl:base,sdkVersion:'3.0'});
+ assert.ok(!JSON.stringify(status).includes('test-'));
+ assert.equal(await (await call(worker,'/api/status',{method:'HEAD'})).text(),'');
+});
+test('requests the city stations once and shares concurrent requests and cached results',async()=>{
+ let count=0;
+ const worker=createWorker(async url=>{
+  count++;
+  assert.equal(url.hostname,'t-data.seoul.go.kr');
+  assert.equal(url.searchParams.get('apikey'),env.TDATA_API_KEY);
+  assert.equal(url.searchParams.get('rowCnt'),'1000');
+  return Response.json(rows);
+ });
+ const responses=await Promise.all([call(worker,'/api/stations'),call(worker,'/api/stations')]);
+ for(const response of responses)assert.deepEqual((await response.json()).stations.map(s=>s.name),['성수','건대입구']);
+ await call(worker,'/api/stations');
+ assert.equal(count,1);
+});
+test('rejects a foreign Origin and unsupported methods without fetching upstream',async()=>{
+ const worker=createWorker(()=>{throw new Error('Unexpected upstream call');});
+ assert.equal((await call(worker,'/api/stations',{headers:{Origin:'https://other.invalid'}})).status,403);
+ assert.equal((await call(worker,'/api/stations',{method:'POST'})).status,405);
+ assert.equal((await call(worker,'/api/unknown')).status,404);
+});
+test('handles missing keys and upstream errors without leaking their details, then allows retry',async()=>{
+ let count=0;
+ const worker=createWorker(async()=>{
+  if(++count===1)throw new Error('secret upstream URL');
+  return Response.json(rows);
+ });
+ const noKey=await call(worker,'/api/stations',undefined,{...env,TDATA_API_KEY:''});
+ assert.equal(noKey.status,502);
+ assert.equal((await noKey.json()).error,'TDATA_MISSING');
+ const failure=await call(worker,'/api/stations');
+ assert.equal(failure.status,502);
+ assert.ok(!(await failure.text()).includes('secret upstream URL'));
+ assert.equal((await call(worker,'/api/stations')).status,200);
+});
+test('serves the bundled train model, rail shape and browser modules',async()=>{
+ const worker=createWorker();
+ const model=await call(worker,'/models/subway-car.fbx');
+ assert.equal(model.status,200);
+ assert.ok((await model.arrayBuffer()).byteLength>4_000_000);
+ const route=await (await call(worker,'/data/seongsu-konkuk.json')).json();
+ assert.equal(route.from,'성수');
+ assert.equal(route.to,'건대입구');
+ for(const file of ['/app.mjs','/src/boarding.mjs','/src/cabin.mjs','/vendor/three/examples/jsm/loaders/FBXLoader.js'])assert.equal((await call(worker,file)).status,200,file);
+ assert.equal((await call(worker,'/.env.local')).status,404);
+});

@@ -8,16 +8,19 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/comparison.css">
   <link rel="stylesheet" href="/finish.css">
+  <link rel="stylesheet" href="/cabin.css">
+  <link rel="stylesheet" href="/boarding.css">
 </head>
-<body>
-  <a class="skip-link" href="#journey-settings">여정 설정으로 건너뛰기</a>
+<body class="boarding-mode">
+  <a class="skip-link" href="#boarding-title">탑승 설정으로 건너뛰기</a>
   <header class="header">
     <a href="/" class="brand" aria-label="Journey Focus 홈"><img src="/favicon.svg" width="38" height="38" alt=""><span>Journey <em>Focus</em><small>창밖으로 떠나는 집중</small></span></a>
     <div class="header-center"><span class="dot"></span> 2호선에서 보내는 나만의 시간</div>
-    <button class="quiet-button" id="about-button"><span class="info-icon">i</span> 여정 안내</button>
+    <div class="ticket-header-tools"><button class="quiet-button" id="boarding-reopen">나의 승차권</button><button class="quiet-button" id="about-button"><span class="info-icon">i</span> 여정 안내</button></div>
   </header>
-  <main class="workspace">
-    <aside class="sidebar" id="journey-settings" tabindex="-1" aria-label="여정 설정">
+  <section id="boarding-screen" class="boarding-screen" aria-label="승차권 선택과 탑승"></section>
+  <main class="workspace" id="journey-workspace" tabindex="-1" hidden>
+    <aside class="sidebar" id="journey-settings" tabindex="-1" aria-label="여정 설정" hidden>
       <div class="eyebrow">YOUR NEXT JOURNEY <span>01</span></div>
       <h1>오늘의 목적지는,<br><span>온전한 몰입.</span></h1>
       <p class="intro">책상에 앉아 떠나는 작은 여행.<br>당신의 시간에 풍경을 더해 보세요.</p>
@@ -32,12 +35,12 @@
           </div>
           <button id="swap" class="icon-button" title="출발역과 도착역 바꾸기" aria-label="출발역과 도착역 바꾸기" disabled>⇅</button>
         </div>
-        <p class="route-summary" id="route-summary">서울시 T Data에 연결하고 있어요.</p>
+        <p class="route-summary" id="route-summary">여정 정보를 준비하고 있어요.</p>
       </section>
       <section class="settings-group">
         <h2><span class="section-index">02</span> 얼마나 머무를까요?</h2>
         <div class="durations" role="group" aria-label="목표 집중시간">
-          <button data-duration="60" aria-pressed="false">1<span>분 체험</span></button><button data-duration="300" aria-pressed="false">5<span>분</span></button><button data-duration="1500" class="selected" aria-pressed="true">25<span>분</span></button><button data-duration="3000" aria-pressed="false">50<span>분</span></button>
+          <button data-duration="60" aria-pressed="false">1<span>분 체험</span></button><button data-duration="300" aria-pressed="false">5<span>분</span></button><button data-duration="1500" class="selected" aria-pressed="true">25<span>분</span></button><button data-duration="3000" aria-pressed="false">50<span>분</span></button><button data-duration="3600" aria-pressed="false">1<span>시간</span></button><button data-duration="7200" aria-pressed="false">2<span>시간</span></button>
         </div>
         <p class="field-note">목표시간에 맞춰 풍경의 이동 속도가 달라져요.</p>
       </section>
@@ -52,7 +55,7 @@
       <button id="data-button" class="text-button">데이터 출처와 검증 상태 <span>↗</span></button>
     </aside>
     <section class="journey" aria-label="2호선 도시 풍경과 집중 타이머">
-      <div class="journey-toolbar"><span class="toolbar-caption">나만의 창가, 나만의 속도.</span><div class="journey-tools"><button id="scenery-toggle" class="quiet-button" aria-pressed="false" aria-controls="scenery-panel" disabled>♧ 풍경 미리보기</button><button id="compare-toggle" class="quiet-button" aria-pressed="false" aria-controls="comparison-panel">◫ 실제 장면과 비교</button></div></div>
+      <div class="journey-toolbar"><div class="experience-tabs" role="group" aria-label="여행 화면"><button id="cabin-view" class="active" aria-pressed="true">객실 · 캐릭터</button><button id="landscape-view" aria-pressed="false">창밖 풍경</button></div><div class="journey-tools"><button id="scenery-toggle" class="quiet-button" aria-pressed="false" aria-controls="scenery-panel" disabled>♧ 풍경 미리보기</button><button id="compare-toggle" class="quiet-button" aria-pressed="false" aria-controls="comparison-panel">◫ 실제 장면과 비교</button></div></div>
       <div class="render-settings">
         <label for="render-quality">화면 품질 <select id="render-quality" aria-describedby="render-quality-status" title="자동은 기기 성능에 맞춰 조절합니다. 높은 디테일은 기기 부하가 늘어나며, 원본 지도에 없는 세부 정보를 만들지는 않습니다."><option value="auto">자동</option><option value="balanced">균형</option><option value="cinematic">높은 디테일</option><option value="light">가볍게</option></select></label>
         <span id="render-quality-status" role="status">기기에 맞는 품질로 준비합니다.</span>
@@ -62,6 +65,7 @@
       <div class="compare-grid">
       <div class="scene" id="scene">
         <iframe id="map-frame" title="브이월드 실제 3D 풍경 · 직접 조작 잠금" tabindex="-1" src="about:blank" allow="fullscreen"></iframe>
+        <section id="cabin-root" class="cabin-root" aria-label="캐릭터로 이동하고 자리를 고르는 객실" hidden><p class="cabin-boot" role="status">객실로 들어가는 중이에요…</p></section>
         <div class="scene-shade"></div>
         <div class="scenery-watermark">재구성 풍경 · 현장 배치 미검증</div>
         <div class="scene-top"><span class="scene-chip"><i></i> SEOUL LINE 2</span><button id="focus-button" class="scene-button" aria-label="집중 화면 전환" title="집중 화면 전환 · Esc로 돌아가기" aria-pressed="false">⛶ <span>집중 화면</span></button></div>
@@ -86,6 +90,7 @@
         <div class="progress-track" role="progressbar" aria-label="여정 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress-track"><div id="progress-fill"></div><span id="train-dot">▰</span></div>
         <div class="session-bottom"><span id="progress-from">출발</span><div class="session-actions"><span id="session-state" role="status">아직 출발하지 않았어요</span><button id="pause" class="quiet-button" hidden>Ⅱ 일시정지</button><button id="stop" class="quiet-button" hidden>종료</button></div><span id="progress-to">도착</span></div>
       </div>
+      <div class="ride-bar" id="ride-bar"></div>
       <div class="journey-footer"><p><span class="small-dot"></span> <span id="geometry-label">실제 지형 · 역 사이 보간 이동</span> <button id="geometry-info" aria-label="이동 경로 안내">?</button></p><button id="history-button" class="text-button">나의 여정 기록 <span id="history-count">0</span> ↗</button></div>
     </section>
   </main>

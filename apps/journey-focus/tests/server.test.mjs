@@ -24,6 +24,14 @@ test('server protects secrets, handles API failure safely, and serves the map wi
   assert.ok(!map.includes('test-secret-key'));
   const modelBytes=Buffer.from(await(await fetch(base+'/assets/house/house.bin')).arrayBuffer());
   assert.deepEqual(modelBytes,await readFile(new URL('../public/assets/house/house.bin',import.meta.url)));
+  const car=await fetch(base+'/models/subway-car.fbx');assert.equal(car.headers.get('content-type'),'application/octet-stream');
+  assert.deepEqual(Buffer.from(await car.arrayBuffer()),await readFile(new URL('../../../assets-source/subway-car/SubwayCar_Compiled.fbx',import.meta.url)));
+  for(const route of ['/cabin.mjs','/avatar.mjs','/cabin.css','/src/cabin.mjs','/vendor/three/build/three.module.js'])assert.equal((await fetch(base+route)).status,200);
+  const otherLocal=`http://localhost:${app.address().port}`,frame=await fetch(base+'/cabin-frame',{headers:{Referer:otherLocal+'/', 'Sec-Fetch-Site':'cross-site'}});
+  assert.equal(frame.status,200);assert.ok(frame.headers.get('content-security-policy').includes(otherLocal));assert.equal(frame.headers.get('x-frame-options'),null);
+  assert.equal((await fetch(base+'/cabin-frame',{headers:{Referer:'https://unrelated.example/','Sec-Fetch-Site':'cross-site'}})).status,403);
+  assert.equal((await fetch(base+'/api/status',{headers:{Origin:otherLocal,'Sec-Fetch-Site':'cross-site'}})).status,403);
+  assert.equal((await fetch(base+'/vendor/three/../../server.mjs')).status,404);
   assert.equal((await fetch(base+'/assets/../server.mjs')).status,404);
   assert.equal((await fetch(base+'/assets/unknown.bin')).status,404);
   const failure = await fetch(base + '/api/stations');

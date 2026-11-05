@@ -1,0 +1,7 @@
+import {waitFor} from './cdp.mjs';
+export async function boardTrain(page,{duration=60,character='blue',medium='ticket'}={}){
+ if(![60,300,1500,3000,3600,7200].includes(duration)||!['blue','mint','amber'].includes(character)||!['ticket','card'].includes(medium))throw Error('Invalid boarding fixture');
+ if(!await waitFor(page,`document.querySelector('#boarding-next')?.disabled===false`,30000))throw Error('Ticket office not ready');
+ await page.evaluate(`document.querySelector('[data-medium="${medium}"]').click();document.querySelector('[data-duration="${duration}"]').click();document.querySelector('[data-character="${character}"]').click();document.querySelector('#boarding-next').click();document.querySelector('#boarding-use').click()`);
+ if(!await waitFor(page,`document.querySelector('#boarding-screen').hidden&&document.querySelector('#cabin-root')?.dataset.ready==='true'`,120000))throw Error('Cabin not ready after boarding');
+}

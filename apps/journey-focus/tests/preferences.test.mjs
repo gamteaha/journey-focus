@@ -13,7 +13,7 @@ test('defaults malformed input without coercion or inherited properties', () => 
 });
 
 test('preserves reversed valid routes and all allowed durations and views', () => {
-  for (const duration of [60, 300, 1500, 3000]) {
+  for (const duration of [60, 300, 1500, 3000, 3600, 7200]) {
     const value = { from: '춘천', to: '신내', duration, view: 'overview' };
     assert.deepEqual(normalizePreferences(value), value);
   }

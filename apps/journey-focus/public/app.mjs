@@ -5,6 +5,9 @@ import { createComparison } from '/comparison.mjs';
 import { createScenery } from '/scenery.mjs';
 import {normalizeRenderingMode} from '/src/rendering.mjs';
 import {readPreferences,savePreferences} from '/src/preferences.mjs';
+import {CABIN_SEATS} from '/src/cabin.mjs';
+import {createBoarding} from '/boarding.mjs';
+import {characterById,formatDuration} from '/src/boarding.mjs';
 
 const $ = id => document.getElementById(id);
 let preferenceStorage;
@@ -16,6 +19,29 @@ const state = { stations: [], route: null, railShape: null, duration: savedPrefe
 let toastTimer, mapTimer, completionTimer, lastUpdate = 0, lastCamera = 0;
 let comparison = null;
 let scenery=null;
+let cabin=null,selectedSeat=null,experienceMode='cabin';
+let lastCabinSession='';
+function publishCabinSession(force=false){
+ if(!cabin)return;const s=clock.snapshot(),session={state:s.state,elapsed:Math.floor(s.elapsed),duration:s.duration},key=JSON.stringify(session);
+ if(force||key!==lastCabinSession){lastCabinSession=key;cabin.setSession(session);}
+}
+let boarding=null,boardingTicket=null;
+let cabinFailed=false,entryProgress=()=>{},activeEntry=null,entrySequence=0,entryViewId=null,entryViewReady=false;
+function setExperience(mode){
+  experienceMode=mode==='window'?'window':'cabin';
+  document.body.classList.toggle('cabin-mode',experienceMode==='cabin');
+  $('cabin-root').hidden=experienceMode!=='cabin';
+  for(const [id,value]of [['cabin-view','cabin'],['landscape-view','window']]){$(id).classList.toggle('active',value===experienceMode);$(id).setAttribute('aria-pressed',String(value===experienceMode));}
+  cabin?.setActive(experienceMode==='cabin');
+  post('cabin',{active:experienceMode==='cabin'});
+  if(experienceMode==='cabin'){comparison?.close();scenery?.close();setView('window');}
+  else{setView('window');applySeatView();if(state.route)post('position',{position:positionAt(state.route,clock.snapshot().progress)});}
+  syncGameHUD();
+  publishCabinSession(true);
+}
+function applySeatView(){if(selectedSeat)post('visual',{settings:{...(comparison?.settings||{}),heading:selectedSeat.side==='A'?-90:90}});}
+$('cabin-view').onclick=()=>setExperience('cabin');$('landscape-view').onclick=()=>setExperience('window');
+$('compare-toggle').addEventListener('click',()=>setExperience('window'));
 let renderMode='auto';
 try{renderMode=normalizeRenderingMode(localStorage.getItem('journey-focus-rendering'));}catch{}
 $('render-quality').value=renderMode;
@@ -24,12 +50,13 @@ $('render-quality').onchange=()=>{
  try{localStorage.setItem('journey-focus-rendering',renderMode);}catch{}
  post('rendering',{mode:renderMode});
 };
-function post(type, data = {}) { $('map-frame').contentWindow?.postMessage({ type: `jf:${type}`, ...data }, location.origin); }
+function post(type, data = {}) { $('map-frame')?.contentWindow?.postMessage({ type: `jf:${type}`, ...data }, location.origin); }
 function toast(message) {
   $('toast').textContent = message; $('toast').hidden = false;
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { $('toast').hidden = true; }, 4500);
 }
 function dialog(title, html, eyebrow = 'JOURNEY GUIDE') {
+  cabin?.setActive(false);
   $('dialog-title').textContent = title; $('dialog-content').innerHTML = html; $('dialog-eyebrow').textContent = eyebrow;
   if (!$('info-dialog').open) $('info-dialog').showModal();
 }
@@ -43,14 +70,16 @@ function connection() {
   const failed = state.stationError || state.mapFailed;
   const ready = state.mapReady && state.stations.length > 1;
   document.querySelector('.status-led').className = `status-led ${failed ? 'error' : ready ? '' : 'pending'}`;
-  $('connection-text').textContent = failed ? '연결 상태를 확인해 주세요' : ready ? `VWorld 연결 · 2호선 ${state.stations.length}개 역` : '실제 API 연결 확인 중';
+  $('connection-text').textContent = failed ? '풍경 연결을 확인해 주세요' : ready ? selectedSeat?'출발 준비가 됐어요':'앉을 자리를 골라 주세요' : '열차의 풍경을 준비하고 있어요';
   $('retry').hidden = !failed;
-  $('start').disabled = !ready || !state.route || state.loading;
+  $('start').disabled = !ready || !state.route || state.loading || (!selectedSeat&&!['running','paused'].includes(clock.state));
   $('compare-toggle').disabled = !ready || !state.route || state.loading;
   $('scenery-toggle').disabled=true;$('scenery-toggle').hidden=true;
   if(scenery?.active){$('start').disabled=true;$('compare-toggle').disabled=true;}
-  $('start-label').textContent = clock.state === 'running' ? '여정 진행 중' : clock.state === 'paused' ? '여정 이어가기' : ready ? '나의 여정 시작하기' : failed ? 'API 연결을 확인해 주세요' : '여정 준비 중';
+  $('start-label').textContent = clock.state === 'running' ? '여정 진행 중' : clock.state === 'paused' ? '여정 이어가기' : ready ? selectedSeat?'나의 여정 시작하기':'객실에서 먼저 자리를 골라 주세요' : failed ? '풍경 연결을 확인해 주세요' : '열차 준비 중';
   if (clock.state === 'running') $('start').disabled = true;
+  boarding?.update();
+  syncGameHUD();
 }
 function setControls(active) {
   for (const id of ['from', 'to', 'swap']) $(id).disabled = active || state.stations.length < 2;
@@ -64,7 +93,7 @@ function preview() {
   $('progress-from').textContent = $('from').value;
   $('progress-to').textContent = $('to').value;
   const rail = state.route.geometry === 'osm-rail';
-  $('route-summary').textContent = `${state.route.stations.length}개 역 · ${rail ? 'OSM 철도 선형' : '보간 경로'} 약 ${(state.route.distance / 1000).toFixed(1)} km`;
+  $('route-summary').textContent = `${state.route.stations.length}개 역 · 약 ${(state.route.distance / 1000).toFixed(1)} km`;
   $('geometry-label').textContent = rail ? '2호선 실제 선로 · 오른쪽 창가 · 높이 30m 시험값' : '실제 지형 · 역 사이 보간 이동';
   post('geometry', { rail });
   $('scene-description').textContent = `${$('from').value}에서 ${$('to').value}까지, 나에게 집중하는 시간`;
@@ -75,6 +104,8 @@ function preview() {
     post('position', { position: positionAt(state.route, 0) });
     $('progress-fill').style.width = '0%'; $('train-dot').style.left = '0%'; $('progress-track').setAttribute('aria-valuenow', '0');
   }
+  boarding?.update();
+  syncGameHUD();
 }
 function chooseRoute() {
   resetSessionPreview();
@@ -117,6 +148,7 @@ async function loadStations() {
   } finally { state.loading = false; connection(); }
 }
 function loadMap() {
+  state.tilesLoaded=false;state.tileSampleAt=0;state.mapReadyAt=0;
   $('landscape-tools').replaceChildren();
   state.mapReady = false; state.mapFailed = false;
   $('scene-loading').hidden = false; $('scene').classList.remove('map-ready', 'loading-error');
@@ -138,13 +170,15 @@ function mapError(message) {
   connection();
 }
 window.addEventListener('message', event => {
-  if (event.origin !== location.origin || event.source !== $('map-frame').contentWindow) return;
+  if (event.origin !== location.origin || event.source !== $('map-frame')?.contentWindow) return;
   const data = event.data;
   if(data?.type==='jf:map-initialized'){
     post('view',{view:state.view});post('rendering',{mode:renderMode});
+    post('cabin',{active:experienceMode==='cabin'});
     if(state.route)post('position',{position:positionAt(state.route,clock.snapshot().progress)});
   }
   if (data?.type === 'jf:map-ready') {
+    state.mapReadyAt=performance.now();entryProgress({progress:88,stage:'world',label:'창밖 풍경을 채우고 있어요.',detail:'처음 바라볼 곳의 지형과 풍경을 기다리는 중이에요.'});
     clearTimeout(mapTimer); state.mapReady = true; state.mapFailed = false;
     $('scene-loading').hidden = true; $('scene').classList.add('map-ready'); $('scene').classList.remove('loading-error');
     post('view', { view: state.view });
@@ -152,17 +186,21 @@ window.addEventListener('message', event => {
     if (state.route) post('position', { position: positionAt(state.route, clock.snapshot().progress) });
     post('lock', { locked: Boolean(comparison?.active) || ['running', 'paused'].includes(clock.state) });
     comparison?.ready();
+    applySeatView();
     post('rendering',{mode:renderMode});
+    post('cabin',{active:experienceMode==='cabin'});
     scenery?.mapReady();
     connection();
   }
   if (data?.type === 'jf:map-error') mapError(typeof data.message === 'string' ? data.message : '지도 연결을 확인해 주세요.');
+  if(data?.type==='jf:entry-view-ready'&&data.id===entryViewId)entryViewReady=true;
   if(data?.type==='jf:shortcut')handleShortcut(data.key);
   if(data?.type==='jf:rendering-state'&&data.mode===renderMode){
     const label={light:'가볍게',balanced:'균형',cinematic:'높은 디테일'}[data.effectiveMode]||'균형';
     $('render-quality-status').textContent=`${renderMode==='auto'?'자동 · ':''}${label}${data.fallback?' · 일부 설정은 기기 기본값 사용':''}`;
   }
   if (data?.type === 'jf:map-stats' && Number.isFinite(data.fps)) {
+    state.tilesLoaded=Boolean(data.tilesLoaded);state.tileSampleAt=performance.now();
     state.fps = data.fps;
     $('fps-label').textContent = `${data.fps} FPS · ${data.tilesLoaded ? '지형 로딩 완료' : '지형 불러오는 중'}`;
   }
@@ -170,10 +208,11 @@ window.addEventListener('message', event => {
   scenery?.message(data||{});
 });
 function begin() {
-  if (!state.route || !state.mapReady) return;
+  if (!state.route || !state.mapReady || document.body.classList.contains('boarding-mode')||document.body.classList.contains('entry-preparing')) return;
   comparison?.close();
   scenery?.close();
   if (clock.state === 'paused') { togglePause(); return; }
+  if (!selectedSeat) return;
   clock.start(state.duration); state.recorded = false;
   setControls(true); document.body.classList.add('running'); post('lock', { locked: true });
   $('pause').textContent = 'Ⅱ 일시정지'; $('session-kicker').textContent = 'YOUR JOURNEY IS UNDERWAY'; $('session-title').textContent = '지금은, 나에게 집중할 시간.';
@@ -223,6 +262,8 @@ function update() {
     }
     if (s.state === 'completed') finish();
   }
+  syncGameHUD();
+  publishCabinSession();
 }
 function tick(now) {
   if (now - lastUpdate > 100) { update(); lastUpdate = now; }
@@ -278,7 +319,9 @@ $('history-button').onclick = () => {
 $('dialog-close').onclick = () => $('info-dialog').close();
 $('info-dialog').addEventListener('click', event => { if (event.target === $('info-dialog')) { const rect = $('info-dialog').getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) $('info-dialog').close(); } });
 function handleShortcut(key){
- if($('info-dialog').open)return;
+ if(document.body.classList.contains('entry-preparing'))return;
+ if(key==='escape'&&$('game-settings')?.open){$('game-settings').close();return;}
+ if($('info-dialog').open||document.body.classList.contains('boarding-mode'))return;
  if(key==='escape'&&document.body.classList.contains('focus-mode'))$('focus-button').click();
  if(key!=='space')return;
  if(scenery?.active){if(!$('scenery-play').disabled)$('scenery-play').click();return;}
@@ -290,7 +333,19 @@ document.addEventListener('keydown', event => {
  if(event.code==='Space'&&!/^(INPUT|SELECT|TEXTAREA|BUTTON|A)$/.test(event.target?.tagName)&&!event.target?.isContentEditable){event.preventDefault();if(!event.repeat)handleShortcut('space');}
 });
 document.addEventListener('visibilitychange', () => { if (!document.hidden) update(); });
-window.addEventListener('beforeunload', event => { if (['running', 'paused'].includes(clock.state)) { event.preventDefault(); event.returnValue = ''; } });
+let unloadRecoveryTimer;
+window.addEventListener('beforeunload', event => {
+ if (!['running','paused'].includes(clock.state)) return;
+ event.preventDefault();event.returnValue='';clearTimeout(unloadRecoveryTimer);
+ // Some provider builds dispose their scene during beforeunload, even when
+ // the user later cancels navigation. Recreate only a disposed map frame.
+ unloadRecoveryTimer=setTimeout(()=>{
+  if(!state.mapReady||document.body.classList.contains('boarding-mode'))return;
+  let valid=false;try{const v=$('map-frame').contentWindow.ws3d?.viewer;valid=Boolean(v?.scene)&&v.isDestroyed?.()!==true&&v.scene.isDestroyed?.()!==true;}catch{}
+  if(!valid)loadMap();
+ },150);
+});
+window.addEventListener('pagehide',()=>clearTimeout(unloadRecoveryTimer));
 comparison = createComparison({
   toast,
   context: () => ({ route: state.route, from: $('from').value, to: $('to').value, geometry: state.route?.geometry, sessionProgress: clock.snapshot().progress }),
@@ -316,10 +371,121 @@ scenery=createScenery({
 });
 document.querySelectorAll('[data-duration]').forEach(b=>{const selected=Number(b.dataset.duration)===state.duration;b.classList.toggle('selected',selected);b.setAttribute('aria-pressed',String(selected));});
 setView(state.view);
+setExperience('cabin');
+function initCabin(character){
+ cabin?.dispose?.();cabinFailed=false;$('cabin-root').dataset.ready='false';
+const cabinFrame=document.createElement('iframe');cabinFrame.id='cabin-frame';cabinFrame.title='객실 안에서 캐릭터를 움직이고 좌석을 고르는 화면';
+const cabinUrl=new URL('/cabin-frame',location.origin);if(['localhost','127.0.0.1'].includes(location.hostname))cabinUrl.hostname=location.hostname==='localhost'?'127.0.0.1':'localhost';cabinUrl.searchParams.set('parent',location.origin);cabinUrl.searchParams.set('character',character);
+const cabinOrigin=cabinUrl.origin;
+function cabinPost(active){cabinFrame.contentWindow?.postMessage({type:'jf:cabin-active',active},cabinOrigin);}
+cabin={setActive:cabinPost,suspend:()=>cabinPost(false),setSession:session=>cabinFrame.contentWindow?.postMessage({type:'jf:cabin-session',session},cabinOrigin),configure:(id,reset)=>cabinFrame.contentWindow?.postMessage({type:'jf:cabin-configure',character:id,reset},cabinOrigin),dispose:()=>{window.removeEventListener('message',onCabinMessage);cabinFrame.remove();}};
+function onCabinMessage(event){
+ if(event.source!==cabinFrame.contentWindow||event.origin!==cabinOrigin)return;
+ if(event.data?.type==='jf:cabin-error'){cabinFailed=true;}
+ if(event.data?.type==='jf:cabin-progress'){
+  const p=event.data.progress||{};
+  if(p.phase==='download')entryProgress({progress:p.total>0?10+Math.min(1,p.loaded/p.total)*32:15,stage:'cabin',label:'열차 객실을 불러오고 있어요.',detail:'내가 앉을 좌석과 객실을 준비하고 있어요.'});
+  if(p.phase==='materials')entryProgress({progress:46,stage:'cabin',label:'객실을 꾸미고 있어요.',detail:'의자와 캐릭터의 모습을 준비하고 있어요.'});
+  if(p.phase==='shaders')entryProgress({progress:54,stage:'cabin',label:'객실에 불을 켜고 있어요.',detail:'처음 화면이 부드럽게 보이도록 미리 그려보고 있어요.'});
+ }
+ if(event.data?.type==='jf:cabin-ready'){$('cabin-root').dataset.ready='true';cabinPost(experienceMode==='cabin'&&!document.body.classList.contains('boarding-mode'));publishCabinSession(true);}
+ if(event.data?.type==='jf:cabin-window')setExperience('window');
+ if(event.data?.type==='jf:cabin-shortcut'&&['space','escape'].includes(event.data.key))handleShortcut(event.data.key);
+ if(event.data?.type==='jf:cabin-state'){
+  const s=event.data.state;if(!s||!Number.isFinite(s.x)||!Number.isFinite(s.z))return;
+  const seat=s.seatId===null?null:CABIN_SEATS.find(seat=>seat.id===s.seatId);if(s.seatId!==null&&!seat)return;
+  $('cabin-root').dataset.character=characterById(s.character).id;$('cabin-root').dataset.seat=seat?.id||'';$('cabin-root').dataset.position=String(s.x)+','+String(s.z);$('cabin-root').dataset.posture=s.posture;
+  const changed=seat?.id!==selectedSeat?.id;selectedSeat=seat;
+  $('cabin-view').textContent='캐릭터';if(changed){applySeatView();connection();}
+ }
+}
+window.addEventListener('message',onCabinMessage);
+cabinFrame.src=cabinUrl.href;$('cabin-root').replaceChildren(cabinFrame);
+window.addEventListener('pagehide',()=>cabin?.suspend());
+
+}
 updateHistoryCount(); requestAnimationFrame(tick);
 loadStations();
-fetch('/api/status').then(r => r.json()).then(config => {
+async function initJourney(signal){
+return fetch('/api/status',{signal}).then(r => r.json()).then(config => {
+  signal?.throwIfAborted();
   if (!config.vworldConfigured) { mapError('BAI/.env.local의 VWORLD_API_KEY를 입력하고 서버를 다시 시작해 주세요.'); return; }
   if (config.serviceUrl.replace(/\/$/, '') !== location.origin) toast(`키 등록 주소 ${config.serviceUrl}에서 접속하는 것을 권장합니다.`);
   loadMap();
-}).catch(() => mapError('로컬 서버에 연결하지 못했습니다. 서버 실행 상태를 확인해 주세요.'));
+}).catch(error => {if(signal?.aborted)throw error;mapError('로컬 서버에 연결하지 못했습니다. 서버 실행 상태를 확인해 주세요.');});
+
+}
+function waitForEntry(test,failure,timeout,signal){
+ return new Promise((resolve,reject)=>{
+  let timer,interval;const stop=()=>{clearTimeout(timer);clearInterval(interval);signal?.removeEventListener('abort',abort);};
+  const abort=()=>{stop();reject(new DOMException('입장을 취소했습니다.','AbortError'));};
+  const check=()=>{if(signal?.aborted){abort();return;}const error=failure();if(error){stop();reject(new Error(error));return;}if(test()){stop();resolve();}};
+  timer=setTimeout(()=>{stop();reject(new Error('열차 준비가 평소보다 오래 걸리고 있어요. 연결을 확인한 뒤 다시 시도해 주세요.'));},timeout);interval=setInterval(check,100);signal?.addEventListener('abort',abort,{once:true});check();
+ });
+}
+async function enterTrain(ticket,{signal,onProgress=()=>{}}={}){
+ const token=Symbol('entry');activeEntry=token;entryProgress=onProgress;
+ let cabinPrepared=false;
+ document.body.classList.add('entry-preparing');$('journey-workspace').inert=true;
+ boardingTicket=ticket;selectedSeat=null;clock.reset();state.recorded=false;state.duration=ticket.duration;$('from').value=ticket.from;$('to').value=ticket.to;setControls(false);chooseRoute();document.body.classList.remove('boarding-mode');document.body.classList.add('in-train');$('journey-workspace').hidden=false;
+ document.querySelector('.header-center').textContent=ticket.from+' → '+ticket.to+' · '+formatDuration(ticket.duration)+' · '+characterById(ticket.character).name;
+ try{
+  signal?.throwIfAborted();onProgress({progress:10,stage:'cabin',label:'열차 객실을 준비하고 있어요.',detail:'마음에 드는 창가 자리를 곧 고를 수 있어요.'});
+  if(!$('cabin-frame')||cabinFailed)initCabin(ticket.character);else cabin?.configure(ticket.character,true);
+  setExperience('cabin');preview();connection();
+  await waitForEntry(()=>$('cabin-root').dataset.ready==='true'&&$('cabin-root').dataset.character===ticket.character&&$('cabin-root').dataset.seat==='',()=>cabinFailed?'객실을 불러오지 못했어요. 다시 준비해 볼까요?':null,60000,signal);
+  cabinPrepared=true;
+  onProgress({progress:65,stage:'world',label:'창밖 풍경을 불러오고 있어요.',detail:'열차가 출발할 곳의 풍경을 준비하고 있어요.'});
+  // Avoid compiling two 3D renderers at the same time on the GPU.
+  cabin?.setActive(false);
+  if(!state.mapReady||state.mapFailed)await initJourney(signal);
+  await waitForEntry(()=>state.mapReady,()=>state.mapFailed?'창밖 풍경에 연결하지 못했어요. 연결을 확인하고 다시 시도해 주세요.':null,65000,signal);
+  onProgress({progress:90,stage:'world',label:'열차가 곧 도착해요.',detail:'처음 보이는 풍경이 채워질 때까지 기다리고 있어요.'});
+  entryViewId='entry-'+(++entrySequence);entryViewReady=false;post('entry-prepare',{id:entryViewId,position:positionAt(state.route,0)});
+  await waitForEntry(()=>entryViewReady,()=>state.mapFailed?'창밖 풍경 준비가 중단됐어요. 다시 시도해 주세요.':null,35000,signal);
+  onProgress({progress:98,stage:'world',label:'탑승할 준비가 됐어요.',detail:'객실 문을 열고 있어요.'});
+  cabin?.setActive(true);await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);signal?.throwIfAborted();
+ }catch(error){if(activeEntry===token){cabin?.setActive(false);if(!signal?.aborted){if(!cabinPrepared)cabinFailed=true;else state.mapFailed=true;}}throw error;}finally{if(activeEntry===token){activeEntry=null;entryProgress=()=>{};}}
+}
+boarding=createBoarding({host:$('boarding-screen'),context:()=>({from:$('from').value,to:$('to').value,duration:state.duration,ready:Boolean(state.route&&state.stations.length>1&&!state.loading&&!state.stationError),error:state.stationError}),onBoarded:enterTrain,onEntered:()=>{document.body.classList.remove('entry-preparing');$('journey-workspace').inert=false;cabin?.setActive(experienceMode==='cabin');},onRetry:loadStations,onOpen:()=>{document.body.classList.remove('entry-preparing');$('journey-workspace').inert=false;cabin?.setActive(false);post('cabin',{active:true});comparison?.close();setControls(false);document.querySelector('.header-center').textContent='다음 여정을 준비하는 시간';}});
+$('boarding-reopen').onclick=()=>{if(['running','paused'].includes(clock.state)){dialog('나의 승차권', '<p>'+escape(boardingTicket.from)+' → '+escape(boardingTicket.to)+'</p><div class="result-big">'+escape(formatDuration(boardingTicket.duration))+'</div><p>'+escape(characterById(boardingTicket.character).name)+' · '+escape(boardingTicket.id)+'</p><p>여정을 마친 뒤 새 승차권을 준비할 수 있어요.</p>','MY BOARDING PASS');}else boarding.open();};
+setupGameHUD();
+document.querySelector('.header-center').textContent='다음 여정을 준비하는 시간';
+
+document.querySelector('.skip-link').onclick=event=>{if(!document.body.classList.contains('boarding-mode')){event.preventDefault();$('journey-workspace').focus();}};
+
+function setupGameHUD(){
+ const chrome=document.createElement('div');chrome.id='game-chrome';chrome.innerHTML=`<div class="game-nav"><button id="game-settings-button" aria-label="열차 설정 열기" title="열차 설정">☰ <span>설정</span></button><div id="game-views"></div></div><section class="train-monitor" aria-label="열차 역 안내"><i class="monitor-screw"></i><div class="monitor-display"><span class="monitor-line">2</span><div><small id="monitor-caption">이번 역</small><strong id="monitor-station">성수</strong></div><span class="monitor-arrow">→</span><div class="monitor-next"><small id="monitor-next-caption">다음 역</small><b id="monitor-next">건대입구</b></div><div class="monitor-track"><span id="monitor-progress"></span></div></div><i class="monitor-screw"></i></section><section class="game-clock" id="game-clock" aria-label="집중 시간" hidden><div class="game-clock-label"><i></i><span id="game-clock-label">집중하는 시간</span></div><div id="game-timer-slot"></div><div class="game-clock-actions" id="game-clock-actions"></div></section><div class="game-departure" id="game-departure"><div id="game-departure-status"></div><div id="game-start-slot"></div></div>`;
+ $('journey-workspace').append(chrome);
+ $('game-views').append(document.querySelector('.experience-tabs'));
+ $('game-timer-slot').append($('timer'));$('game-clock-actions').append($('pause'),$('stop'));
+ $('game-start-slot').append($('start'));$('game-departure-status').append($('connection'));
+ const settings=document.createElement('dialog');settings.id='game-settings';settings.setAttribute('aria-labelledby','game-settings-title');settings.innerHTML=`<div class="game-settings-heading"><div><small>JOURNEY FOCUS</small><h2 id="game-settings-title">열차 설정</h2></div><button id="game-settings-close" aria-label="설정 닫기">×</button></div><div id="game-settings-links" class="game-settings-links"></div><h3>창밖 풍경</h3><div id="game-visual-settings"></div><div id="game-extra-settings" class="game-extra-settings"></div><p class="game-settings-note">위쪽 전광판은 집중 여정의 위치를 안내해요. 실제 운행 정보와는 다를 수 있어요.</p>`;
+ document.body.append(settings);
+ $('game-settings-links').append($('boarding-reopen'),$('about-button'),$('history-button'));
+ $('game-visual-settings').append(document.querySelector('.render-settings'),$('landscape-tools'));
+ $('game-extra-settings').append($('sound-button'),$('data-button'),$('geometry-info'),$('compare-toggle'));
+ $('geometry-info').textContent='이동 경로 안내';
+ $('game-settings-button').onclick=()=>{cabin?.setActive(false);settings.showModal();};
+ $('game-settings-close').onclick=()=>settings.close();
+ settings.addEventListener('close',()=>{if(!$('info-dialog').open)cabin?.setActive(experienceMode==='cabin'&&!document.body.classList.contains('boarding-mode'));});
+ settings.addEventListener('click',e=>{if(e.target===settings){const r=settings.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)settings.close();}});
+ for(const id of ['boarding-reopen','about-button','history-button','data-button','geometry-info','compare-toggle'])$(id).addEventListener('click',()=>settings.close());
+ $('info-dialog').addEventListener('close',()=>{if(!settings.open)cabin?.setActive(experienceMode==='cabin'&&!document.body.classList.contains('boarding-mode'));});
+ syncGameHUD();
+}
+function syncGameHUD(){
+ if(!$('game-chrome'))return;
+ const s=clock.snapshot(),started=['running','paused','completed','stopped'].includes(s.state)&&Boolean(s.duration),p=state.route?positionAt(state.route,s.progress):null;
+ const text=(id,value)=>{if($(id).textContent!==value)$(id).textContent=value;};
+ $('game-clock').hidden=!started;$('game-departure').hidden=started;
+ $('game-chrome').dataset.state=s.state;
+ text('game-clock-label',s.state==='paused'?'잠시 쉬어가는 중':s.state==='completed'?'여정 도착':s.state==='stopped'?'여정 종료':'남은 집중시간');
+ text('monitor-caption',s.progress>=1?'도착역':s.state==='running'?'지금 지나고 있어요':'이번 역');
+ text('monitor-station',p?.name||$('from').value||'성수');
+ text('monitor-next',s.progress>=1?'여정 완료':p?.next||$('to').value||'건대입구');
+ text('monitor-next-caption',s.progress>=1?'잘 다녀왔어요':s.state==='paused'?'잠시 정차':'다음 역');
+ $('monitor-progress').style.width=`${Math.round(s.progress*100)}%`;
+ $('landscape-view').disabled=!selectedSeat;
+ if($('game-settings').open||$('info-dialog').open)cabin?.setActive(false);
+}

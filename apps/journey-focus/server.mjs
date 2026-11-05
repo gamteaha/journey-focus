@@ -20,6 +20,15 @@ try {
   }
 } catch { /* The app still works without the optional scenery assets. */ }
 const PUBLIC = new Map([
+  ['/boarding.mjs', ['public/boarding.mjs', 'text/javascript']],
+  ['/boarding.css', ['public/boarding.css', 'text/css']],
+  ['/src/boarding.mjs', ['src/boarding.mjs', 'text/javascript']],
+  ['/cabin.mjs', ['public/cabin.mjs', 'text/javascript']],
+  ['/cabin-frame.mjs', ['public/cabin-frame.mjs', 'text/javascript']],
+  ['/avatar.mjs', ['public/avatar.mjs', 'text/javascript']],
+  ['/cabin.css', ['public/cabin.css', 'text/css']],
+  ['/src/cabin.mjs', ['src/cabin.mjs', 'text/javascript']],
+  ['/models/subway-car.fbx', ['../../assets-source/subway-car/SubwayCar_Compiled.fbx', 'application/octet-stream']],
   ['/render-study', ['public/review/realism-comparison/index.html', 'text/html']],
   ['/render-study/', ['public/review/realism-comparison/index.html', 'text/html']],
   ['/render-study/front-light.html', ['public/review/realism-comparison/front-light.html', 'text/html']],
@@ -54,6 +63,7 @@ const PUBLIC = new Map([
   ['/data/baegyangri-gangchon.json', ['public/data/baegyangri-gangchon.json', 'application/json']],
   ['/data/seongsu-konkuk.json', ['public/data/seongsu-konkuk.json', 'application/json']],
 ]);
+for(const file of ['build/three.module.js','examples/jsm/loaders/FBXLoader.js','examples/jsm/libs/fflate.module.js','examples/jsm/curves/NURBSCurve.js','examples/jsm/curves/NURBSUtils.js'])PUBLIC.set('/vendor/three/'+file,['public/vendor/three/'+file,'text/javascript']);
 // Local comparison gallery: explicit captures only, never arbitrary tmp files.
 for(const name of ['01-original','02-grade','03-ao','04-light','05-ao-light','06-combined','07-ai-concept','08-pbr','09-ibl','10-material-combined','11-front-soft','12-front-medium','13-front-shadow','14-front-high']){
  PUBLIC.set(`/render-study/${name}.png`,[`public/review/realism-comparison/${name}.png`,'image/png']);
@@ -107,11 +117,18 @@ export function createApp(config, fetcher = fetch) {
     try {
       const host = req.headers.host || '';
       if (!/^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host)) return send(res, 403, { error: 'LOCAL_ONLY' });
+      const url = new URL(req.url, `http://${host}`),port=url.port||'80';
+      let referrerOrigin='';try{referrerOrigin=new URL(req.headers.referer).origin;}catch{}
+      const localOrigins=[`http://localhost:${port}`,`http://127.0.0.1:${port}`];
+      const cabinNavigation=url.pathname==='/cabin-frame'&&localOrigins.includes(req.headers.origin||referrerOrigin);
       const origin = req.headers.origin;
-      if (origin && origin !== `http://${host}`) return send(res, 403, { error: 'ORIGIN_DENIED' });
-      if (req.headers['sec-fetch-site'] === 'cross-site') return send(res, 403, { error: 'ORIGIN_DENIED' });
+      if (origin && origin !== `http://${host}`&&!cabinNavigation) return send(res, 403, { error: 'ORIGIN_DENIED' });
+      if (req.headers['sec-fetch-site'] === 'cross-site'&&!cabinNavigation) return send(res, 403, { error: 'ORIGIN_DENIED' });
       if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, { error: 'METHOD_NOT_ALLOWED' });
-      const url = new URL(req.url, `http://${host}`);
+      if(url.pathname==='/cabin-frame'){
+        res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':`frame-ancestors http://localhost:${port} http://127.0.0.1:${port}`});
+        return res.end(await readFile(path.join(ROOT,'public/cabin-frame.html'),'utf8'));
+      }
       if(ASSETS.has(url.pathname)){
         const [relative,type]=ASSETS.get(url.pathname);
         return send(res,200,await readFile(path.join(ROOT,'public/assets',relative)),type);
@@ -133,7 +150,7 @@ export function createApp(config, fetcher = fetch) {
       }
       const entry = PUBLIC.get(url.pathname);
       if (!entry) return send(res, 404, { error: 'NOT_FOUND' });
-      return send(res, 200, await readFile(path.join(ROOT, entry[0]), entry[1]==='image/png'||entry[1].startsWith('video/')?undefined:'utf8'), entry[1]);
+      return send(res, 200, await readFile(path.join(ROOT, entry[0]), entry[1]==='image/png'||entry[1].startsWith('video/')||entry[1]==='application/octet-stream'?undefined:'utf8'), entry[1]);
     } catch { return send(res, 500, { error: 'SERVER_ERROR' }); }
   });
 }

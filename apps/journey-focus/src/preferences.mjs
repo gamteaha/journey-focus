@@ -2,7 +2,7 @@ import { STATION_ORDER,CITY_ORDER } from './route.mjs';
 
 const STORAGE_KEY = 'journey-focus-preferences';
 const DEFAULTS = Object.freeze({ from: '성수', to: '건대입구', duration: 1500, view: 'window' });
-const DURATIONS = new Set([60, 300, 1500, 3000]);
+const DURATIONS = new Set([60, 300, 1500, 3000, 3600, 7200]);
 
 // Read data properties only: unexpected objects cannot execute getters or coerce values.
 function ownValue(input, key) {

@@ -1,13 +1,16 @@
 import assert from 'node:assert/strict';
 import {connectPage,waitFor,sleep} from './cdp.mjs';
 import {writeFile} from 'node:fs/promises';
+import {boardTrain} from './boarding-flow.mjs';
 const p=await connectPage();
 try{
  await p.send('Emulation.setDeviceMetricsOverride',{width:1366,height:650,deviceScaleFactor:1,mobile:false});
  await p.send('Page.navigate',{url:'http://localhost:5173/'});
+ await boardTrain(p);
  assert.ok(await waitFor(p,`!!document.querySelector('#scene-style')&&!!document.querySelector('#map-frame').contentWindow.ws3d?.viewer`,45000));
  await sleep(6000);
  assert.ok(await waitFor(p,`document.querySelector('#scene').classList.contains('map-ready')`,45000));
+ await p.evaluate(`document.querySelector('#landscape-view')?.click()`);await sleep(1000);
  const state=await p.evaluate(`(()=>{const v=document.querySelector('#map-frame').contentWindow.ws3d.viewer;return {style:document.querySelector('#scene-style').value,intensity:v.scene.light.intensity,shadows:v.scene.shadowMap.enabled,ao:v.scene.postProcessStages.ambientOcclusion.enabled,locked:!v.scene.screenSpaceCameraController.enableInputs,height:innerHeight,scroll:document.documentElement.scrollHeight,error:document.querySelector('#map-frame').contentDocument.querySelector('#map-error').textContent}})()`);
  console.log(JSON.stringify(state));assert.equal(state.style,'cinematic');assert.equal(state.intensity,1.2);assert.equal(state.shadows,false);assert.equal(state.ao,true);assert.equal(state.locked,true);assert.equal(state.error,'');assert.ok(state.scroll<=state.height+1);
  await p.screenshot('../../tmp/route-video-pilot/app-style6.png');

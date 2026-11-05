@@ -18,15 +18,19 @@ let cancelStartup=()=>{};
 let terminalFailure=false;
 let forestStudy=null;
 let styleFilter=null;
+let cabinView=false;
+let originalFrameRate;
 let removeInputLock=()=>{};
 let resizeTimer;
+let entryPreparation=null;
+function availableScene(){try{return viewer?.scene;}catch{return null;}}
 window.addEventListener('resize',()=>{
   clearTimeout(resizeTimer);
-  resizeTimer=setTimeout(()=>{if(lastPosition&&!terminalFailure){viewer?.resize?.();setCamera(lastPosition);}},150);
+  resizeTimer=setTimeout(()=>{if(lastPosition&&!terminalFailure&&availableScene()){viewer?.resize?.();setCamera(lastPosition);}},150);
 });
 function applyVisual(input) {
   visual = normalizeVisual(input);
-  if (!viewer) return;
+  const scene=availableScene();if(!scene?.globe)return;
   try {
     if (!sceneryActive && (layerResult?.mode !== visual.buildings || !layerResult.ok)) {
     const selected = visual.buildings==='textured' ? [BUILDING_IDS.lod3,BUILDING_IDS.lod4] : [BUILDING_IDS[visual.buildings]].filter(Boolean);
@@ -39,7 +43,7 @@ function applyVisual(input) {
     layerResult = { ok: true, mode: visual.buildings, activeIds: layers.filter(l => l.layer?.visible).map(l => l.id) };
     }
   } catch { layerResult = { ok: false, mode: visual.buildings, message: '이 SDK에서 선택한 건물 레이어를 적용하지 못했습니다.' }; }
-  notify('visual-result', { result: layerResult, settings: visual, terrainError: viewer.scene.globe.maximumScreenSpaceError });
+  notify('visual-result', { result: layerResult, settings: visual, terrainError: scene.globe.maximumScreenSpaceError });
   setCamera(lastPosition);
 }
 function fail(message) {
@@ -52,12 +56,12 @@ function setCamera(position,snap=false) {
   if (!position || !Number.isFinite(position.lon) || !Number.isFinite(position.lat)) return;
   lastPosition = position;
   if(terminalFailure)return;
-  if(!viewer?.scene?.globe||!engine?.Cartographic)return;
+  const scene=availableScene();if(!scene?.globe||!engine?.Cartographic)return;
   const cartographic = engine.Cartographic.fromDegrees(position.lon, position.lat);
   const now=performance.now()/1000;
   const sampleGround=!sceneryActive||snap||!sceneryHasStarted||now-sampledAt>=.2;
   if(sampleGround&&!sceneryActive){
-    const height=viewer.scene.globe.getHeight(cartographic);
+    const height=scene.globe.getHeight(cartographic);
     if(Number.isFinite(height)&&(!sceneryActive||height>=0))ground=height;
   }
   const overview = view === 'overview'&&!sceneryActive;
@@ -71,7 +75,7 @@ function setCamera(position,snap=false) {
     const heights=[-6,-3,0,3,6].map(meters=>{
       const lon=position.lon+Math.sin(heading)*meters/(111320*Math.cos(engine.Math.toRadians(position.lat)));
       const lat=position.lat+Math.cos(heading)*meters/111320;
-      return viewer.scene.globe.getHeight(engine.Cartographic.fromDegrees(lon,lat));
+      return scene.globe.getHeight(engine.Cartographic.fromDegrees(lon,lat));
     });
     if(Number.isFinite(heights[2])&&heights[2]>=0)ground=heights[2];
     // This fixed Baegyangri pilot is above sea level. Reject unready-tile
@@ -87,15 +91,19 @@ function setCamera(position,snap=false) {
     orientation: { heading: engine.Math.toRadians(position.heading + (overview ? 0 : settings.heading)), pitch: engine.Math.toRadians(overview ? -55 : settings.pitch), roll: 0 },
   });
   if ('fov' in viewer.camera.frustum) viewer.camera.frustum.fov = engine.Math.toRadians(settings.fov);
-  viewer.scene.requestRender?.();
+  scene.requestRender?.();
 }
 window.addEventListener('message', event => {
   if (event.origin !== location.origin || event.source !== parent || !event.data?.type?.startsWith('jf:')) return;
   if (event.data.type === 'jf:position') setCamera(event.data.position,Boolean(event.data.snap));
+  if(event.data.type==='jf:entry-prepare'&&typeof event.data.id==='string'){
+    entryPreparation={id:event.data.id,frames:0};setCamera(event.data.position,true);
+  }
   if (event.data.type === 'jf:view') { view = event.data.view === 'overview' ? 'overview' : 'window'; setCamera(lastPosition); }
   if (event.data.type === 'jf:geometry') document.getElementById('osm-credit').hidden = !event.data.rail;
   if (event.data.type === 'jf:visual') applyVisual(event.data.settings);
-  if(event.data.type==='jf:rendering'){renderMode=event.data.mode;rendering?.setMode(renderMode);}
+  if(event.data.type==='jf:rendering'){renderMode=event.data.mode;rendering?.setMode(cabinView?'light':renderMode);}
+  if(event.data.type==='jf:cabin'){cabinView=Boolean(event.data.active);rendering?.setMode(cabinView?'light':renderMode);if(ready&&availableScene())viewer.targetFrameRate=cabinView?2:originalFrameRate;}
   if (event.data.type === 'jf:scenery-load'&&scenery)scenery.load(event.data.objects).catch(()=>notify('scenery-error',{message:'풍경 시안을 시작하지 못했습니다.'}));
   if (event.data.type === 'jf:scenery-clear')scenery?.clear();
   if (event.data.type === 'jf:scenery-motion'){
@@ -109,7 +117,7 @@ window.addEventListener('message', event => {
   if (event.data.type === 'jf:lock') {
     locked = Boolean(event.data.locked);
     // Camera movement is owned by the app, including before/after a session.
-    if (viewer) viewer.scene.screenSpaceCameraController.enableInputs = false;
+    const controller=availableScene()?.screenSpaceCameraController;if(controller)controller.enableInputs=false;
   }
 });
 notify('map-initialized');
@@ -128,12 +136,13 @@ try {
   const poll = setInterval(() => {
     viewer = window.ws3d?.viewer;
     engine = window.Cesium || window.ws3d?.common;
-    if (viewer?.scene?.globe && engine?.Cartesian3 && engine?.Cartographic) {
+    if (availableScene()?.globe && engine?.Cartesian3 && engine?.Cartographic) {
       clearInterval(poll);
+      originalFrameRate=viewer.targetFrameRate;
       viewer.scene.screenSpaceCameraController.enableInputs = false;
       // Provider startup may re-enable its controller after the viewer appears.
       removeInputLock=(viewer.scene.preUpdate||viewer.scene.preRender).addEventListener(()=>{
-        if(viewer?.scene?.screenSpaceCameraController)viewer.scene.screenSpaceCameraController.enableInputs=false;
+        const controller=availableScene()?.screenSpaceCameraController;if(controller)controller.enableInputs=false;
       });
       rendering=createRenderingController(viewer,engine,notify);rendering.setMode(renderMode);
       // Rural forest reconstruction belongs to the archived Gyeongchun pilot.
@@ -148,13 +157,17 @@ try {
       viewer.scene.renderError.addEventListener(() => fail('지도 렌더링이 중단되었습니다. 지도 다시 불러오기를 눌러 주세요.'));
       viewer.scene.postRender.addEventListener(() => {
         if(terminalFailure)return;
+        if(entryPreparation){
+          entryPreparation.frames++;
+          if(entryPreparation.frames>=3&&viewer.scene.globe.tilesLoaded){notify('entry-view-ready',{id:entryPreparation.id});entryPreparation=null;}
+        }
         renders++;
         const now = performance.now();
         if (now - lastSample >= 2000) {
           const c = viewer.camera.positionCartographic;
           const terrainHeight = viewer.scene.globe.getHeight(c);
           const fps=Math.round(renders*1000/(now-lastSample)),tilesLoaded=Boolean(viewer.scene.globe.tilesLoaded);
-          rendering.sample({fps,tilesLoaded});
+          if(!cabinView)rendering.sample({fps,tilesLoaded});
           notify('map-stats', {
             fps, tilesLoaded,
             camera: { lon: engine.Math.toDegrees(c.longitude), lat: engine.Math.toDegrees(c.latitude), altitude: c.height, ground: Number.isFinite(terrainHeight) ? terrainHeight : null },
@@ -164,7 +177,7 @@ try {
       });
       viewer.scene.requestRender?.();
       if (lastPosition) setCamera(lastPosition);
-      if(!terminalFailure)cancelStartup=settleInitialView(viewer,{align:()=>setCamera(lastPosition,true),ready:()=>{if(!ready&&!terminalFailure){ready=true;notify('map-ready');}}});
+      if(!terminalFailure)cancelStartup=settleInitialView(viewer,{align:()=>setCamera(lastPosition,true),ready:()=>{if(!ready&&!terminalFailure){ready=true;viewer.targetFrameRate=cabinView?2:originalFrameRate;notify('map-ready');}}});
     } else if (performance.now() > deadline) { clearInterval(poll); fail('3D 지도 초기화 시간이 초과되었습니다. 잠시 후 다시 연결해 주세요.'); }
   }, 200);
 } catch (error) {
@@ -174,4 +187,6 @@ document.addEventListener('keydown',event=>{
   if(event.code==='Space'&&!event.repeat&&!event.isComposing&&!/^(INPUT|SELECT|TEXTAREA|BUTTON|A)$/.test(event.target?.tagName)&&!event.target?.isContentEditable){event.preventDefault();notify('shortcut',{key:'space'});}
   if(event.key==='Escape')notify('shortcut',{key:'escape'});
 });
-window.addEventListener('pagehide',()=>{cancelStartup();removeInputLock();rendering?.dispose();forestStudy?.dispose();styleFilter?.dispose();});
+// A full-page unload destroys the provider's WebGL context. Re-applying quality
+// settings or deleting its GPU stages here can race the iframe's own teardown.
+window.addEventListener('pagehide',()=>{terminalFailure=true;clearTimeout(resizeTimer);cancelStartup();removeInputLock();});

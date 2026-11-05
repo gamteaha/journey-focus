@@ -47,5 +47,6 @@ export class SessionClock {
 }
 export function formatTime(seconds) {
   const value = Math.max(0, Math.ceil(seconds));
+  if(value>=3600)return `${Math.floor(value/3600)}:${String(Math.floor(value%3600/60)).padStart(2,'0')}:${String(value%60).padStart(2,'0')}`;
   return `${String(Math.floor(value / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`;
 }
