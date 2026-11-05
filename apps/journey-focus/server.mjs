@@ -22,6 +22,7 @@ try {
 const PUBLIC = new Map([
   ['/boarding.mjs', ['public/boarding.mjs', 'text/javascript']],
   ['/boarding.css', ['public/boarding.css', 'text/css']],
+  ['/images/inu-transit-card.jpg', ['public/images/inu-transit-card.jpg', 'image/jpeg']],
   ['/src/boarding.mjs', ['src/boarding.mjs', 'text/javascript']],
   ['/cabin.mjs', ['public/cabin.mjs', 'text/javascript']],
   ['/cabin-frame.mjs', ['public/cabin-frame.mjs', 'text/javascript']],
@@ -151,7 +152,7 @@ export function createApp(config, fetcher = fetch) {
       }
       const entry = PUBLIC.get(url.pathname);
       if (!entry) return send(res, 404, { error: 'NOT_FOUND' });
-      return send(res, 200, await readFile(path.join(ROOT, entry[0]), entry[1]==='image/png'||entry[1].startsWith('video/')||entry[1]==='application/octet-stream'||entry[1]==='model/gltf-binary'?undefined:'utf8'), entry[1]);
+      return send(res, 200, await readFile(path.join(ROOT, entry[0]), entry[1].startsWith('image/')||entry[1].startsWith('video/')||entry[1]==='application/octet-stream'||entry[1]==='model/gltf-binary'?undefined:'utf8'), entry[1]);
     } catch { return send(res, 500, { error: 'SERVER_ERROR' }); }
   });
 }

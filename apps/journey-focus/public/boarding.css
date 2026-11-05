@@ -77,6 +77,31 @@ body.boarding-mode{overflow:hidden;background:var(--boarding-bg)}body.boarding-m
 @media(max-width:699px){.boarding-screen[data-stage=loading]{padding:25px 22px}.arrival-route{gap:10px;padding:13px 0}.arrival-route>b{font-size:12px}.arrival-route>small{font-size:5px;letter-spacing:1.5px}.arrival-platform{height:175px;margin:10px 0 20px}.arrival-train{height:130px;bottom:22px;width:125%;left:-13%}.platform-lights{left:10px;right:10px}.platform-lights i{width:35px}.arrival-copy h2{font-size:26px}.arrival-copy p{font-size:11px;min-height:38px}.arrival-copy>span{font-size:6px;letter-spacing:2px}.arrival-meter-heading{margin-top:23px;gap:14px}.arrival-meter-heading>span{font-size:9px}.arrival-meter-heading>b{font-size:22px}.arrival-steps{gap:22px;font-size:9px}.arrival-actions{margin-top:25px}}
 @media(max-height:500px){.boarding-screen[data-stage=loading]{justify-content:flex-start;padding-top:18px;padding-bottom:18px}.boarding-loading{margin:0 auto}.arrival-platform{height:65px;margin:0 0 6px}.arrival-train{height:65px;bottom:7px}.arrival-route{padding:8px 0}.arrival-copy>span{display:none}.arrival-copy h2{font-size:23px;margin:7px 0}.arrival-copy p{min-height:20px}.arrival-meter-heading{margin-top:12px}.arrival-steps{padding-top:10px}.arrival-actions{margin-top:15px;padding-top:8px}}
 
+/* The supplied artwork contains both sides; show only its left, portrait front.
+   Original raster stays intact. Portrait ID-1 is 53.98 x 85.60 mm at 5 px/mm. */
+.card-front-image{position:absolute;inset:0 auto 0 0;display:block;width:216.25%;max-width:none;height:100%;object-fit:fill;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.card-front-image[hidden]{display:none!important}
+.boarding-screen[data-medium=card] #boarding-pass,#transit-card{position:relative;width:269.9px;height:428px;min-height:428px;aspect-ratio:53.98/85.6;padding:0;border:0;border-radius:16px;background:#fff;overflow:hidden;isolation:isolate;box-shadow:0 15px 32px #223a2733}
+.boarding-screen[data-medium=card] #boarding-pass:before,.boarding-screen[data-medium=card] #boarding-pass:after,#transit-card:before,#transit-card:after{display:none}
+.boarding-screen[data-medium=card] #boarding-pass>.card-choice-heading,.boarding-screen[data-medium=card] #boarding-pass>.pass-stub{display:none}
+.boarding-screen[data-medium=card] .pass-size-stage{gap:40px}
+.card-journey-fields{flex:1;min-width:260px;max-width:430px;color:#355449}
+.card-journey-fields>.pass-main{padding:0;display:flex;flex-direction:column;min-width:0}
+.card-journey-fields .pass-masthead,.card-journey-fields .pass-fineprint{display:none}
+.card-journey-fields .boarding-field-title{font-size:11px;margin-bottom:10px}
+.card-journey-fields .station-selects{padding-right:38px;margin-bottom:7px}
+.card-journey-fields .select-fields select{font-size:25px;padding-top:6px;padding-bottom:6px}
+.card-journey-fields #route-summary{font-size:10px;margin:7px 0 18px}
+.card-journey-fields #swap{right:0;width:30px;height:34px;font-size:18px;top:17px}
+#card-journey-fields .station-selects:after{display:none}
+.card-journey-fields .durations{grid-template-columns:repeat(3,minmax(0,1fr))}
+.card-journey-fields .durations button{min-height:50px;font-size:22px;padding:5px;border-bottom:1px solid #8da895}
+.card-journey-fields .durations button span{font-size:9px}
+.card-trip-summary{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px 23px;flex-shrink:0;padding:11px 16px;color:#637d69;font-size:11px}
+.card-trip-summary b{font-weight:500;color:#294f3d}
+@media(max-width:799px){.boarding-screen[data-medium=card] .pass-size-stage{flex:0 0 auto;flex-direction:column;gap:20px;padding:10px 0}.card-journey-fields{width:100%;max-width:430px;min-width:0;flex:none}.card-journey-fields .select-fields select{font-size:23px}.card-journey-fields .durations button{min-height:43px;font-size:20px}.card-trip-summary{gap:5px 14px;font-size:10px;padding:8px 0}}
+@media(max-height:720px) and (min-width:800px){.boarding-screen[data-medium=card] .pass-size-stage{gap:30px}.card-journey-fields .boarding-field-title{margin-bottom:6px}.card-journey-fields .select-fields select{font-size:23px}.card-journey-fields #route-summary{margin-bottom:12px}.card-journey-fields .durations button{min-height:40px;font-size:19px}.card-trip-summary{padding-top:6px;padding-bottom:6px;font-size:10px}}
+
 /* After admission the carriage fills the browser viewport, with no page frame. */
 body.in-train:not(.boarding-mode){height:100dvh;overflow:hidden;background:#1d3732}
 .in-train:not(.boarding-mode)>.header,.in-train:not(.boarding-mode)>.page-footer{display:none!important}
