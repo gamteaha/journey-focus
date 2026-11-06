@@ -55,3 +55,60 @@ body.boarding-mode:has(.boarding-screen[data-city=seoul]) .header{background:#f3
  .receipt-city{gap:5px}.receipt-city .seoul-ticket-art{width:42px;height:26px}.receipt-city .city-stamp{display:none}
 }
 @media(max-width:370px){.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .city-ticket-brand>.seoul-ticket-art{display:none}}
+
+/* Paper grain is painted over opaque color; it never reveals the page behind.
+   Static backgrounds and shadows keep the form geometry and hit targets intact. */
+.boarding-screen[data-city=seoul]{--ticket-grain:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22256%22%20height%3D%22256%22%20viewBox%3D%220%200%20256%20256%22%3E%3Cfilter%20id%3D%22grain%22%3E%3CfeTurbulence%20type%3D%22fractalNoise%22%20baseFrequency%3D%22.78%22%20numOctaves%3D%223%22%20seed%3D%2217%22%20stitchTiles%3D%22stitch%22%2F%3E%3CfeColorMatrix%20type%3D%22saturate%22%20values%3D%220%22%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20filter%3D%22url(%23grain)%22%20opacity%3D%22.32%22%2F%3E%3C%2Fsvg%3E")}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass{
+ border-top-color:#e9d4ae;border-right-color:#a99065;border-bottom-color:#987c50;
+ box-shadow:0 1px 0 #f2dfbd,0 3px 0 #b69a6b,0 5px 0 #967d55,0 7px 4px #493b2533,0 18px 28px #4a392b38,0 35px 48px -22px #4a392b42;
+}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-main,
+.boarding-screen[data-city=seoul] .receipt-main{
+ background-color:#dfc397;
+ background-image:var(--ticket-grain),linear-gradient(115deg,#f8e7c433 0%,#dfc39700 35%,#a980401a 100%);
+ background-size:180px 180px,100% 100%;background-blend-mode:multiply,normal;
+ box-shadow:inset 1px 1px 0 #fff1d39e,inset 0 -3px 5px #87663924;
+}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-main:after{
+ content:'';position:absolute;inset:7px;border:1px solid #f8e8c34d;border-bottom-color:#9b7a4838;border-radius:11px 0 0 11px;pointer-events:none;
+}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-stub{
+ background-color:#b3bea0;
+ background-image:var(--ticket-grain),linear-gradient(90deg,#52644724 0,#dfe8cc42 6px,#b3bea000 19px),linear-gradient(135deg,#f1f5dc29,#53654314);
+ background-size:180px 180px,100% 100%,100% 100%;background-blend-mode:multiply,normal,normal;
+ box-shadow:inset 1px 0 0 #e7edcfb3,inset -1px 1px 0 #eaf0d980,inset 0 -3px 5px #3f543024;
+}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pass-stub:before,
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pass-stub:after{box-shadow:inset 0 1px 2px #4a392b24}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .duration-console{
+ background-image:var(--ticket-grain),linear-gradient(180deg,#a0824d14,#f6e1b81a);
+ background-size:180px 180px,100% 100%;background-blend-mode:multiply,normal;
+ box-shadow:inset 0 2px 5px #74572d24,0 1px 0 #f8e6c17a;
+}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .flip-tile{
+ background-image:var(--ticket-grain),linear-gradient(180deg,#f9edcf,#ebd6ad 49%,#e2c99d 50%,#f2e2be 100%);
+ background-size:180px 180px,100% 100%;background-blend-mode:multiply,normal;
+ box-shadow:inset 0 1px 0 #fff6e3,0 2px 0 #a78b60,0 4px 5px #68502f2b;
+}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .flip-tile input{text-shadow:0 1px 0 #fff5dc}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .duration-presets button,
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pass-stub .boarding-characters button{box-shadow:inset 0 1px 0 #fff7df70,0 2px 0 #715e3f40}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .duration-presets button.selected,
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pass-stub .boarding-characters button[aria-pressed=true]{box-shadow:inset 0 2px 3px #14251b59,0 1px 0 #fff2d966}
+.boarding-screen[data-city=seoul] :is(.seoul-ticket-art,.ticket-sticker){filter:drop-shadow(0 2px 1px #493d2f38)}
+.boarding-screen[data-city=seoul] .city-stamp{background-image:var(--ticket-grain);background-size:180px 180px;background-blend-mode:multiply;box-shadow:inset 0 1px 2px #6e593b26,0 1px 0 #f4e0ba80}
+.boarding-screen[data-city=seoul] .tear-stub{
+ background-image:var(--ticket-grain),linear-gradient(90deg,#86633e26,#f9e3b62e 7px,#d4b78700 22px);
+ background-size:180px 180px,100% 100%;background-blend-mode:multiply,normal;
+ box-shadow:inset 1px 1px 0 #f3dfb780,inset 0 -3px 5px #6f4e2a26,0 3px 0 #9c8057;
+}
+.boarding-screen[data-city=seoul] .receipt-main{box-shadow:inset 1px 1px 0 #fff1d39e,inset 0 -3px 5px #87663924,0 3px 0 #a68a60}
+.boarding-screen[data-city=seoul] .receipt{filter:drop-shadow(0 5px 3px #493b2526) drop-shadow(0 18px 20px #4a392b38)}
+@media(max-width:799px){
+ .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-main:after{border-radius:11px 11px 0 0}
+ .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-stub{
+  background-image:var(--ticket-grain),linear-gradient(180deg,#52644724 0,#dfe8cc42 6px,#b3bea000 19px),linear-gradient(135deg,#f1f5dc29,#53654314);
+  box-shadow:inset 0 1px 0 #e7edcfb3,inset -1px 0 0 #eaf0d980,inset 0 -3px 5px #3f543024;
+ }
+}
