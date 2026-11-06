@@ -35,48 +35,48 @@
 .printed-journey b { font:25px Georgia,serif; color:#294637; margin-left:12px; }
 .duration-console {
   display:grid; grid-template-columns:minmax(175px,.9fr) minmax(220px,1.2fr); gap:17px;
-  padding:19px 18px 17px; border:1px solid #d6d7bf; border-radius:4px;
-  background:#f3efdc; color:#294637;
+  padding:19px 18px 17px; border:1px solid #e2d8c4; border-radius:12px;
+  background:#faf3e3; color:#294637;
 }
 .flip-controls { display:flex; align-items:center; justify-content:center; gap:5px; min-width:0; }
 .flip-unit { display:flex; flex:1; min-width:0; flex-direction:column; align-items:center; }
-.boarding-screen .flip-unit>button { border:0; background:transparent; color:#6a7e5b; font-size:20px; width:100%; min-height:29px; padding:0; line-height:1; border-radius:3px; }
-.boarding-screen .flip-unit>button:hover:not(:disabled) { color:#294637; background:#dce2cd; }
+.boarding-screen .flip-unit>button { border:0; background:transparent; color:var(--boarding-accent); font-size:20px; width:100%; min-height:29px; padding:0; line-height:1; border-radius:6px; }
+.boarding-screen .flip-unit>button:hover:not(:disabled) { color:var(--boarding-accent-hover); background:var(--boarding-accent-soft); }
 .boarding-screen .flip-unit>button:disabled { opacity:.25; }
-.flip-tile { position:relative; width:100%; border:1px solid #d1d5bc; border-radius:3px; background:#fbf7e8; overflow:hidden; }
+.flip-tile { position:relative; width:100%; border:1px solid #dfd2bb; border-radius:9px; background:#fffcf4; box-shadow:0 2px 0 #e9dfca; overflow:hidden; }
 .flip-tile input { width:100%; min-width:0; box-sizing:border-box; border:0; background:transparent; color:#294637; font:400 clamp(38px,4.4vw,61px)/1.6 Georgia,serif; font-variant-numeric:tabular-nums; letter-spacing:-3px; text-align:center; padding:0; border-radius:3px; caret-color:#294637; }
-.flip-tile:focus-within { outline:2px solid #718565; outline-offset:2px; }
+.flip-tile:focus-within { outline:2px solid var(--boarding-accent); outline-offset:2px; }
 .flip-tile i { display:none; }
 .flip-colon { font:25px Georgia,serif; color:#93a081; margin-bottom:31px; }
 .flip-unit label { font-size:12px; font-weight:600; line-height:1.2; text-align:center; margin-top:3px; }
 .flip-unit label small { display:block; font-size:8px; letter-spacing:1.5px; opacity:.7; margin-top:4px; }
 .stop-display { min-width:0; display:flex; flex-direction:column; justify-content:center; padding:14px 12px 10px; border:0; border-left:1px dashed #bfc8ac; text-align:center; }
 .stop-display-title { font-size:clamp(13px,1.25vw,19px); font-weight:400; color:#667658; white-space:nowrap; }
-.stop-display-title strong { color:#294637; margin-left:6px; font-weight:600; }
+.stop-display-title strong { color:var(--boarding-accent); margin-left:6px; font-weight:600; padding:2px 8px; border-radius:20px; background:var(--boarding-accent-soft); }
 #recommended-route { margin:5px 0 0; font-size:10px; color:#536849; min-height:15px; }
 .stop-track { position:relative; padding-top:26px; margin:0 2px; min-height:68px; }
 #recommended-stops { --stop-count:2; position:relative; display:grid; grid-template-columns:repeat(var(--stop-count),minmax(0,1fr)); list-style:none; padding:0; margin:0; }
-#recommended-stops:before { content:''; position:absolute; left:calc(50% / var(--stop-count)); right:calc(50% / var(--stop-count)); top:7px; height:2px; background:#8b9a77; }
+#recommended-stops:before { content:''; position:absolute; left:calc(50% / var(--stop-count)); right:calc(50% / var(--stop-count)); top:7px; height:2px; background:#c9a18b; }
 #recommended-stops li { position:relative; display:flex; flex-direction:column; align-items:center; gap:5px; min-width:0; }
 #recommended-stops i { width:14px; height:14px; border:2px solid #798b68; background:#fbf7e8; border-radius:50%; z-index:1; }
-#recommended-stops .arrival i { background:#294637; border-color:#294637; }
-#recommended-stops .intermediate i { width:21px; border:0; background:#f3efdc; color:#68765d; font:700 14px/12px Georgia,serif; text-align:center; }
+#recommended-stops .arrival i { background:var(--boarding-accent); border-color:var(--boarding-accent); box-shadow:0 0 0 4px #b6533d12; }
+#recommended-stops .intermediate i { width:21px; border:0; background:#faf3e3; color:#68765d; font:700 14px/12px Georgia,serif; text-align:center; }
 #recommended-stops span { font-size:9px; letter-spacing:-.5px; color:#35513b; white-space:nowrap; }
 #recommended-stops small { font-size:8px; color:#68765d; margin-top:-3px; }
-.stop-train { position:absolute; width:25px; height:23px; top:3px; left:calc(50% - 12px); fill:#6b805e; color:#6b805e; }
-.stop-train path:nth-child(2) { fill:#f3efdc; }
-.boarding-screen #recommend-apply { align-self:center; border:1px solid #8d9e7c; background:#e4e9d5; color:#35513b; font-size:9px; padding:5px 9px; margin-top:5px; border-radius:3px; }
+.stop-train { position:absolute; width:25px; height:23px; top:3px; left:calc(50% - 12px); fill:var(--boarding-accent); color:var(--boarding-accent); }
+.stop-train path:nth-child(2) { fill:#faf3e3; }
+.boarding-screen #recommend-apply { align-self:center; border:1px solid var(--boarding-accent-line); background:var(--boarding-accent-soft); color:var(--boarding-accent-hover); font-size:9px; padding:5px 9px; margin-top:5px; border-radius:6px; }
 .boarding-screen #recommend-apply:disabled { opacity:1; color:#68765d; border-color:transparent; background:none; }
 .boarding-screen .duration-presets { display:flex; gap:5px; flex-wrap:wrap; margin-top:9px; }
 .boarding-screen .duration-presets button { flex:1; min-width:42px; min-height:26px; padding:4px 5px; font:10px/1.4 system-ui,sans-serif; color:#73836e; border:1px solid #cbd2bf; border-radius:6px; background:#f7f5e9; }
-.boarding-screen .duration-presets button.selected { background:#2c483b; color:#faf5e3; border-color:#2c483b; box-shadow:none; }
+.boarding-screen .duration-presets button.selected { background:var(--boarding-accent); color:#fffaf2; border-color:var(--boarding-accent); box-shadow:0 2px 5px #b6533d18; }
 .boarding-screen[data-medium=card] .journey-booking-fields .select-fields { border:0; gap:38px; }
 .boarding-screen[data-medium=card] .journey-booking-fields .select-fields label { padding:0; border:0; }
 .boarding-screen[data-medium=card] .journey-booking-fields .select-fields label:after { display:block; right:4px; bottom:10px; }
 .boarding-screen[data-medium=card] .journey-booking-fields .select-fields select { border-bottom:1px solid #c4cbb2; color:#263d31; }
 .boarding-screen[data-medium=card] .journey-booking-fields .duration-presets { border:0; gap:5px; }
 .boarding-screen[data-medium=card] .journey-booking-fields .duration-presets button { min-height:26px; padding:4px 5px; font:10px/1.4 system-ui,sans-serif; color:#73836e; border:1px solid #cbd2bf; border-radius:6px; background:#f7f5e9; box-shadow:none; }
-.boarding-screen[data-medium=card] .journey-booking-fields .duration-presets button.selected { background:#2c483b; color:#faf5e3; border-color:#2c483b; }
+.boarding-screen[data-medium=card] .journey-booking-fields .duration-presets button.selected { background:var(--boarding-accent); color:#fffaf2; border-color:var(--boarding-accent); }
 .pace-note { font-size:10px; color:#75836d; line-height:1.5; margin:7px 0 0; }
 .duration-error { color:#b34a28; font-size:11px; margin:7px 0 0; }
 @media(min-width:1000px) { .boarding-screen { padding-top:16px; padding-bottom:16px; gap:12px; }.boarding-screen .boarding-heading { margin-bottom:14px; }.boarding-screen .boarding-lower { margin-top:14px; } }
@@ -120,7 +120,7 @@
 /* Paper ticket editor: route and time are part of the main sheet. */
 .boarding-screen[data-medium=ticket] .pass-size-stage { display:flex; flex:1 1 0; gap:0; min-height:0; }
 .boarding-screen[data-medium=ticket] .boarding-pass-slot { width:100%; flex:1; min-height:0; }
-.boarding-screen[data-medium=ticket] #boarding-pass { width:1120px; height:520px; min-height:520px; zoom:var(--editor-zoom,1); border-radius:18px; box-shadow:0 18px 42px #34412816,inset 0 1px #fff; }
+.boarding-screen[data-medium=ticket] #boarding-pass { width:1120px; height:520px; min-height:520px; zoom:var(--editor-zoom,1); border-radius:18px; border-color:#dfd5bf; box-shadow:0 24px 48px #58452d12,0 3px 6px #58452d06,inset 0 1px #fff; }
 .boarding-screen[data-medium=ticket] #boarding-pass>.pass-main { padding:26px 30px; display:flex; flex-direction:column; min-width:0; line-height:1.3; }
 .boarding-screen[data-medium=ticket] #boarding-pass .printed-journey,
 .boarding-screen[data-medium=ticket] #boarding-pass .pass-main>.pass-fineprint { display:none; }
@@ -137,7 +137,7 @@
 .boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields #route-summary { font-size:12px; margin:6px 0 14px; }
 .boarding-screen[data-medium=ticket] #boarding-pass .duration-modes { margin:-29px 0 8px; }
 .boarding-screen[data-medium=ticket] #boarding-pass .duration-modes button { font-size:12px; padding:5px 12px; }
-.boarding-screen[data-medium=ticket] #boarding-pass .duration-console { grid-template-columns:minmax(215px,.85fr) minmax(300px,1.15fr); gap:19px; padding:15px 18px; border-radius:4px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .duration-console { grid-template-columns:minmax(215px,.85fr) minmax(300px,1.15fr); gap:19px; padding:15px 18px; border-radius:12px; }
 .boarding-screen[data-medium=ticket] #boarding-pass .flip-tile input { font-size:65px; line-height:1.28; }
 .boarding-screen[data-medium=ticket] #boarding-pass .flip-unit>button { min-height:30px; font-size:17px; }
 .boarding-screen[data-medium=ticket] #boarding-pass .flip-unit label { font-size:13px; margin-top:3px; }
@@ -189,7 +189,7 @@
   .boarding-screen[data-medium=ticket] #boarding-pass .journey-booking-fields #route-summary { font-size:10px; margin-bottom:15px; }
   .boarding-screen[data-medium=ticket] #boarding-pass .duration-modes { margin:0 0 8px; }
   .boarding-screen[data-medium=ticket] #boarding-pass .duration-modes button { font-size:10px; padding:5px 9px; }
-  .boarding-screen[data-medium=ticket] #boarding-pass .duration-console { grid-template-columns:minmax(110px,.85fr) minmax(145px,1.15fr); gap:8px; padding:11px 10px; border-radius:4px; }
+  .boarding-screen[data-medium=ticket] #boarding-pass .duration-console { grid-template-columns:minmax(110px,.85fr) minmax(145px,1.15fr); gap:8px; padding:11px 10px; border-radius:10px; }
   .boarding-screen[data-medium=ticket] #boarding-pass .flip-tile input { font-size:32px; line-height:1.5; }
   .boarding-screen[data-medium=ticket] #boarding-pass .flip-unit>button { min-height:29px!important; font-size:15px!important; }
   .boarding-screen[data-medium=ticket] #boarding-pass .flip-unit label { font-size:10px; }.boarding-screen[data-medium=ticket] #boarding-pass .flip-unit label small { font-size:7px; }
@@ -214,3 +214,32 @@
   .boarding-screen[data-medium=ticket] .boarding-lower { display:block; width:100%; }
 }
 @media(max-width:370px) { .boarding-screen[data-medium=ticket] #boarding-pass .duration-console { grid-template-columns:1fr; }.boarding-screen[data-medium=ticket] #boarding-pass .flip-controls { width:190px; margin:auto; }.boarding-screen[data-medium=ticket] #boarding-pass .stop-display { border-left:0; border-top:1px dashed #bfc8ac; } }
+
+/* A coral printing ink connects the ticket's choices and boarding action. */
+.boarding-screen:before { background-image:radial-gradient(#987d541a .7px,transparent .7px); background-size:6px 6px; }
+.boarding-screen .boarding-station .station-line { background:var(--boarding-accent); }
+.boarding-choose>.boarding-heading .boarding-eyebrow { color:var(--boarding-accent); }
+.boarding-choose>.boarding-heading h1 em { color:var(--boarding-accent); font-style:normal; font-weight:inherit; }
+.boarding-screen .boarding-field-title>span { color:var(--boarding-accent); }
+.boarding-screen button:focus-visible,.boarding-screen select:focus-visible { outline-color:var(--boarding-accent); }
+.boarding-screen .boarding-issue #boarding-next { background:var(--boarding-accent); border-color:var(--boarding-accent); color:#fffaf2; box-shadow:0 5px 12px #b6533d19; transition:background .18s,box-shadow .18s; }
+.boarding-screen .boarding-issue #boarding-next:hover:not(:disabled) { background:var(--boarding-accent-hover); border-color:var(--boarding-accent-hover); box-shadow:0 7px 18px #b6533d25; }
+.boarding-screen .boarding-issue>span { color:#6f745f; }
+.boarding-screen .duration-presets button:hover:not(:disabled):not(.selected) { background:var(--boarding-accent-soft); border-color:var(--boarding-accent-line); color:var(--boarding-accent-hover); }
+.boarding-screen .loop-orbit>i:after { background:var(--boarding-accent); }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-masthead strong span { display:inline-grid; place-items:center; width:27px; height:27px; border:1px solid var(--boarding-accent-line); border-radius:50%; color:var(--boarding-accent); font-size:19px; vertical-align:middle; }
+.boarding-screen[data-medium=ticket] #boarding-pass #boarding-pass-kind { padding:4px 9px; border:1px solid #d7d9c4; border-radius:20px; background:#f1f2e5; color:#6b795f; white-space:nowrap; }
+.boarding-screen[data-medium=ticket] #boarding-pass .duration-presets button.selected { background:var(--boarding-accent); border-color:var(--boarding-accent); color:#fffaf2; box-shadow:0 2px 5px #b6533d18; }
+.boarding-screen[data-medium=ticket] #boarding-pass>.pass-stub { background:linear-gradient(160deg,#f8eddf,#f3e4d5); border-left-color:#cebba0; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub>.boarding-eyebrow { color:var(--boarding-accent); }
+.boarding-screen[data-medium=ticket] #boarding-pass #boarding-avatar-preview { border-radius:50%; background:radial-gradient(ellipse at 50% 57%,#fff9ee 0 52%,transparent 53%); }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters legend { color:var(--boarding-accent); }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters button { border-color:#ddcfba; background:#fcf7ec; border-radius:8px; }
+.boarding-screen[data-medium=ticket] #boarding-pass .pass-stub .boarding-characters button[aria-pressed=true] { border-color:var(--boarding-accent); box-shadow:inset 0 0 0 1px var(--boarding-accent-line); background:#fae9dd; }
+@media(max-width:799px) {
+ .boarding-screen[data-medium=ticket] #boarding-pass .pass-masthead strong span { width:22px; height:22px; font-size:16px; margin-left:3px; }
+ .boarding-screen[data-medium=ticket] #boarding-pass #boarding-pass-kind { padding:3px 6px; font-size:8px; }
+ .boarding-screen[data-medium=ticket] #boarding-pass .stop-display-title strong { padding:2px 5px; margin-left:2px; }
+ .boarding-screen[data-medium=ticket] #boarding-pass>.pass-stub { border-top-color:#cebba0; }
+}
+@media(prefers-reduced-motion:reduce) { .boarding-screen .boarding-issue #boarding-next { transition:none; } }
