@@ -7,6 +7,7 @@ const bounds=()=>p.evaluate(`(()=>{const ticket=document.querySelector('#boardin
 try{
  await p.send('Page.addScriptToEvaluateOnNewDocument',{source:'localStorage.clear();sessionStorage.clear();'});await p.send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});await p.send('Page.navigate',{url:'http://localhost:5173/'});await p.send('Page.bringToFront');
  assert.ok(await waitFor(p,`document.querySelector('#boarding-next')?.disabled===false`,35000));
+ assert.equal(await p.evaluate(`document.fonts.ready.then(()=>document.fonts.check('700 29px "Gowun Batang"','성수 건대입구 구로디지털단지')&&document.fonts.check('400 12px "Gowun Dodum"','집중시간 추천 정거장'))`),true);
  const layouts=[];
  for(const [width,height]of [[1440,900],[1366,650],[1280,720],[900,700],[390,844],[320,740]]){
   await p.send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});await sleep(180);

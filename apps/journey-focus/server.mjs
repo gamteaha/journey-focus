@@ -20,6 +20,9 @@ try {
   }
 } catch { /* The app still works without the optional scenery assets. */ }
 const PUBLIC = new Map([
+  ['/fonts/gowun/fonts.css', ['public/fonts/gowun/fonts.css', 'text/css']],
+  ['/fonts/gowun/OFL-Batang.txt', ['public/fonts/gowun/OFL-Batang.txt', 'text/plain']],
+  ['/fonts/gowun/OFL-Dodum.txt', ['public/fonts/gowun/OFL-Dodum.txt', 'text/plain']],
   ['/images/seoul-stickers/index.html', ['public/images/seoul-stickers/index.html', 'text/html']],
   ['/images/seoul-stickers/green-metro.png', ['public/images/seoul-stickers/green-metro.png', 'image/png']],
   ['/images/seoul-stickers/blue-bus.png', ['public/images/seoul-stickers/blue-bus.png', 'image/png']],
@@ -85,6 +88,12 @@ const PUBLIC = new Map([
   ['/data/line2-surface.json', ['public/data/line2-surface.json', 'application/json']],
   ['/data/line2-loop.json', ['public/data/line2-loop.json', 'application/json']],
 ]);
+// Only bundled font chunks from the checked-in manifest can be served.
+const fontManifest=JSON.parse(await readFile(path.join(ROOT,'public/fonts/gowun/manifest.json'),'utf8'));
+for(const {file} of fontManifest.files){
+ if(!/^font-\d{3}\.woff2$/.test(file))throw new Error('Invalid bundled font path');
+ PUBLIC.set(`/fonts/gowun/${file}`,[`public/fonts/gowun/${file}`,'font/woff2']);
+}
 for(const file of ['build/three.module.js','examples/jsm/loaders/FBXLoader.js','examples/jsm/loaders/GLTFLoader.js','examples/jsm/utils/BufferGeometryUtils.js','examples/jsm/libs/fflate.module.js','examples/jsm/curves/NURBSCurve.js','examples/jsm/curves/NURBSUtils.js'])PUBLIC.set('/vendor/three/'+file,['public/vendor/three/'+file,'text/javascript']);
 // Local comparison gallery: explicit captures only, never arbitrary tmp files.
 for(const name of ['01-original','02-grade','03-ao','04-light','05-ao-light','06-combined','07-ai-concept','08-pbr','09-ibl','10-material-combined','11-front-soft','12-front-medium','13-front-shadow','14-front-high']){
@@ -172,7 +181,7 @@ export function createApp(config, fetcher = fetch) {
       }
       const entry = PUBLIC.get(url.pathname);
       if (!entry) return send(res, 404, { error: 'NOT_FOUND' });
-      return send(res, 200, await readFile(path.join(ROOT, entry[0]), entry[1].startsWith('image/')||entry[1].startsWith('video/')||entry[1]==='application/octet-stream'||entry[1]==='model/gltf-binary'?undefined:'utf8'), entry[1]);
+      return send(res, 200, await readFile(path.join(ROOT, entry[0]), /^(image|video|font)\//.test(entry[1])||entry[1]==='application/octet-stream'||entry[1]==='model/gltf-binary'?undefined:'utf8'), entry[1]);
     } catch { return send(res, 500, { error: 'SERVER_ERROR' }); }
   });
 }

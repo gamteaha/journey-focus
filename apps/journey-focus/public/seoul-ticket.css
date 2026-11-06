@@ -1,4 +1,14 @@
 /* Seoul is the first city edition. Art stays in the header, away from inputs. */
+:root{--ticket-serif:'Gowun Batang','Batang',serif;--ticket-sans:'Gowun Dodum','Noto Sans KR',sans-serif}
+.boarding-screen[data-city=seoul]{font-family:var(--ticket-sans)}
+.boarding-screen[data-city=seoul] .boarding-heading h1{font-family:var(--ticket-serif);font-weight:700;letter-spacing:-.035em}
+.boarding-screen[data-city=seoul] :is(.boarding-field-title,.pass-stub>strong,.receipt-route strong,.tear-stub>strong){font-family:var(--ticket-serif);font-weight:700}
+.boarding-screen[data-city=seoul] #boarding-pass .select-fields select{font-family:var(--ticket-serif);font-weight:700;letter-spacing:-.025em}
+.boarding-screen[data-city=seoul] #boarding-pass .flip-tile input{font-family:var(--ticket-serif);font-weight:400;font-variant-numeric:tabular-nums;letter-spacing:-.035em}
+.boarding-screen[data-city=seoul] :is(.stop-display-title,.infinity-dial>strong,.tear-stub>b){font-family:var(--ticket-serif)}
+.boarding-screen[data-city=seoul] .city-stamp b{font-family:var(--ticket-serif);font-weight:700}
+.boarding-screen[data-city=seoul] :is(.duration-presets button,.boarding-characters legend span){font-family:var(--ticket-sans)}
+body.boarding-mode:has(.boarding-screen[data-city=seoul]) .header :is(small,.header-center,button){font-family:var(--ticket-sans)}
 /* Keep the supplied artwork intact. Frame its map area (y=76..548 of 572)
    so its baked-in header/footer do not duplicate the live interface. */
 .boarding-screen[data-city=seoul]:not([data-stage=loading]){background:#f3eee0}
