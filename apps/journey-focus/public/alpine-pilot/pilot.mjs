@@ -23,7 +23,7 @@ async function init(){
  // Preserve source vertices, adding points only by linear interpolation along each rail segment.
  const points=[{...route.points[0],along:0}];let along=0;
  for(let i=1;i<route.points.length;i++){const a=route.points[i-1],b=route.points[i],d=distance(a,b),n=Math.ceil(d/15);for(let j=1;j<=n;j++)points.push({lon:a.lon+(b.lon-a.lon)*j/n,lat:a.lat+(b.lat-a.lat)*j/n,along:along+d*j/n});along+=d;}
- state.total=along;state.meters=along*.5;
+ state.total=along;state.meters=new URLSearchParams(location.search).get('boarding')==='swiss'?0:along*.5;
  // Set a nearby overview before sampling; avoids loading the default global scene.
  viewer.camera.setView({destination:C.Cartesian3.fromDegrees(10.028,46.399,4200),orientation:{heading:0,pitch:-Math.PI/2,roll:0}});
  $('status').textContent='선로를 따라 창가 높이를 준비하는 중…';
