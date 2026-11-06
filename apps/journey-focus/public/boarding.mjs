@@ -21,7 +21,7 @@ export function createBoarding({host,context,onBoarded,onEntered,onRetry,onOpen,
  host.innerHTML=`
  <div class="boarding-station" aria-hidden="true"><span class="station-line">02</span><span>FOCUS LINE</span><i></i><span>YOUR NEXT STOP</span></div>
  <section class="boarding-panel boarding-choose" id="boarding-choose" aria-labelledby="boarding-title">
-  <div class="boarding-heading"><div><span class="boarding-eyebrow">JOURNEY FOCUS · TICKET OFFICE</span><h1 id="boarding-title">오늘의 여정을 <em>발급하세요.</em></h1><p>어디로, 얼마나, 누구와 떠날까요?</p></div><div class="boarding-medium" role="group" aria-label="승차권 종류"><button data-medium="ticket">종이 승차권</button><button data-medium="card">교통카드</button></div></div>
+  <div class="boarding-heading"><div><span class="boarding-eyebrow">JOURNEY FOCUS · TICKET OFFICE</span><h1 id="boarding-title">오늘의 여정을 발급하세요.</h1><p>어디로, 얼마나, 누구와 떠날까요?</p></div><div class="boarding-medium" role="group" aria-label="승차권 종류"><button data-medium="ticket">종이 승차권</button><button data-medium="card">교통카드</button></div></div>
   <div class="pass-size-stage" id="pass-size-stage"><div class="boarding-pass-slot" id="boarding-pass-slot"><div class="boarding-pass" id="boarding-pass">
    <img class="card-front-image" id="card-choice-art" src="/images/inu-transit-card.jpg" alt="인천대학교 횃불이 교통카드 앞면" draggable="false" hidden>
    <div class="card-choice-heading"><span class="card-print-brand">JF<small>FOCUS LINE</small></span><div><strong>승 차 권</strong><small>집중 여정 교통카드</small></div><span class="card-contactless" aria-hidden="true">)))</span></div>
