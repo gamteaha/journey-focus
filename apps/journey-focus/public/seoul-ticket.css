@@ -11,9 +11,9 @@
 body.boarding-mode:has(.boarding-screen[data-city=seoul]) .header :is(small,.header-center,button){font-family:var(--ticket-sans)}
 /* Keep the supplied artwork intact. Frame its map area (y=76..548 of 572)
    so its baked-in header/footer do not duplicate the live interface. */
-.boarding-screen[data-city=seoul]:not([data-stage=loading]){--boarding-bg:#d4dfe3;background:var(--boarding-bg)}
-.boarding-screen[data-city=seoul]:not([data-stage=loading]):before{inset:var(--boarding-header) 0 0;background-image:linear-gradient(#cbdde6b8,#cbdde6b8),url('/images/seoul-map-background.png');background-size:max(100vw,calc((100dvh - var(--boarding-header))*2.17)) auto;background-position:center 76%;background-repeat:no-repeat;opacity:1}
-body.boarding-mode:has(.boarding-screen[data-city=seoul]) .header{background:#d4dfe3}
+.boarding-screen[data-city=seoul]:not([data-stage=loading]){--boarding-bg:#d4dbce;background:var(--boarding-bg)}
+.boarding-screen[data-city=seoul]:not([data-stage=loading]):before{inset:var(--boarding-header) 0 0;background-image:linear-gradient(#cbd8c9b8,#cbd8c9b8),url('/images/seoul-map-background.png');background-size:max(100vw,calc((100dvh - var(--boarding-header))*2.17)) auto;background-position:center 76%;background-repeat:no-repeat;opacity:1}
+body.boarding-mode:has(.boarding-screen[data-city=seoul]) .header{background:#d4dbce}
 .boarding-screen[data-city=seoul] .boarding-heading,.boarding-screen[data-city=seoul] .boarding-lower,.boarding-screen[data-city=seoul] .boarding-foot,.boarding-screen[data-city=seoul]>.boarding-station{text-shadow:none}
 .boarding-screen[data-city=seoul][data-medium=card] #card-journey-fields{background:#faf5e8;border-radius:14px;padding:18px;box-sizing:border-box}
 .boarding-screen[data-city=seoul] .boarding-choose>.boarding-heading>.boarding-eyebrow{color:#777e69}
