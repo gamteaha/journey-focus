@@ -22,7 +22,7 @@ body.boarding-mode:has(.boarding-screen[data-city=seoul]) .header{background:#f3
 .city-stamp b{font:500 14px/1.15 system-ui,sans-serif;letter-spacing:2px}.city-stamp small{font:8px/1.2 Georgia,serif;letter-spacing:1.3px}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .city-stamp{margin-left:auto}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass #boarding-pass-kind{font-size:10px;color:#6c5b40;white-space:nowrap}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-stub{background:#d4b787;border-left-color:#9c8359}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-stub{background:#b3bea0;border-left-color:#7e906f;color:#2d4335}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .duration-console{background:#d6bc91;border-color:#b29769;border-radius:8px;color:#373627}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .journey-booking-fields #route-summary{margin-bottom:10px}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .journey-booking-fields>.boarding-field-title{margin-bottom:5px}
@@ -30,9 +30,10 @@ body.boarding-mode:has(.boarding-screen[data-city=seoul]) .header{background:#f3
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .flip-tile{background:#f0dfbd;border-color:#a58d65;border-radius:4px;box-shadow:0 2px 0 #b59b74}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .duration-presets button{border-color:#b1976d;background:#e8d0a7;color:#60533c;border-radius:5px}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .duration-presets button.selected{background:#2c483b;border-color:#2c483b;color:#faf5e3}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pass-stub .boarding-characters button{background:#e6cda3;border-color:#ae9367;color:#61553e;border-radius:7px}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pass-stub .boarding-characters button[aria-pressed=true]{background:#c5c7a0;border-color:#73805c;color:#33452f}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass :is(.boarding-eyebrow,.boarding-field-title>span,.select-fields label,#route-summary,.pace-note,.pass-stub>span,.stop-display-title,#recommended-stops small,.loop-preview>small,.infinity-dial>small){color:#6a5b42}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pass-stub .boarding-characters button{background:#dce1ce;border-color:#8d9d7b;color:#43513b;border-radius:7px}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pass-stub .boarding-characters button[aria-pressed=true]{background:#3b5543;border-color:#3b5543;color:#fff7e5;box-shadow:none}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pass-stub>span{color:#4f6145}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass :is(.boarding-field-title>span,.select-fields label,#route-summary,.pace-note,.stop-display-title,#recommended-stops small,.loop-preview>small,.infinity-dial>small){color:#6a5b42}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass :is(.select-fields select,.flip-tile input,.stop-display-title strong,#recommended-route,#recommended-stops span){color:#333a29}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass :is(.select-fields select,.stop-display){border-color:#ab926a}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass #recommended-stops .intermediate i{background:#d6bc91}
@@ -50,7 +51,7 @@ body.boarding-mode:has(.boarding-screen[data-city=seoul]) .header{background:#f3
  .boarding-screen[data-medium=ticket] #boarding-pass .ticket-sticker{display:none}
  .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .city-stamp{padding:4px 6px}.city-stamp b{font-size:11px;letter-spacing:1px}.city-stamp small{font-size:6px;letter-spacing:.7px}
  .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass #boarding-pass-kind{display:none}
- .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-stub{border-top-color:#9c8359}
+ .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-stub{border-top-color:#7e906f}
  .receipt-city{gap:5px}.receipt-city .seoul-ticket-art{width:42px;height:26px}.receipt-city .city-stamp{display:none}
 }
 @media(max-width:370px){.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .city-ticket-brand>.seoul-ticket-art{display:none}}
