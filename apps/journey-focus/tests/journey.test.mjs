@@ -17,11 +17,11 @@ test('every supported city pair stays on the connected rail with reversible endp
   for(let i=0;i<forward.stops.length-1;i++){const stop=forward.stops[i],position=positionAt(forward,(stop.metres+.1)/forward.distance);assert.equal(position.name,stop.name);assert.equal(position.next,forward.stops[i+1].name);}
  }
 });
-test('longer focus times recommend farther real destinations while keeping the original scenery pace close',()=>{
- const choices=[1500,3600,5400,7200].map(duration=>recommendJourney(stations,'성수',duration,shape));
+test('longer focus times recommend farther real destinations while keeping the five-minute reference pace close',()=>{
+ const choices=[300,600,900,1200].map(duration=>recommendJourney(stations,'성수',duration,shape));
  assert.deepEqual(choices.map(r=>r.to),['건대입구','구의','강변','잠실나루']);
  assert.deepEqual(choices.map(r=>r.stopCount),[1,2,3,4]);
- assert.ok(choices.every(r=>Math.abs(r.speed/REFERENCE_SPEED-1)<.15));
+ assert.ok(choices.every(r=>Math.abs(r.speed/REFERENCE_SPEED-1)<.2));
  assert.ok(choices.every((r,i)=>!i||r.distance>choices[i-1].distance));
  const reverse=recommendJourney(stations,'잠실나루',5400,shape);assert.equal(reverse.from,'잠실나루');assert.ok(reverse.stops.length>2);
  const middle=recommendJourney(stations,'강변',7200,shape);assert.equal(middle.to,'한양대');

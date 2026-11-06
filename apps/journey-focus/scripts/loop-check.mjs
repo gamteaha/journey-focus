@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import {connectPage,waitFor,sleep} from './cdp.mjs';
+import {REFERENCE_SPEED} from '../src/journey.mjs';
 import {boardTrain} from './boarding-flow.mjs';
 const p=await connectPage({fresh:true,port:9224,acceptBeforeUnload:true}),out='../../tmp/loop-qa';await fs.mkdir(out,{recursive:true});
 let cabinSession;const C=expression=>p.evaluate(expression,cabinSession);
@@ -35,16 +36,17 @@ try{
  assert.equal(await C(`document.querySelector('#cabin-stage').dataset.studyUnlimited`),'true');assert.equal(await C(`document.querySelector('#cabin-study-clock').hidden`),false);
  await p.screenshot(`${out}/02-running.png`);
  // Advance the test clock only. No production speed multiplier or debug hook.
- await p.evaluate(`window.__qaAdvance=10800000`);assert.ok(await waitFor(p,`document.querySelector('#game-chrome').dataset.laps==='2'`,5000));
- assert.equal(await p.evaluate(`document.querySelector('#game-chrome').dataset.state`),'running');assert.ok(await C(`Number(document.querySelector('#cabin-stage').dataset.studyElapsed)>=10800`));
+ const railShape=await(await fetch('http://localhost:5173/data/line2-loop.json')).json(),twoLapsMs=2*railShape.distanceMetres/REFERENCE_SPEED*1000;
+ await p.evaluate(`window.__qaAdvance=${twoLapsMs}`);assert.ok(await waitFor(p,`document.querySelector('#game-chrome').dataset.laps==='2'`,5000));
+ assert.equal(await p.evaluate(`document.querySelector('#game-chrome').dataset.state`),'running');assert.ok(await C(`Number(document.querySelector('#cabin-stage').dataset.studyElapsed)>=${Math.floor(twoLapsMs/1000)}`));
  await p.screenshot(`${out}/03-two-laps.png`);
  await p.evaluate(`document.querySelector('#pause').click()`);await sleep(200);const paused=await p.evaluate(`document.querySelector('#timer').textContent`);
  await p.evaluate(`window.__qaAdvance+=3600000`);await sleep(300);assert.equal(await p.evaluate(`document.querySelector('#timer').textContent`),paused);
  await p.evaluate(`document.querySelector('#pause').click()`);await sleep(250);await p.evaluate(`document.querySelector('#stop').click()`);
- const entry=await p.evaluate(`JSON.parse(localStorage.getItem('journey-focus-history'))[0]`);assert.equal(entry.unlimited,true);assert.equal(entry.laps,2);assert.equal(entry.duration,null);assert.ok(entry.elapsed>=10800&&entry.elapsed<10900);assert.equal(entry.completed,false);
+ const entry=await p.evaluate(`JSON.parse(localStorage.getItem('journey-focus-history'))[0]`);assert.equal(entry.unlimited,true);assert.equal(entry.laps,2);assert.equal(entry.duration,null);assert.ok(entry.elapsed>=twoLapsMs/1000&&entry.elapsed<twoLapsMs/1000+100);assert.equal(entry.completed,false);
  await p.screenshot(`${out}/04-ended-record.png`);
  await p.send('Page.reload');assert.ok(await waitFor(p,`document.querySelector('#boarding-next')?.disabled===false`,35000));
  assert.equal(await p.evaluate(`document.querySelector('#duration-unlimited').getAttribute('aria-pressed')`),'true');assert.equal(await p.evaluate(`document.querySelector('#from').options.length`),43);
- assert.deepEqual(p.errors,[]);await fs.writeFile(`${out}/results.json`,JSON.stringify({entry,layouts,errors:p.errors,checks:['43 stations','unlimited issue','finite mode restored','short arc across City Hall','responsive ticket/card','real cabin badge','two lap boundary','no auto finish after three hours','pause excludes time','manual stop record','unlimited preference reload']},null,2));
+ assert.deepEqual(p.errors,[]);await fs.writeFile(`${out}/results.json`,JSON.stringify({entry,layouts,errors:p.errors,checks:['43 stations','unlimited issue','finite mode restored','short arc across City Hall','responsive ticket/card','real cabin badge','two lap boundary','no auto finish after two laps','pause excludes time','manual stop record','unlimited preference reload']},null,2));
  console.log('PASS: 43 stations, unlimited study, two laps, pause/resume, manual stop, elapsed badge, reload and responsive layouts');
 }catch(error){await p.screenshot(`${out}/failure.png`);console.error(JSON.stringify({errors:p.errors}));throw error;}finally{p.close();}

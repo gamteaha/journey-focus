@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {CITY_ORDER,buildLoopRoute,buildRoute,positionAt,distance} from '../src/route.mjs';
 import {SessionClock} from '../src/session.mjs';
-import {journeyMetrics,LOOP_LAP_SECONDS,recommendJourney} from '../src/journey.mjs';
+import {journeyMetrics,loopLapSeconds,recommendJourney,REFERENCE_SPEED} from '../src/journey.mjs';
 import {createBoardingPass,formatDuration} from '../src/boarding.mjs';
 import {normalizePreferences,savePreferences,readPreferences} from '../src/preferences.mjs';
 const shape=JSON.parse(readFileSync(new URL('../public/data/line2-loop.json',import.meta.url)));
@@ -39,12 +39,43 @@ test('every pair of the 43 main-loop stations has symmetric short-arc distance a
 });
 test('unlimited study runs for many laps, pauses without travelling, resumes and only ends on stop',()=>{
  let now=0;const clock=new SessionClock(()=>now),route=buildLoopRoute(stations,'성수',shape);clock.start(null);
- now=LOOP_LAP_SECONDS*1000*8+125000;let s=clock.snapshot(),m=journeyMetrics(route,s);
+ now=loopLapSeconds(route)*1000*8+125000;let s=clock.snapshot(),m=journeyMetrics(route,s);
  assert.equal(s.state,'running');assert.equal(s.unlimited,true);assert.equal(s.duration,null);assert.equal(m.laps,8);assert.ok(m.progress>0);
  clock.pause();const paused=clock.snapshot();now+=86400000;assert.equal(clock.snapshot().elapsed,paused.elapsed);assert.deepEqual(journeyMetrics(route,clock.snapshot()),m);
  clock.resume();now+=45000;clock.stop();s=clock.snapshot();assert.equal(s.state,'stopped');assert.equal(s.elapsed,paused.elapsed+45);
  clock.reset();assert.equal(clock.snapshot().unlimited,false);clock.start(60);now+=61000;assert.equal(clock.snapshot().state,'completed');
  assert.throws(()=>clock.start(Infinity));
+});
+test('five-minute reference recommends both real directions and keeps two-hour travel on the longer arc',()=>{
+ const reference=buildRoute(stations,'건대입구','성수',shape);
+ assert.ok(Math.abs(reference.distance/REFERENCE_SPEED-300)<1e-8);
+ const choices=[300,1500,3600,5400,7200].map(duration=>recommendJourney(stations,'성수',duration,shape));
+ assert.deepEqual(choices.map(r=>r.to),['건대입구','잠실','서초','구로디지털단지','문래']);
+ assert.deepEqual(choices.map(r=>r.stopCount),[1,5,13,22,24]);
+ for(const choice of choices){
+  const route=buildRoute(stations,choice.from,choice.to,shape,{direction:choice.direction});
+  assert.ok(Math.abs(route.distance-choice.distance)<.001);
+  assert.deepEqual(route.stops.map(s=>s.name),choice.stops);
+  assert.ok(choice.paceDifference<.07);
+  assert.equal(positionAt(route,1).name,choice.to);
+ }
+ const long=choices.at(-1),short=buildRoute(stations,long.from,long.to,shape);
+ assert.ok(long.distance>shape.distanceMetres/2&&short.distance<shape.distanceMetres/2);
+ assert.equal(recommendJourney(stations,'건대입구',300,shape).to,'성수');
+});
+test('unlimited and recommended trips share the five-minute spatial pace from every station',()=>{
+ for(const station of stations){
+  const route=buildLoopRoute(stations,station.name,shape),lapSeconds=loopLapSeconds(route);
+  assert.ok(Math.abs(lapSeconds/60-196.4701514339385)<1e-6);
+  const recommendation=recommendJourney(stations,station.name,null,shape);
+  assert.equal(recommendation.speed,REFERENCE_SPEED);
+  assert.equal(recommendation.lapSeconds,lapSeconds);
+  const metrics=journeyMetrics(route,{unlimited:true,elapsed:300});
+  assert.ok(Math.abs(metrics.distance-referenceDistance())<.001);
+  assert.ok(Math.abs(journeyMetrics(route,{unlimited:true,elapsed:lapSeconds+.01}).progress)<.00001);
+ }
+ assert.deepEqual(journeyMetrics(null,{unlimited:true,elapsed:300}),{progress:0,laps:0,distance:0});
+ function referenceDistance(){return buildRoute(stations,'성수','건대입구',shape).distance;}
 });
 test('unlimited tickets and preferences serialize explicitly as null and restore the same starting station',()=>{
  const input={from:'강남',to:'강남',duration:null,character:'blue',medium:'card'},pass=createBoardingPass(input);

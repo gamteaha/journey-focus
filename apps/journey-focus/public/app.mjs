@@ -129,7 +129,7 @@ function preview() {
 }
 function chooseRoute() {
   resetSessionPreview();
-  try { state.route = state.duration===null?buildLoopRoute(state.stations,$('from').value,state.railShape):buildRoute(state.stations, $('from').value, $('to').value, state.railShape); preview(); }
+  try { const recommendation=journeyRecommendation();state.route = state.duration===null?buildLoopRoute(state.stations,$('from').value,state.railShape):buildRoute(state.stations, $('from').value, $('to').value, state.railShape,{direction:recommendation?.to===$('to').value?recommendation.direction:undefined}); preview(); }
   catch (error) { state.route = null; $('route-summary').textContent = error.message; }
   connection();
   comparison?.routeChanged();
@@ -324,7 +324,7 @@ $('focus-button').onclick = () => {
 };
 $('map-retry').onclick = loadMap;
 $('retry').onclick = () => { if (state.stationError) loadStations(); if (state.mapFailed) loadMap(); };
-$('about-button').onclick = () => dialog('창밖으로 떠나는 집중.', '<p>Journey Focus는 책상이나 도서관에 앉아, 열차에 타고 이동하는 느낌으로 나만의 집중 시간을 보내는 서비스입니다.</p><h3>작은 여행을 시작하는 방법</h3><ol><li>출발역과 도착역을 선택하세요.</li><li>집중하고 싶은 시간을 정하세요. 처음이라면 1분 체험을 추천해요.</li><li>여정을 시작하고, 잠시 나에게 집중하세요.</li></ol><p>브이월드의 실제 3D 공간정보와 서울시 T Data의 역 좌표를 사용합니다. 2호선 본선 43개 역의 실제 OSM 선로를 사용합니다. 시간에 맞는 도착역을 추천하며, 무제한 모드에서는 한 바퀴 약 90분의 속도로 계속 순환합니다. 지하 구간은 현재 지상 지도에서 조망합니다. 선로 높이와 열차 시각표는 미검증이며, 터널 구간은 지상에서 조망합니다. 창가 시점의 높이는 설정에 따라 달라지고, 넓게 보기는 항공 조망입니다. 300m 근경 미리보기는 지형 위 약 6m의 재구성 시점이며 실제 선로 표고는 미검증입니다.</p>');
+$('about-button').onclick = () => dialog('창밖으로 떠나는 집중.', '<p>Journey Focus는 책상이나 도서관에 앉아, 열차에 타고 이동하는 느낌으로 나만의 집중 시간을 보내는 서비스입니다.</p><h3>작은 여행을 시작하는 방법</h3><ol><li>출발역과 도착역을 선택하세요.</li><li>집중하고 싶은 시간을 정하세요. 처음이라면 1분 체험을 추천해요.</li><li>여정을 시작하고, 잠시 나에게 집중하세요.</li></ol><p>브이월드의 실제 3D 공간정보와 서울시 T Data의 역 좌표를 사용합니다. 2호선 본선 43개 역의 실제 OSM 선로를 사용합니다. 시간에 맞는 도착역을 추천하며, 무제한 모드도 성수–건대입구 약 5분 기준의 같은 속도로 계속 순환합니다. 지하 구간은 현재 지상 지도에서 조망합니다. 선로 높이와 열차 시각표는 미검증이며, 터널 구간은 지상에서 조망합니다. 창가 시점의 높이는 설정에 따라 달라지고, 넓게 보기는 항공 조망입니다. 300m 근경 미리보기는 지형 위 약 6m의 재구성 시점이며 실제 선로 표고는 미검증입니다.</p>');
 function showData() {
   const time = state.fetchedAt ? new Date(state.fetchedAt).toLocaleString('ko-KR') : '미수신';
   const rail = state.route?.geometry === 'osm-rail';

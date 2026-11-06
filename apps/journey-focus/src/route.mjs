@@ -19,8 +19,8 @@ export function distance(a, b) {
   const h = Math.sin(dlat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dlon / 2) ** 2;
   return 6371000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(Math.max(0, 1 - h)));
 }
-export function buildRoute(stations, from, to, shape = null) {
-  if(shape?.loop)return circularRoute(stations,from,to,shape,false);
+export function buildRoute(stations, from, to, shape = null, options = {}) {
+  if(shape?.loop)return circularRoute(stations,from,to,shape,false,options.direction);
   const start = stations.findIndex(s => s.name === from), end = stations.findIndex(s => s.name === to);
   if (start < 0 || end < 0 || start === end) throw new Error('서로 다른 출발역과 도착역을 선택해 주세요.');
   let selected = stations.slice(Math.min(start, end), Math.max(start, end) + 1);
@@ -48,7 +48,7 @@ export function buildRoute(stations, from, to, shape = null) {
   return { stations: selected, segments, distance: total, geometry, ...(stops?{stops}: {}) };
 }
 export function buildLoopRoute(stations,from,shape){return circularRoute(stations,from,from,shape,true);}
-function circularRoute(stations,from,to,shape,fullLap){
+function circularRoute(stations,from,to,shape,fullLap,direction){
   if(!shape?.loop||!stations.some(s=>s.name===from)||!stations.some(s=>s.name===to)||(!fullLap&&from===to))throw new Error('유효한 순환선 역을 선택해 주세요.');
   const a=shape.stationAnchors.find(s=>s.name===from)?.pointIndex,b=shape.stationAnchors.find(s=>s.name===to)?.pointIndex,n=shape.points.length-1;
   if(!Number.isInteger(a)||!Number.isInteger(b)||n<2||distance(shape.points[0],shape.points.at(-1))>.01)throw new Error('연결된 순환선 데이터가 필요해요.');
@@ -59,7 +59,7 @@ function circularRoute(stations,from,to,shape,fullLap){
     const segments=points.slice(0,-1).map((p,i)=>({a:p,b:points[i+1],distance:distance(p,points[i+1]),tunnel:p.tunnel}));
     return {indices,points,segments,distance:segments.reduce((sum,s)=>sum+s.distance,0),direction};
   }
-  const forward=path(1),backward=fullLap?null:path(-1),chosen=backward&&backward.distance<forward.distance?backward:forward;
+  const forward=path(1),backward=fullLap?null:path(-1),chosen=backward&&(direction===-1||(direction!==1&&backward.distance<forward.distance))?backward:forward;
   const anchors=new Map(shape.stationAnchors.map(s=>[s.pointIndex,s.name])),stops=[];let metres=0;
   chosen.indices.forEach((i,j)=>{if(j)metres+=chosen.segments[j-1].distance;const name=anchors.get(i);if(name)stops.push({name,metres});});
   const selected=stops.map(s=>({...(stations.find(t=>t.name===s.name)||shape.points[shape.stationAnchors.find(t=>t.name===s.name).pointIndex]),name:s.name}));
