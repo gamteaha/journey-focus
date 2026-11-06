@@ -4,8 +4,8 @@ The root page now opens a rotatable globe before booking. Seoul and Switzerland 
 
 - `/`: local globe, location pins and matching destination details. Drag with mouse/touch, use arrow keys or the left/right buttons. The two text buttons also select destinations, including when WebGL or map data fails.
 - `/?destination=seoul`: lazy-load the existing app and Seoul ticket. Existing route, time, card, character and cabin behavior remains in the app. A return link opens the world selection.
-- `/?destination=swiss`: a Swiss scenery ticket for the supported 1.588km outdoor Bernina segment. It explicitly does not offer an unimplemented focus duration or character cabin.
-- Swiss ticket links to `/alpine-pilot/?boarding=swiss`, which starts at 0m (about 4.8 minutes at 20km/h). Direct pilot access still starts halfway through for the original lake preview. The user starts movement with the pilot play button after loading.
+- `/?destination=swiss`: a Swiss ticket for the supported 1.588km outdoor Bernina segment. It links to the separate prototype cabin and does not offer custom focus-duration selection yet.
+- Swiss ticket links to `/alpine-pilot/?boarding=swiss`, which starts at 0m (about 4.8 minutes at 20km/h). All pilot access now starts at zero. The user chooses a right window seat for the character, then starts the train after loading. See `swiss-cabin.md` for the 2026-11-07 integration.
 
 ## Rendering and data
 

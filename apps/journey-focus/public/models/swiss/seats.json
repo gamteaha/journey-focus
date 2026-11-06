@@ -1,0 +1,108 @@
+{
+  "name": "Supplied monorail · Swiss prototype cabin",
+  "authenticBerninaVehicle": false,
+  "floorY": 0,
+  "aisleHalfWidth": 0.22,
+  "aisleMinZ": -5.15,
+  "aisleMaxZ": 5.25,
+  "seats": [
+    {
+      "id": "R01",
+      "x": 0.98183,
+      "y": 0.44504,
+      "z": -5.00139,
+      "heading": 0
+    },
+    {
+      "id": "R02",
+      "x": 0.98183,
+      "y": 0.44504,
+      "z": -4.27702,
+      "heading": 0
+    },
+    {
+      "id": "R03",
+      "x": 0.98183,
+      "y": 0.44504,
+      "z": -3.55264,
+      "heading": 0
+    },
+    {
+      "id": "R04",
+      "x": 0.98183,
+      "y": 0.44504,
+      "z": -2.82827,
+      "heading": 0
+    },
+    {
+      "id": "R05",
+      "x": 0.98183,
+      "y": 0.44504,
+      "z": -2.10389,
+      "heading": 0
+    },
+    {
+      "id": "R06",
+      "x": 0.98183,
+      "y": 0.44504,
+      "z": -1.37952,
+      "heading": 0
+    },
+    {
+      "id": "R07",
+      "x": 0.98183,
+      "y": 0.44504,
+      "z": -0.65514,
+      "heading": 0
+    },
+    {
+      "id": "R08",
+      "x": 0.98183,
+      "y": 0.44504,
+      "z": 0.38308,
+      "heading": 3.141592653589793
+    },
+    {
+      "id": "R09",
+      "x": 0.98183,
+      "y": 0.44504,
+      "z": 1.81993,
+      "heading": 0
+    },
+    {
+      "id": "R10",
+      "x": 0.98183,
+      "y": 0.44504,
+      "z": 2.8636,
+      "heading": 3.141592653589793
+    },
+    {
+      "id": "R11",
+      "x": 0.98183,
+      "y": 0.44504,
+      "z": 3.58797,
+      "heading": 3.141592653589793
+    },
+    {
+      "id": "R12",
+      "x": 0.98183,
+      "y": 0.44504,
+      "z": 4.31235,
+      "heading": 3.141592653589793
+    },
+    {
+      "id": "R13",
+      "x": 0.98183,
+      "y": 0.44504,
+      "z": 5.03672,
+      "heading": 3.141592653589793
+    }
+  ],
+  "sourceFiles": {
+    "train_monorail_TS.obj": "fddf45e5b7abc1ae4b1c3bf67cadacce8881613ed2d4bfecd9329a6aa98eb3ee",
+    "train_monorail_TS.mtl": "6ff67a0ff4fd3cccbc82054d42dce65de3b85ff9ae2c39236b366ba628cf6e83",
+    "train_monorail_TS.fbx": "0f5940e30307ad6fe85f1860f90682baae0eb081ae96ce5732401d12acbcb819",
+    "textures.zip": "c268c6d30f52e651c1c83f13d25971881c2a53db36a6f1f1eb399b033c76f529"
+  },
+  "note": "Right window seats calibrated from supplied cushion geometry. Display scale is not a surveyed dimension."
+}

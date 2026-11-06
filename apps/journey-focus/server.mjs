@@ -20,6 +20,9 @@ try {
   }
 } catch { /* The app still works without the optional scenery assets. */ }
 const PUBLIC = new Map([
+  ['/models/swiss/monorail-cabin.glb', ['public/models/swiss/monorail-cabin.glb', 'model/gltf-binary']],
+  ['/models/swiss/seats.json', ['public/models/swiss/seats.json', 'application/json']],
+  ['/alpine-pilot/swiss-cabin.mjs', ['public/alpine-pilot/swiss-cabin.mjs', 'text/javascript']],
   ['/destinations.mjs', ['public/destinations.mjs', 'text/javascript']],
   ['/destination-globe.mjs', ['public/destination-globe.mjs', 'text/javascript']],
   ['/destinations.css', ['public/destinations.css', 'text/css']],
