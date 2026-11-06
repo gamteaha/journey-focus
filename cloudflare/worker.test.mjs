@@ -43,6 +43,24 @@ test('injects the runtime VWorld SDK URL for both map paths',async()=>{
   assert.equal(map.headers.get('Cache-Control'),'no-store');
  }
 });
+test('Swiss boarding URLs resolve the nested HTML and preserve ticket query on slash redirect',async()=>{
+ const worker=createWorker();
+ const query='?boarding=swiss&ticket=JF-TEST';
+ for(const route of ['/alpine-pilot/','/alpine-pilot/index.html']){
+  const response=await call(worker,route+query);
+  assert.equal(response.status,200);
+  assert.match(response.headers.get('Content-Type'),/text\/html/);
+  const html=await response.text();assert.match(html,/id="swiss-journey"/);assert.match(html,/src="\.\/pilot.mjs"/);
+  assert.equal(await (await call(worker,route+query,{method:'HEAD'})).text(),'');
+ }
+ const redirect=await call(worker,'/alpine-pilot'+query);
+ assert.equal(redirect.status,308);assert.equal(redirect.headers.get('Location'),base+'/alpine-pilot/'+query);
+ const config=JSON.parse(await readFile(path.join(root,'wrangler.jsonc'),'utf8'));
+ assert.equal(config.assets.html_handling,'none');
+ for(const route of ['/alpine-pilot','/alpine-pilot/','/alpine-pilot/index.html'])assert.ok(config.assets.run_worker_first.includes(route));
+ for(const asset of ['/alpine-pilot/pilot.mjs','/alpine-pilot/route.json','/models/swiss/monorail-cabin.glb'])assert.equal((await call(worker,asset)).status,200);
+ assert.equal((await call(worker,'/alpine-pilot/missing')).status,404);
+});
 test('reports configuration without exposing secret values',async()=>{
  const worker=createWorker();
  const status=await (await call(worker,'/api/status')).json();

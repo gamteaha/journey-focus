@@ -35,7 +35,13 @@ export function createWorker(fetcher=(...args)=>fetch(...args)){
     try{return json(await stations(env));}
     catch{return json({error:env.TDATA_API_KEY?'TDATA_UNAVAILABLE':'TDATA_MISSING',message:'역 정보를 불러오지 못했어요. API 설정과 연결 상태를 확인해 주세요.'},502);}
    }
-   const htmlFiles={'/':'/index.html','/map':'/map.html','/map.html':'/map.html','/cabin-frame':'/cabin-frame.html','/cabin-frame.html':'/cabin-frame.html'};
+   // html_handling is disabled: nested directory URLs need an explicit entry.
+   // Canonicalize the slash so the pilot's relative scripts/route resolve correctly.
+   if(url.pathname==='/alpine-pilot'){
+    url.pathname='/alpine-pilot/';
+    return new Response(null,{status:308,headers:{...commonHeaders,Location:url.href}});
+   }
+   const htmlFiles={'/':'/index.html','/map':'/map.html','/map.html':'/map.html','/cabin-frame':'/cabin-frame.html','/cabin-frame.html':'/cabin-frame.html','/alpine-pilot/':'/alpine-pilot/index.html','/alpine-pilot/index.html':'/alpine-pilot/index.html'};
    const file=htmlFiles[url.pathname];
    if(file){
     // Read HTML from the assets binding, with HTML redirects disabled in Wrangler.
