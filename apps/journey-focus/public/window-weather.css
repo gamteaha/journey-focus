@@ -1,0 +1,20 @@
+/* Window glass stays below the frame/HUD and clear of the provider's credits. */
+#window-weather{position:absolute;inset:0 0 62px;z-index:1;overflow:hidden;pointer-events:none;user-select:none;--weather-blur:0px;--weather-mist:0}
+#window-weather[hidden]{display:none}
+.weather-frost,.weather-rain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.weather-frost{backdrop-filter:blur(var(--weather-blur)) saturate(.8) contrast(.92);-webkit-backdrop-filter:blur(var(--weather-blur)) saturate(.8) contrast(.92);background:radial-gradient(ellipse at 48% 46%,transparent 20%,rgb(216 232 231 / calc(var(--weather-mist)*.52)) 100%),linear-gradient(115deg,rgb(215 229 232 / calc(.05 + var(--weather-mist)*.14)),rgb(220 231 226 / calc(var(--weather-mist)*.12)));mask-image:linear-gradient(#000 0 84%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0 84%,transparent 100%)}
+.weather-frost:after{content:'';position:absolute;inset:0;opacity:var(--weather-mist);background:radial-gradient(ellipse at 0 20%,#e9f0e566,transparent 54%),radial-gradient(ellipse at 100% 80%,#dbe9e270,transparent 50%);box-shadow:inset 0 0 60px #e5eee447}
+.weather-rain{opacity:.85;mask-image:linear-gradient(#000 0 92%,transparent);-webkit-mask-image:linear-gradient(#000 0 92%,transparent)}
+#weather-settings{border-top:1px solid #d5dccc55;padding-top:5px;margin-top:18px}
+#weather-settings h3{margin:12px 0 10px;font-size:13px;font-weight:500}
+.weather-modes{display:flex;gap:6px;flex-wrap:wrap}
+.weather-modes button{background:#eef1e7;border:1px solid #d0d9c7;color:#526c56;border-radius:8px;padding:9px 13px;font-size:12px;cursor:pointer}
+.weather-modes button[aria-pressed=true]{background:#29483c;border-color:#29483c;color:#fff}
+.weather-humidity{display:flex;align-items:center;gap:12px;margin:15px 0 9px;font-size:11px;color:#526c56}
+.weather-humidity input{width:150px;max-width:40vw;accent-color:#587957}
+.weather-humidity output{min-width:34px;font-variant-numeric:tabular-nums}
+#weather-status{font-size:11px;color:#6b7c66;line-height:1.6;margin:7px 0}
+.cabin-mode #window-weather{display:none}
+#game-settings .weather-humidity{color:#d4e1c8}
+#game-settings #weather-status{color:#b4c8aa}
+#game-settings .weather-modes button[aria-pressed=true]{background:#40604b;border-color:#bdd0a5;box-shadow:inset 0 0 0 1px #bdd0a5;color:#fff}

@@ -9,6 +9,7 @@ import {CABIN_SEATS} from '/src/cabin.mjs';
 import {createBoarding} from '/boarding.mjs';
 import {characterById,formatDuration} from '/src/boarding.mjs';
 import {recommendJourney,validDuration,journeyMetrics} from '/src/journey.mjs';
+import {createWindowWeather} from '/window-weather.mjs';
 
 const $ = id => document.getElementById(id);
 let preferenceStorage;
@@ -20,7 +21,7 @@ const state = { stations: [], route: null, railShape: null, duration: savedPrefe
 let toastTimer, mapTimer, completionTimer, lastUpdate = 0, lastCamera = 0;
 let comparison = null;
 let scenery=null;
-let cabin=null,selectedSeat=null,experienceMode='cabin';
+let cabin=null,selectedSeat=null,experienceMode='cabin',windowWeather=null;
 let lastCabinSession='';
 function publishCabinSession(force=false){
  if(!cabin)return;const s=clock.snapshot(),session={state:s.state,elapsed:Math.floor(s.elapsed),duration:s.duration,unlimited:s.unlimited,laps:journeyMetrics(state.route,s).laps},key=JSON.stringify(session);
@@ -472,6 +473,8 @@ async function enterTrain(ticket,{signal,onProgress=()=>{}}={}){
 boarding=createBoarding({host:$('boarding-screen'),context:()=>({from:$('from').value,to:$('to').value,duration:state.duration,recommendation:journeyRecommendation(),ready:Boolean(state.route?.geometry==='osm-rail'&&state.stations.length>1&&!state.loading&&!state.stationError),error:state.stationError}),onDurationChange:changeDuration,onApplyRecommendation:applyRecommendation,onBoarded:enterTrain,onEntered:()=>{document.body.classList.remove('entry-preparing');$('journey-workspace').inert=false;cabin?.setActive(experienceMode==='cabin');},onRetry:loadStations,onOpen:()=>{document.body.classList.remove('entry-preparing');$('journey-workspace').inert=false;cabin?.setActive(false);post('cabin',{active:true});comparison?.close();setControls(false);document.querySelector('.header-center').textContent='다음 여정을 준비하는 시간';}});
 $('boarding-reopen').onclick=()=>{if(['running','paused'].includes(clock.state)){dialog('나의 승차권', '<p>'+(boardingTicket.duration===null?escape(boardingTicket.from)+' 출발 · 2호선 순환':escape(boardingTicket.from)+' → '+escape(boardingTicket.to))+'</p><div class="result-big">'+escape(formatDuration(boardingTicket.duration))+'</div><p>'+escape(characterById(boardingTicket.character).name)+' · '+escape(boardingTicket.id)+'</p><p>여정을 마친 뒤 새 승차권을 준비할 수 있어요.</p>','MY BOARDING PASS');}else boarding.open();};
 setupGameHUD();
+windowWeather=createWindowWeather({scene:$('scene'),settingsHost:$('game-visual-settings')});
+window.addEventListener('pagehide',()=>windowWeather?.dispose(),{once:true});
 document.querySelector('.header-center').textContent='다음 여정을 준비하는 시간';
 
 document.querySelector('.skip-link').onclick=event=>{if(!document.body.classList.contains('boarding-mode')){event.preventDefault();$('journey-workspace').focus();}};
@@ -498,6 +501,7 @@ function setupGameHUD(){
 }
 function syncGameHUD(){
  if(!$('game-chrome'))return;
+ windowWeather?.setActive(experienceMode==='window'&&!document.body.classList.contains('boarding-mode')&&state.mapReady&&!state.mapFailed);
  const s=clock.snapshot(),metrics=journeyMetrics(state.route,s),started=['running','paused','completed','stopped'].includes(s.state)&&(s.unlimited||Boolean(s.duration)),p=state.route?positionAt(state.route,metrics.progress):null;
  const text=(id,value)=>{if($(id).textContent!==value)$(id).textContent=value;};
  $('game-clock').hidden=!started;$('game-departure').hidden=started;
