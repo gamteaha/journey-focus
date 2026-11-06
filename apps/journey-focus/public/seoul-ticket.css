@@ -32,7 +32,7 @@ body.boarding-mode:has(.boarding-screen[data-city=seoul]) .header{background:#d4
 .city-stamp b{font:500 14px/1.15 system-ui,sans-serif;letter-spacing:2px}.city-stamp small{font:8px/1.2 Georgia,serif;letter-spacing:1.3px}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .city-stamp{margin-left:auto}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass #boarding-pass-kind{font-size:10px;color:#6c5b40;white-space:nowrap}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-stub{background:#e2e8d6;border-left-color:#a7b594;color:#2d4335}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-stub{background:#f2dfd2;border-left-color:#a7b594;color:#2d4335}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .duration-console{background:#f2e8d1;border-color:#d8caab;border-radius:8px;color:#373627}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .journey-booking-fields #route-summary{margin-bottom:10px}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .journey-booking-fields>.boarding-field-title{margin-bottom:5px}
