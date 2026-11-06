@@ -20,6 +20,9 @@ try {
   }
 } catch { /* The app still works without the optional scenery assets. */ }
 const PUBLIC = new Map([
+  ['/seoul-ticket.css', ['public/seoul-ticket.css', 'text/css']],
+  ['/images/seoul-ticket-watercolor.png', ['public/images/seoul-ticket-watercolor.png', 'image/png']],
+  ['/images/seoul-route-paper.svg', ['public/images/seoul-route-paper.svg', 'image/svg+xml']],
   ['/window-weather.mjs', ['public/window-weather.mjs', 'text/javascript']],
   ['/window-weather.css', ['public/window-weather.css', 'text/css']],
   ['/boarding.mjs', ['public/boarding.mjs', 'text/javascript']],

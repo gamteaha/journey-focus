@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" fill="none">
+ <title>서울 여행 티켓의 장식용 노선 무늬</title>
+ <desc>실제 노선 안내용 지도가 아닌 직접 그린 장식 패턴입니다.</desc>
+ <path d="M-80 295C80 225 130 445 295 385S515 170 675 310 925 515 1280 370" stroke="#9aafb1" stroke-width="23" opacity=".4"/>
+ <g stroke="#84937c" stroke-width="2" opacity=".5">
+  <path d="M-40 145 160 160 245 245 360 250 460 365 510 565 635 650 840 615 955 500 985 325 900 200 715 145 500 175 360 250"/>
+  <path d="M125-20 160 160 225 365 160 510 240 740M-30 565 160 510 325 555 510 565M840 615 890 740M985 325 1220 235M715 145 775-20"/>
+  <path d="M-60 665 240 650 325 555 405 430 460 365 670 375 770 455 955 500 1220 570" stroke-dasharray="9 10"/>
+ </g>
+ <g fill="#efeee2" stroke="#809177" stroke-width="2" opacity=".65">
+  <circle cx="160" cy="160" r="5"/><circle cx="245" cy="245" r="4"/><circle cx="360" cy="250" r="6"/><circle cx="460" cy="365" r="5"/><circle cx="510" cy="565" r="6"/><circle cx="635" cy="650" r="4"/><circle cx="840" cy="615" r="5"/><circle cx="955" cy="500" r="6"/><circle cx="985" cy="325" r="5"/><circle cx="900" cy="200" r="4"/><circle cx="715" cy="145" r="5"/><circle cx="500" cy="175" r="4"/><circle cx="160" cy="510" r="6"/><circle cx="325" cy="555" r="5"/>
+ </g>
+</svg>
