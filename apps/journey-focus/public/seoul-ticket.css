@@ -17,8 +17,8 @@ body.boarding-mode:has(.boarding-screen[data-city=seoul]) .header{background:#f3
 .boarding-screen[data-city=seoul] .boarding-heading,.boarding-screen[data-city=seoul] .boarding-lower,.boarding-screen[data-city=seoul] .boarding-foot,.boarding-screen[data-city=seoul]>.boarding-station{text-shadow:0 1px 3px #fffaf0,0 0 8px #fffaf0}
 .boarding-screen[data-city=seoul][data-medium=card] #card-journey-fields{background:#faf5e8;border-radius:14px;padding:18px;box-sizing:border-box}
 .boarding-screen[data-city=seoul] .boarding-choose>.boarding-heading>.boarding-eyebrow{color:#777e69}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass{background:#dfc397;color:#342f24;border-color:#ab8a58;box-shadow:none;opacity:1;backdrop-filter:none}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-main{position:relative;background:#dfc397;border-radius:17px 0 0 17px;padding-left:62px;padding-right:26px}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass{background:#faf2df;color:#342f24;border-color:#d6c9ac;box-shadow:none;opacity:1;backdrop-filter:none}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-main{position:relative;background:#faf2df;border-radius:17px 0 0 17px;padding-left:62px;padding-right:26px}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pass-masthead{margin-bottom:3px;gap:13px;min-height:38px}
 .city-ticket-brand{display:flex;align-items:center;gap:12px;min-width:0}
 .seoul-ticket-art{display:block;width:76px;height:62px;object-fit:contain;flex:none;pointer-events:none;user-select:none;transform:rotate(-5deg)}
@@ -28,30 +28,30 @@ body.boarding-mode:has(.boarding-screen[data-city=seoul]) .header{background:#f3
 .ticket-sticker--edge-watch{position:absolute;left:3px;top:350px;width:52px;height:64px;transform:rotate(10deg);z-index:2}
 .ticket-sticker--traveler{position:absolute;right:9px;top:138px;width:44px;height:62px;transform:rotate(12deg)}
 .boarding-screen[data-medium=card] #boarding-pass .ticket-sticker{display:none}
-.city-stamp{display:grid;place-items:center;gap:2px;flex:none;padding:5px 11px;border:2px double #72644c;border-radius:6px;transform:rotate(-7deg);color:#544c3e;background:#e7cfa5;font-family:Georgia,serif;text-align:center;white-space:nowrap;line-height:1.1;box-shadow:none}
+.city-stamp{display:grid;place-items:center;gap:2px;flex:none;padding:5px 11px;border:2px double #72644c;border-radius:6px;transform:rotate(-7deg);color:#544c3e;background:#f5ead1;font-family:Georgia,serif;text-align:center;white-space:nowrap;line-height:1.1;box-shadow:none}
 .city-stamp b{font:500 14px/1.15 system-ui,sans-serif;letter-spacing:2px}.city-stamp small{font:8px/1.2 Georgia,serif;letter-spacing:1.3px}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .city-stamp{margin-left:auto}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass #boarding-pass-kind{font-size:10px;color:#6c5b40;white-space:nowrap}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-stub{background:#b3bea0;border-left-color:#7e906f;color:#2d4335}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .duration-console{background:#d6bc91;border-color:#b29769;border-radius:8px;color:#373627}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-stub{background:#e2e8d6;border-left-color:#a7b594;color:#2d4335}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .duration-console{background:#f2e8d1;border-color:#d8caab;border-radius:8px;color:#373627}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .journey-booking-fields #route-summary{margin-bottom:10px}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .journey-booking-fields>.boarding-field-title{margin-bottom:5px}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pace-note{margin-top:5px}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .flip-tile{background:#f0dfbd;border-color:#a58d65;border-radius:4px;box-shadow:none}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .duration-presets button{border-color:#b1976d;background:#e8d0a7;color:#60533c;border-radius:5px}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .flip-tile{background:#fffaf0;border-color:#d1c4a6;border-radius:4px;box-shadow:none}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .duration-presets button{border-color:#d5c8ad;background:#faf3e4;color:#60533c;border-radius:5px}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .duration-presets button.selected{background:#2c483b;border-color:#2c483b;color:#faf5e3}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pass-stub .boarding-characters button{background:#dce1ce;border-color:#8d9d7b;color:#43513b;border-radius:7px}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pass-stub .boarding-characters button{background:#f1f5e9;border-color:#b5c2a2;color:#43513b;border-radius:7px}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pass-stub .boarding-characters button[aria-pressed=true]{background:#3b5543;border-color:#3b5543;color:#fff7e5;box-shadow:none}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .pass-stub>span{color:#4f6145}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass :is(.boarding-field-title>span,.select-fields label,#route-summary,.pace-note,.stop-display-title,#recommended-stops small,.loop-preview>small,.infinity-dial>small){color:#6a5b42}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass :is(.select-fields select,.flip-tile input,.stop-display-title strong,#recommended-route,#recommended-stops span){color:#333a29}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass :is(.select-fields select,.stop-display){border-color:#ab926a}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass #recommended-stops .intermediate i{background:#d6bc91}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .duration-modes button:not([aria-pressed=true]){background:#ead4ad;border-color:#aa946f;color:#655b44}
-.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass #recommend-apply:not(:disabled){background:#c7cca8;border-color:#87916b;color:#34452f}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass :is(.select-fields select,.stop-display){border-color:#d1c6ad}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass #recommended-stops .intermediate i{background:#f2e8d1}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .duration-modes button:not([aria-pressed=true]){background:#faf3e4;border-color:#d1c6ad;color:#655b44}
+.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass #recommend-apply:not(:disabled){background:#e6ecd7;border-color:#87916b;color:#34452f}
 .boarding-screen[data-medium=card] #boarding-pass .city-stamp,.boarding-screen[data-medium=card] #boarding-pass .seoul-ticket-art{display:none}
-.boarding-screen[data-city=seoul] .receipt-main{background:#dfc397;color:#342f24;border-color:#ab8a58;opacity:1;backdrop-filter:none}
-.boarding-screen[data-city=seoul] .tear-stub{background:#d4b787;color:#3c442f;border-color:#ab8a58}
+.boarding-screen[data-city=seoul] .receipt-main{background:#faf2df;color:#342f24;border-color:#d6c9ac;opacity:1;backdrop-filter:none}
+.boarding-screen[data-city=seoul] .tear-stub{background:#eee4ce;color:#3c442f;border-color:#d6c9ac}
 .boarding-screen[data-city=seoul] .receipt-main :is(.boarding-eyebrow,.receipt-meta,.receipt-number){color:#67583e}
 .receipt-city{display:flex;align-items:center;gap:10px;margin-left:auto}.receipt-city .city-stamp{padding:3px 7px;transform:rotate(-6deg)}.receipt-city .city-stamp b{font-size:11px}.receipt-city .city-stamp small{font-size:6px}.receipt-city .seoul-ticket-art{width:63px;height:35px}
 @media(max-width:799px){
@@ -61,7 +61,7 @@ body.boarding-mode:has(.boarding-screen[data-city=seoul]) .header{background:#f3
  .boarding-screen[data-medium=ticket] #boarding-pass .ticket-sticker{display:none}
  .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .city-stamp{padding:4px 6px}.city-stamp b{font-size:11px;letter-spacing:1px}.city-stamp small{font-size:6px;letter-spacing:.7px}
  .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass #boarding-pass-kind{display:none}
- .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-stub{border-top-color:#7e906f}
+ .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-stub{border-top-color:#a7b594}
  .receipt-city{gap:5px}.receipt-city .seoul-ticket-art{width:42px;height:26px}.receipt-city .city-stamp{display:none}
 }
 @media(max-width:370px){.boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass .city-ticket-brand>.seoul-ticket-art{display:none}}
