@@ -1,5 +1,11 @@
 /* Seoul is the first city edition. Art stays in the header, away from inputs. */
-.boarding-screen[data-city=seoul]:before{background-image:url('/images/seoul-route-paper.svg'),radial-gradient(#8c79531f .6px,transparent .6px);background-size:cover,5px 5px;background-position:center;opacity:.22}
+/* Keep the supplied artwork intact. Frame its map area (y=76..548 of 572)
+   so its baked-in header/footer do not duplicate the live interface. */
+.boarding-screen[data-city=seoul]:not([data-stage=loading]){background:#f3eee0}
+.boarding-screen[data-city=seoul]:not([data-stage=loading]):before{inset:var(--boarding-header) 0 0;background-image:url('/images/seoul-map-background.png');background-size:max(100vw,calc((100dvh - var(--boarding-header))*2.17)) auto;background-position:center 76%;background-repeat:no-repeat;opacity:1}
+body.boarding-mode:has(.boarding-screen[data-city=seoul]) .header{background:#f3eee0}
+.boarding-screen[data-city=seoul] .boarding-heading,.boarding-screen[data-city=seoul] .boarding-lower,.boarding-screen[data-city=seoul] .boarding-foot,.boarding-screen[data-city=seoul]>.boarding-station{text-shadow:0 1px 3px #fffaf0,0 0 8px #fffaf0}
+.boarding-screen[data-city=seoul][data-medium=card] #card-journey-fields{background:#faf5e8ed;border-radius:14px;padding:18px;box-sizing:border-box}
 .boarding-screen[data-city=seoul] .boarding-choose>.boarding-heading>.boarding-eyebrow{color:#777e69}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass{background:#f6edda;border-color:#c9bea7;box-shadow:0 15px 30px #65533918,inset 0 0 0 3px #fff9e433}
 .boarding-screen[data-city=seoul][data-medium=ticket] #boarding-pass>.pass-main{background-image:linear-gradient(#f8efdddd,#f8efddf5),url('/images/seoul-route-paper.svg');background-position:center;background-size:cover;border-radius:17px 0 0 17px}

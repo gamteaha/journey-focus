@@ -8,6 +8,7 @@
 
 ## 자산
 
+- `public/images/seoul-map-background.png`: 사용자가 지정한 `8c568583-4715-484b-b208-aec2c4009d9c.png`를 수정 없이 복사한 화면 배경. 원본 1024×572에서 지도 영역(y=76..548)이 보이도록 CSS에서 비율을 유지해 채운다. 이미지에 포함된 로고·상단선·하단 문구는 실제 UI와 중복되지 않도록 화면 밖으로 배치한다. 모바일에서는 가운데를 중심으로 좌우가 잘린다. 탑승 준비 로딩 화면에는 적용하지 않는다.
 - `public/images/seoul-ticket-watercolor.png`: 내장 imagegen 도구로 새로 생성한 투명 배경 수채화 그림. 생성 원본을 복사했으며 추가로 자르거나 수정하지 않았다.
 - `public/images/seoul-route-paper.svg`: 코드로 직접 그린 장식용 노선과 강 모양. 실제 지리·선로 안내용 지도는 아니다.
 - 캡처: 루트 `tmp/seoul-ticket-preview.png`, `tmp/ticket-editor-qa/`, `tmp/journey-picker-qa/`.
