@@ -20,6 +20,15 @@ try {
   }
 } catch { /* The app still works without the optional scenery assets. */ }
 const PUBLIC = new Map([
+  ['/images/seoul-stickers/index.html', ['public/images/seoul-stickers/index.html', 'text/html']],
+  ['/images/seoul-stickers/green-metro.png', ['public/images/seoul-stickers/green-metro.png', 'image/png']],
+  ['/images/seoul-stickers/blue-bus.png', ['public/images/seoul-stickers/blue-bus.png', 'image/png']],
+  ['/images/seoul-stickers/namsan-tower.png', ['public/images/seoul-stickers/namsan-tower.png', 'image/png']],
+  ['/images/seoul-stickers/palace-gate.png', ['public/images/seoul-stickers/palace-gate.png', 'image/png']],
+  ['/images/seoul-stickers/hangang-bridge.png', ['public/images/seoul-stickers/hangang-bridge.png', 'image/png']],
+  ['/images/seoul-stickers/travel-bag.png', ['public/images/seoul-stickers/travel-bag.png', 'image/png']],
+  ['/images/seoul-stickers/pocket-watch.png', ['public/images/seoul-stickers/pocket-watch.png', 'image/png']],
+  ['/images/seoul-stickers/hearts-sparkles.png', ['public/images/seoul-stickers/hearts-sparkles.png', 'image/png']],
   ['/seoul-ticket.css', ['public/seoul-ticket.css', 'text/css']],
   ['/images/seoul-ticket-watercolor.png', ['public/images/seoul-ticket-watercolor.png', 'image/png']],
   ['/images/seoul-route-paper.svg', ['public/images/seoul-route-paper.svg', 'image/svg+xml']],
