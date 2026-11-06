@@ -1,0 +1,13 @@
+/* Shared Seoul ticket layout and palette, with separate Alpine artwork. */
+body.boarding-mode:has(.boarding-screen[data-city=swiss]) .header{background:#d4dbce}
+.boarding-screen[data-city=swiss]:not([data-stage=loading]):before{background-image:linear-gradient(#d4dbcee8,#d4dbcee8),url('/images/swiss-ticket.svg');background-size:cover, min(1100px,110vw) auto;background-position:center,bottom center;background-repeat:no-repeat}
+.boarding-screen[data-city=swiss] .seoul-ticket-art{width:105px;height:57px;transform:none}
+.boarding-screen[data-city=swiss] .select-fields select{font-size:27px!important}
+.boarding-screen[data-city=swiss] .ticket-sticker--edge-watch{top:285px}
+.boarding-screen[data-city=swiss] .loop-orbit{border:0;border-bottom:2px solid #8b9a77;border-radius:0;height:42px;width:88px;transform:none}
+.boarding-screen[data-city=swiss] .loop-orbit>span{font-size:25px;line-height:1;align-self:start}
+.boarding-screen[data-city=swiss] .loop-orbit>i{inset:auto auto -5px 0;width:10px;height:10px;border-radius:0;animation:swiss-shuttle 5s ease-in-out infinite alternate}
+.boarding-screen[data-city=swiss] .loop-orbit>i:after{inset:0}
+@keyframes swiss-shuttle{to{transform:translateX(76px)}}
+@media(prefers-reduced-motion:reduce){.boarding-screen[data-city=swiss] .loop-orbit>i{animation:none}}
+@media(max-width:799px){.boarding-screen[data-city=swiss] .seoul-ticket-art{width:65px;height:42px}.boarding-screen[data-city=swiss] .select-fields select{font-size:22px!important}}

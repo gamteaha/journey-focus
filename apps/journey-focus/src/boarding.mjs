@@ -8,13 +8,13 @@ export const CHARACTERS=Object.freeze([
 ]);
 export const characterById=id=>CHARACTERS.find(c=>c.id===id)||CHARACTERS[0];
 export function formatDuration(seconds){if(seconds===null)return '∞ 무제한';const minutes=Math.round(seconds/60);return minutes>=60?`${Math.floor(minutes/60)}시간${minutes%60?' '+minutes%60+'분':''}`:`${minutes}분`;}
-export function createBoardingPass(input,{id=crypto.randomUUID().slice(0,8).toUpperCase(),date=new Date()}={}){
- if(!input||!CITY_ORDER.includes(input.from)||!CITY_ORDER.includes(input.to)||(input.from===input.to&&input.duration!==null))throw new Error('출발역과 도착역을 선택해 주세요.');
+export function createBoardingPass(input,{id=crypto.randomUUID().slice(0,8).toUpperCase(),date=new Date(),stops=CITY_ORDER,circular=true}={}){
+ if(!input||!stops.includes(input.from)||!stops.includes(input.to)||(input.from===input.to&&input.duration!==null))throw new Error('출발역과 도착역을 선택해 주세요.');
  if(!validDuration(input.duration))throw new Error('집중시간을 선택해 주세요.');
  if(!CHARACTERS.some(c=>c.id===input.character))throw new Error('함께할 캐릭터를 선택해 주세요.');
  if(!['ticket','card'].includes(input.medium))throw new Error('승차권 종류를 선택해 주세요.');
  const day=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);
- return Object.freeze({from:input.from,to:input.duration===null?input.from:input.to,duration:input.duration,character:input.character,medium:input.medium,id:'JF-'+id,date:day});
+ return Object.freeze({from:input.from,to:input.duration===null&&circular?input.from:input.to,duration:input.duration,character:input.character,medium:input.medium,id:'JF-'+id,date:day});
 }
 export function tearProgress(distance,width){if(!Number.isFinite(distance)||!Number.isFinite(width)||width<=0)return 0;return Math.max(0,Math.min(1,distance/Math.max(65,Math.min(140,width*.24))));}
 export function cardTouchesReader(card,reader){

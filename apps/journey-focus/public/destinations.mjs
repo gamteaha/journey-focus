@@ -11,7 +11,7 @@ host.innerHTML=`
   <div class="atlas-globe-column"><div class="atlas-globe" id="atlas-globe"><canvas id="atlas-canvas" tabindex="0" role="img" aria-label="회전 가능한 세계 지구본. 드래그 또는 방향키로 회전하세요. 여행지는 아래 버튼으로도 선택할 수 있습니다."></canvas><div class="atlas-pins" id="atlas-pins"><button class="atlas-pin" data-pin="seoul" aria-label="서울 여행지 선택"><i></i><span>서울 <small>SEOUL</small></span></button><button class="atlas-pin" data-pin="swiss" aria-label="스위스 여행지 선택"><i></i><span>스위스 <small>SWITZERLAND</small></span></button></div><span class="atlas-compass" aria-hidden="true">N<br>✧</span><span class="atlas-globe-status" id="atlas-globe-status" role="status">지구본을 펼치고 있어요…</span></div><div class="atlas-rotate"><button id="atlas-left" aria-label="지구본 왼쪽으로 회전">←</button><span>드래그해서 돌려보세요 <small>DRAG TO EXPLORE</small></span><button id="atlas-right" aria-label="지구본 오른쪽으로 회전">→</button></div></div>
   <aside class="atlas-selection"><nav class="atlas-tabs" aria-label="여행지"><button data-place="seoul" aria-pressed="true"><span>01</span> 서울</button><button data-place="swiss" aria-pressed="false"><span>02</span> 스위스</button></nav><div class="atlas-destination" aria-live="polite"><div class="atlas-destination-top"><span id="atlas-country"></span><b id="atlas-number"></b></div><div class="atlas-art" id="atlas-art" aria-hidden="true"></div><div class="atlas-place-heading"><h2 id="atlas-name"></h2><span id="atlas-tag"></span></div><h3 id="atlas-line"></h3><p id="atlas-description"></p><div class="atlas-route" id="atlas-route"></div></div><button class="atlas-continue" id="atlas-continue"><span>서울 승차권 만들기</span><b>↗</b></button><p class="atlas-selection-note" id="atlas-selection-note"></p></aside>
  </main>
- <section class="swiss-booking" id="swiss-booking" aria-labelledby="swiss-title" hidden><button class="atlas-back" id="swiss-back">← 여행지 다시 고르기</button><div class="swiss-heading"><span class="atlas-kicker">JOURNEY FOCUS · SWISS EDITION</span><h1 id="swiss-title" tabindex="-1">알프스로 향하는 작은 승차권.</h1><p>호수 옆 창가 한 자리, 당신을 위해 준비했어요.</p></div><div class="swiss-pass"><div class="swiss-pass-main"><div class="swiss-masthead"><strong>ALPINE EXPRESS ↗</strong><span>스위스행<small>BERNINA LINE</small></span></div><div id="swiss-pass-art" aria-hidden="true"></div><span class="atlas-kicker">YOUR WINDOW</span><h2>라고 비앙코 <span>Lago Bianco</span></h2><p>베르니나선 · 호수 옆 야외 구간</p><div class="swiss-pass-route"><span>호수 북쪽<small>DEPARTURE</small></span><i>······ 🚃 ······</i><span>호수 남쪽<small>ARRIVAL</small></span></div><div class="swiss-facts"><span>선로 길이<b>약 1.6 km</b></span><span>체험 시간<b>약 5분</b></span><span>추천 좌석<b>오른쪽 창가</b></span></div><p class="swiss-disclosure">풍경 체험 승차권 · 현재는 짧은 선로 구간을 둘러보는 여정이에요.<br>횃불이와 오른쪽 창가에 앉아 떠나요. 집중 목표시간 설정은 준비 중이에요.</p></div><aside class="swiss-pass-stub"><span>SWITZERLAND</span><b>CH</b><div class="swiss-cross">✚</div><strong>나를 위한<br>작은 여행</strong><div class="swiss-barcode" aria-hidden="true"></div><small>BERNINA · WINDOW 01</small></aside></div><a href="/alpine-pilot/?boarding=swiss" class="atlas-continue swiss-board"><span>승차권으로 풍경 만나기</span><b>↗</b></a></section>
+
  <footer class="atlas-footer"><span>YOUR TIME. YOUR JOURNEY.</span><span>지금 떠날 수 있는 두 가지 풍경</span><a href="https://www.naturalearthdata.com/about/terms-of-use/" target="_blank" rel="noopener">Map · Natural Earth</a></footer>`;
 
 // Local vector illustrations stay crisp and match the existing printed ticket.
@@ -28,35 +28,29 @@ function select(id,move=true){
  host.querySelectorAll('[data-pin]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.pin===id)));
  if(move)globe?.focus(p);
 }
-function showGlobe(){
- $('atlas-main').hidden=false;$('swiss-booking').hidden=true;globe?.setActive(true);host.dataset.page='world';document.body.classList.add('destination-mode');
- history.replaceState(null,'',location.pathname);$('atlas-main').querySelector('h1').focus({preventScroll:true});
-}
-function swissTicket(){
- $('atlas-main').hidden=true;$('swiss-booking').hidden=false;$('swiss-pass-art').innerHTML=swissArt;host.dataset.page='ticket';globe?.setActive(false);
- history.replaceState(null,'','?destination=swiss');$('swiss-title').focus({preventScroll:true});
-}
-async function seoulTicket(){
- if(loadingApp)return;loadingApp=true;const button=$('atlas-continue');button.disabled=true;button.firstElementChild.textContent='서울 승차권 준비 중…';
+function swissTicket(){return openTicket('swiss');}
+function seoulTicket(){return openTicket('seoul');}
+async function openTicket(destination){
+ if(loadingApp)return;loadingApp=true;const button=$('atlas-continue');button.disabled=true;button.firstElementChild.textContent=places[destination].name+' 승차권 준비 중…';
  try{
-  await import('/app.mjs');
-  globe?.setActive(false);document.body.classList.remove('destination-mode');host.hidden=true;history.replaceState(null,'','?destination=seoul');
+  if(destination==='swiss')await import('/swiss-ticket.mjs');else await import('/app.mjs');
+  globe?.setActive(false);document.body.classList.remove('destination-mode');host.hidden=true;history.replaceState(null,'','?destination='+destination);
   if(!$('change-destination')){const back=document.createElement('a');back.id='change-destination';back.className='atlas-back seoul-world-back';back.href='/';back.textContent='← 여행지 다시 고르기';$('boarding-screen').prepend(back);}
   $('boarding-title')?.setAttribute('tabindex','-1');$('boarding-title')?.focus({preventScroll:true});
  }catch(error){console.error(error);$('atlas-selection-note').textContent='승차권을 불러오지 못했어요. 다시 눌러 주세요.';}
- finally{loadingApp=false;button.disabled=false;button.firstElementChild.textContent='서울 승차권 만들기';}
+ finally{loadingApp=false;button.disabled=false;button.firstElementChild.textContent=places[destination].name+' 승차권 만들기';}
 }
 host.querySelectorAll('[data-place]').forEach(b=>b.onclick=()=>select(b.dataset.place));
 host.querySelectorAll('[data-pin]').forEach(b=>b.onclick=()=>select(b.dataset.pin));
 $('atlas-continue').onclick=()=>selected==='swiss'?swissTicket():seoulTicket();
-$('swiss-back').onclick=showGlobe;
+
 $('atlas-left').onclick=()=>globe?.rotate(-25,0);$('atlas-right').onclick=()=>globe?.rotate(25,0);
 select('seoul',false);
 const destination=new URLSearchParams(location.search).get('destination');
 if(destination==='swiss'){select('swiss',false);swissTicket();}else if(destination==='seoul'){void seoulTicket();}
-if(destination!=='seoul'){
+if(!['seoul','swiss'].includes(destination)){
  import('/destination-globe.mjs').then(async({createGlobe})=>{
   globe=await createGlobe({canvas:$('atlas-canvas'),container:$('atlas-globe'),pins:host.querySelectorAll('[data-pin]'),places});
-  $('atlas-globe-status').hidden=true;globe.setActive(!$('atlas-main').hidden);if(destination==='swiss')globe.focus(places.swiss);
+  $('atlas-globe-status').hidden=true;globe.setActive(!host.hidden&&!$('atlas-main').hidden);
  }).catch(error=>{console.error(error);$('atlas-globe-status').textContent='지구본을 표시하지 못했어요. 여행지 버튼으로 선택해 주세요.';});
 }

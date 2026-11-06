@@ -1,6 +1,6 @@
 import {durationFromParts,MIN_DURATION,MAX_DURATION} from '/src/journey.mjs';
 
-export function createJourneyPicker({host,context,onChange,onApply,onValidityChange}){
+export function createJourneyPicker({host,context,onChange,onApply,onValidityChange,presentation}){
  const hours=host.querySelector('#focus-hours'),minutes=host.querySelector('#focus-minutes');
  let lastFinite=context().duration??1500;
  host.querySelector('#duration-unlimited').onclick=()=>onChange(null);
@@ -48,6 +48,7 @@ export function createJourneyPicker({host,context,onChange,onApply,onValidityCha
    for(const i of visible){const stop=document.createElement('li');stop.className=i===0?'departure':i===names.length-1?'arrival':i===-1?'intermediate':'';const dot=document.createElement('i');const label=document.createElement('span');label.textContent=i===-1?`중간 ${names.length-2}개 역`:names[i];stop.append(dot,label);if(i===-1){dot.textContent='···';stop.title=names.slice(1,-1).join(' → ');stop.setAttribute('aria-label','경유역: '+names.slice(1,-1).join(', '));}if(i===0){const caption=document.createElement('small');caption.textContent='출발';stop.append(caption);}else if(i===names.length-1){const caption=document.createElement('small');caption.textContent='도착';stop.append(caption);}track.append(stop);}
    track.style.setProperty('--stop-count',String(Math.max(2,visible.length)));
   }
+  presentation?.({host,context:c,recommendation});
  }
  return {update,get valid(){return context().duration===null||parts()!==null;}};
 }

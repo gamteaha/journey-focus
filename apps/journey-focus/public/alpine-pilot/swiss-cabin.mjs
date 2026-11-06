@@ -2,7 +2,7 @@ import * as T from '/vendor/three/build/three.module.js';
 import {GLTFLoader} from '/vendor/three/examples/jsm/loaders/GLTFLoader.js';
 import {createAvatar} from '/avatar.mjs';
 
-export async function createSwissCabin({host,onSeat,onWindow,onCamera,onProgress}){
+export async function createSwissCabin({host,onSeat,onWindow,onCamera,onProgress,character='blue'}){
  host.innerHTML='<div class="swiss-cabin-canvas"></div><div class="seat-interaction" hidden><span id="seat-caption"></span><button id="seat-action">앉기 <kbd>E</kbd></button></div><div class="study-badge" hidden><small>공부한 시간</small><strong>00:00</strong></div><div class="cabin-instructions">WASD · 방향키로 이동 / 의자를 누르고 앉기</div><div class="swiss-pad" aria-label="횃불이 이동"><button data-walk="up" aria-label="앞으로">↑</button><button data-walk="left" aria-label="왼쪽으로">←</button><button data-walk="down" aria-label="뒤로">↓</button><button data-walk="right" aria-label="오른쪽으로">→</button></div>';
  const surface=host.querySelector('.swiss-cabin-canvas'),interaction=host.querySelector('.seat-interaction'),caption=host.querySelector('#seat-caption'),action=host.querySelector('#seat-action'),badge=host.querySelector('.study-badge');
  let disposed=false,active=true,raf=0,keys=new Set(),last=performance.now(),time=0,session={elapsed:0,state:'idle'};
@@ -14,8 +14,23 @@ export async function createSwissCabin({host,onSeat,onWindow,onCamera,onProgress
  const response=await fetch('/models/swiss/seats.json');if(!response.ok)throw Error('Swiss seat data unavailable');const config=await response.json();
  onProgress?.('열차와 횃불이를 불러오고 있어요.');
  let model,avatar;
- try{const result=await Promise.allSettled([new GLTFLoader().loadAsync('/models/swiss/monorail-cabin.glb'),createAvatar('blue')]);if(result[0].status==='fulfilled')model=result[0].value.scene;if(result[1].status==='fulfilled')avatar=result[1].value;if(!model||!avatar)throw Error('Swiss cabin model or avatar unavailable');}catch(e){avatar?.dispose();renderer.dispose();throw e;}
+ try{const result=await Promise.allSettled([new GLTFLoader().loadAsync('/models/swiss/monorail-cabin.glb'),createAvatar(character)]);if(result[0].status==='fulfilled')model=result[0].value.scene;if(result[1].status==='fulfilled')avatar=result[1].value;if(!model||!avatar)throw Error('Swiss cabin model or avatar unavailable');}catch(e){avatar?.dispose();renderer.dispose();throw e;}
  scene.add(model);model.traverse(o=>{if(o.isMesh){for(const m of [o.material].flat()){m.side=T.DoubleSide;if(m.name==='glass'){m.transparent=true;m.opacity=.08;m.depthWrite=false;}if(m.map)m.map.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());}}});
+ // Continuous interior reveals bridge the glass/wall seam on both sides.
+ // These bounds are measured from the supplied model's glass, in metres.
+ const reveals=new T.Group();reveals.name='MatchedWindowReveals';scene.add(reveals);
+ const trim=new T.MeshStandardMaterial({color:0x626d65,roughness:.75}),rail=new T.MeshStandardMaterial({color:0xbac1ab,roughness:.8});
+ const windows=[[-5.156,-4.0802],[-3.7295,-2.5174],[-2.1668,-.9546],[-.604,.6081],[.9588,2.1709],[2.5215,3.7336],[4.0832,5.159]];
+ function bar(w,h,d,x,y,z,material){const mesh=new T.Mesh(new T.BoxGeometry(w,h,d),material);mesh.position.set(x,y,z);reveals.add(mesh);}
+ for(const side of [-1,1]){
+  for(const [a,b] of windows){
+   const center=(a+b)/2,width=b-a;
+   bar(.065,.045,width+.055,side*1.197,.8181,center,trim);bar(.065,.045,width+.055,side*1.197,1.71,center,trim);
+   bar(.065,.8919,.045,side*1.197,1.26405,a,trim);bar(.065,.8919,.045,side*1.197,1.26405,b,trim);
+  }
+  bar(.09,.065,10.65,side*1.185,.765,0,rail);bar(.09,.065,10.65,side*1.185,1.77,0,rail);
+  for(const end of [-5.32,5.32])bar(.12,1.12,.08,side*1.185,1.27,end,rail);
+ }
  const avatarScale=.62;avatar.root.scale.setScalar(avatarScale);scene.add(avatar.root);
  const markers=config.seats.map(s=>{const material=new T.MeshBasicMaterial({color:0xf1c583,transparent:true,opacity:.64,depthWrite:false});const mesh=new T.Mesh(new T.BoxGeometry(.43,.025,.44),material);mesh.position.set(s.x,s.y+.025,s.z);mesh.userData.seat=s;mesh.visible=false;scene.add(mesh);return mesh;});
  const hitTargets=config.seats.map(s=>{const mesh=new T.Mesh(new T.BoxGeometry(.44,.68,.5),new T.MeshBasicMaterial({visible:false}));mesh.position.set(s.x,s.y+.28,s.z);mesh.userData.seat=s;scene.add(mesh);return mesh;});
@@ -49,8 +64,8 @@ export async function createSwissCabin({host,onSeat,onWindow,onCamera,onProgress
   const nearby=!seat&&!target&&!moving?(candidate||nearest()):null;
   for(const m of markers){const chosen=m.userData.seat.id;const selected=chosen===candidate?.id||chosen===nearby?.id;m.visible=selected||chosen===hover?.id||chosen===seat?.id;m.material.color.setHex(chosen===seat?.id?0xa3dce0:selected?0xffce78:0xadd8b5);}
   if(seat){desired.set(-.05,1.62,seat.z+Math.cos(seat.heading)*.38);look.set(seat.x,seat.y+.39,seat.z);camera.fov=camera.aspect<1?80:70;}
-  else{desired.set(x*.15,1.5,Math.min(6.3,z+2.0));look.set(x,.62,z-.45);camera.fov=camera.aspect<1?80:65;}
-  camera.updateProjectionMatrix();if(snap){camera.position.copy(desired);snap=false;}else camera.position.lerp(desired,Math.min(1,dt*7));camera.lookAt(look);camera.getWorldDirection(direction);onCamera?.({heading:Math.atan2(direction.x,-direction.z),pitch:Math.asin(direction.y),fov:camera.fov});
+  else{desired.set(x*.15,1.5,Math.min(5.15,z+2.0));look.set(x,.62,Math.min(z-.45,4.7));camera.fov=camera.aspect<1?72:60;}
+  camera.updateProjectionMatrix();if(snap){camera.position.copy(desired);snap=false;}else camera.position.lerp(desired,Math.min(1,dt*7));camera.lookAt(look);camera.getWorldDirection(direction);onCamera?.({heading:Math.atan2(direction.x,-direction.z),pitch:Math.asin(direction.y),fov:camera.fov,x:camera.position.x,y:camera.position.y,z:camera.position.z});
   const point=new T.Vector3(x,(seat?seat.y+.83:.84),z).project(camera);const screenX=(point.x*.5+.5)*surface.clientWidth,screenY=(-point.y*.5+.5)*surface.clientHeight;
   interaction.hidden=!!target||moving||(!nearby&&!seat);interaction.style.left=`${Math.max(100,Math.min(surface.clientWidth-100,screenX+(seat?145:120)))}px`;interaction.style.top=`${Math.max(180,Math.min(surface.clientHeight-180,screenY+(seat?150:110)))}px`;caption.textContent=seat?`${seat.id} · 오른쪽 창가`:`${nearby?.id||''} · 오른쪽 창가`;action.innerHTML=seat?'일어나기 <kbd>E</kbd>':'앉기 <kbd>E</kbd>';
   if(nearby&&!candidate)candidate=nearby;

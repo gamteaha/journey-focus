@@ -1,15 +1,16 @@
 # Separate Swiss cabin · 2026-11-07
 
-`/alpine-pilot/?boarding=swiss` now opens a full-window cabin experience. The supplied monorail is a temporary vehicle; it is not presented as a faithful Bernina Express interior. See `public/models/swiss/SOURCE.md` and the in-app settings.
+Start at `/?destination=swiss`. The Swiss edition now reuses Seoul's ticket composition and card/ticket boarding gestures. After issuing a pass, `/alpine-pilot/?boarding=swiss&ticket=<id>` opens the full-window cabin. Direct cabin entry without a valid pass returns to the Swiss ticket. The supplied monorail is a temporary vehicle, not a faithful Bernina Express interior. See `public/models/swiss/SOURCE.md` and the in-app settings.
 
 ## Scope
 
 - `alpine-pilot/swiss-cabin.mjs` owns Swiss seat coordinates, movement, camera and model loading. It reuses `avatar.mjs` and the existing rigged blue-flame GLB, but does not change Seoul cabin geometry or state.
 - Thirteen right window seats come from actual cushion geometry, exported into `models/swiss/seats.json`. Clicking a right seat highlights it, then the character-side sit button walks along the aisle and into the seat. WASD/arrows and a touch movement pad are supported.
 - Departure requires both scenery and cabin to load and the avatar to be seated. Standing pauses the trip. Tab hiding pauses study time. Reset clears elapsed time and route distance.
-- Two views: cabin/character and right window. There is no left-window control. The cabin uses transparent glass over the Cesium scene; its camera direction is passed to the scenery camera. Position/elevation matching remains approximate, not a surveyed alignment.
-- Study time counts actual playing seconds independently of the 20/60km/h scenery speed. It appears above the avatar in cabin view and in the HUD in window view. Seeking pauses without awarding study time. The finite 1.588km route starts at zero; destination recommendation and custom focus-duration booking are still outside the Swiss prototype scope.
-- Settings contain speed, reset, route seek, attribution and model/scenery limitations. Loading stays visible until both resources are ready (visible map tiles can continue to arrive after the existing 25-second tile wait).
+- Two views: cabin/character and right window. No left-window control. Both window sides have matching reveals measured from the source glass bounds, continuous upper/lower rails and end caps. The following camera stays inside the rear wall. Three.js camera position, direction and vertical FOV are mapped into Cesium's local east/north/up frame; floor height remains a terrain +1.5m trial value, not a surveyed railway height.
+- The ticket carries departure endpoint, duration (1–120 minutes or unlimited), character and medium through same-tab session storage. Invalid or mismatched passes return to booking. Seoul pass validation still defaults to Seoul's station list. Swiss endpoint names are explicitly marked as segment points, not real stations.
+- As requested, the existing 1.588km segment takes 300 active seconds each way. It reverses continuously every five minutes, without rotating the cabin or moving the lake to the opposite window. Finite focus sessions stop at the selected time; unlimited repeats until paused. No additional rail geometry or fictitious stations are implied.
+- Study time counts actual playing seconds, above the avatar/in the window HUD. Route time is separate: seeking pauses and changes position without awarding study time. Settings contain the selected ticket, reset, route seek, attribution and limitations. Loading stays visible until cabin and scenery are ready (tiles may continue after the existing 25-second tile wait).
 
 ## Asset preparation
 
@@ -17,4 +18,4 @@ Run Blender in background with `--python apps/journey-focus/scripts/prepare-swis
 
 ## Verification
 
-Browser QA: actual chair click/selection, walking and seating, departure gating, elapsed time, pause, standing, keyboard and touch movement, right-window switching, seek/reset, desktop and mobile viewport fit. Normal flow had no JavaScript errors; a mobile run reported 26 FPS in the test environment. Seat camera screenshots cover both facing directions, the table area and the first/last rows. Results/captures are local under ignored `tmp/swiss-cabin-qa/`. Cloudflare build and all eight worker checks passed.
+Current QA: world selection → shared Swiss ticket; 25-minute mint pass reaches cabin; actual pointer card drag and paper cutting; south-origin unlimited amber pass; five-minute reversal without a camera flip; pause; front/rear/table seats; mobile viewport; Seoul ticket regression. Twelve interaction checks passed without console errors. Pure tests cover both origins, repeated endpoint continuity, constant speed, finite completion and unlimited mode. Captures: ignored `tmp/swiss-ticket-qa/`. Cloudflare build and eight worker checks pass. Earlier movement/seat checks are retained under `tmp/swiss-cabin-qa/`.
