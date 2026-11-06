@@ -20,6 +20,11 @@ try {
   }
 } catch { /* The app still works without the optional scenery assets. */ }
 const PUBLIC = new Map([
+  ['/alpine-pilot/', ['public/alpine-pilot/index.html', 'text/html']],
+  ['/alpine-pilot/index.html', ['public/alpine-pilot/index.html', 'text/html']],
+  ['/alpine-pilot/pilot.css', ['public/alpine-pilot/pilot.css', 'text/css']],
+  ['/alpine-pilot/pilot.mjs', ['public/alpine-pilot/pilot.mjs', 'text/javascript']],
+  ['/alpine-pilot/route.json', ['public/alpine-pilot/route.json', 'application/json']],
   ['/fonts/gowun/fonts.css', ['public/fonts/gowun/fonts.css', 'text/css']],
   ['/fonts/gowun/OFL-Batang.txt', ['public/fonts/gowun/OFL-Batang.txt', 'text/plain']],
   ['/fonts/gowun/OFL-Dodum.txt', ['public/fonts/gowun/OFL-Dodum.txt', 'text/plain']],
