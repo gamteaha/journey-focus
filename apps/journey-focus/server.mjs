@@ -54,6 +54,8 @@ const PUBLIC = new Map([
   ['/images/seoul-map-background.png', ['public/images/seoul-map-background.png', 'image/png']],
   ['/window-weather.mjs', ['public/window-weather.mjs', 'text/javascript']],
   ['/window-weather.css', ['public/window-weather.css', 'text/css']],
+  ['/boarding-loading.mjs', ['public/boarding-loading.mjs', 'text/javascript']],
+  ['/boarding-loading.css', ['public/boarding-loading.css', 'text/css']],
   ['/boarding.mjs', ['public/boarding.mjs', 'text/javascript']],
   ['/journey-picker.mjs', ['public/journey-picker.mjs', 'text/javascript']],
   ['/journey-picker.css', ['public/journey-picker.css', 'text/css']],

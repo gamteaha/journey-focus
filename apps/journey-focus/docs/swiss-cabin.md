@@ -14,6 +14,8 @@ Start at `/?destination=swiss`. The Swiss edition now reuses Seoul's ticket comp
 
 ## Asset preparation
 
+The loading UI is shared with Seoul through `public/boarding-loading.mjs` and `public/boarding-loading.css`: the same animated train, dark green platform, progress meter and recovery buttons. Swiss changes only its route label and resource status. Its meter reflects preparation milestones (40% cabin including first rendered frame, 60% terrain/initial imagery), not downloaded bytes. Both must finish before revealing the cabin; failures retain the screen and offer retry/back. Browser QA includes a held model request, successful completion, a failed model request, return to ticket and mobile layout (`tmp/arrival-qa/`).
+
 Run Blender in background with `--python apps/journey-focus/scripts/prepare-swiss-cabin.py -- <download-folder>`. It safely extracts the supplied texture archive inside repository tmp, retains the source files untouched, and exports the GLB plus right-seat positions. No external texture URLs or original absolute file paths are used by the browser.
 
 ## Verification

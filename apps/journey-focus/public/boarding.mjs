@@ -1,3 +1,4 @@
+import {boardingLoadingMarkup} from '/boarding-loading.mjs';
 import {CHARACTERS,characterById,createBoardingPass,formatDuration,cardTouchesReader,createTicketCut} from '/src/boarding.mjs';
 import {createJourneyPicker} from '/journey-picker.mjs';
 
@@ -52,14 +53,7 @@ export function createBoarding({host,context,onBoarded,onEntered,onRetry,onOpen,
   <div class="boarding-feedback-tools"><button id="boarding-feedback" class="boarding-text-button" aria-pressed="true">♫ 안내소리 켬</button></div>
   <div class="boarding-gate-actions"><button id="boarding-back" class="boarding-text-button">← 다시 고르기</button><p id="boarding-gate-status" role="status">승차권이 준비됐어요.</p><button id="boarding-use" class="boarding-use">확인용 티켓 뜯기 <span>→</span></button></div>
  </section>
- <section class="boarding-loading" id="boarding-loading" hidden aria-labelledby="arrival-title" aria-busy="true">
-  <div class="arrival-route"><span>02</span><b data-boarding-from></b><i>→</i><b data-boarding-to></b><small>YOUR NEXT TRAIN</small></div>
-  <div class="arrival-platform" aria-hidden="true"><div class="platform-lights"><i></i><i></i><i></i><i></i></div><svg class="arrival-train" viewBox="0 0 600 170"><path d="M38 20h505q37 0 37 38v81H20V50q0-30 18-30Z" fill="#b9c8b0"/><path d="M20 102h560v19H20z" fill="#41644f"/><path d="M20 121h560v18H20z" fill="#82977e"/><rect x="44" y="37" width="62" height="53" rx="9" fill="#20463f"/><rect x="121" y="37" width="62" height="53" rx="9" fill="#20463f"/><rect x="266" y="37" width="62" height="53" rx="9" fill="#20463f"/><rect x="343" y="37" width="62" height="53" rx="9" fill="#20463f"/><rect x="487" y="37" width="62" height="53" rx="9" fill="#20463f"/><path d="M199 36h52v103h-52zm222 0h52v103h-52z" fill="#9db198" stroke="#456c58" stroke-width="2"/><path d="M225 37v102m222-102v102" stroke="#456c58" stroke-width="2"/><rect x="207" y="47" width="13" height="44" rx="4" fill="#20463f"/><rect x="230" y="47" width="13" height="44" rx="4" fill="#20463f"/><rect x="429" y="47" width="13" height="44" rx="4" fill="#20463f"/><rect x="452" y="47" width="13" height="44" rx="4" fill="#20463f"/><path d="M26 23h528" stroke="#e5e7cf" stroke-width="3"/><path d="M88 139v12m75-12v12m280-12v12m75-12v12" stroke="#122d29" stroke-width="15"/><path d="M36 12h105m320 0h83" stroke="#859b7d" stroke-width="6" stroke-linecap="round"/></svg><div class="arrival-rails"></div><div class="platform-edge"></div></div>
-  <div class="arrival-copy"><span>PLEASE WAIT ON THE PLATFORM</span><h2 id="arrival-title" tabindex="-1">열차가 들어오는 중이에요.</h2><p id="arrival-status" role="status">객실과 창밖 풍경을 준비하고 있어요.</p></div>
-  <div class="arrival-meter-heading"><span id="arrival-detail">곧 나만의 창가 자리를 고를 수 있어요.</span><b id="arrival-percent">0%</b></div><div class="arrival-meter" id="arrival-meter" role="progressbar" aria-label="열차 준비 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="arrival-fill"></span></div>
-  <div class="arrival-steps"><span id="arrival-cabin" class="active"><i>01</i> 객실 준비</span><span id="arrival-world"><i>02</i> 창밖 풍경 준비</span></div>
-  <div class="arrival-actions"><button id="arrival-back">← 승차권으로 돌아가기</button><button id="arrival-retry" hidden>다시 준비하기 ↻</button></div>
- </section>
+ ${boardingLoadingMarkup()}
  <div class="boarding-foot"><span>BAI · JOURNEY FOCUS</span><span>탑승 후 원하는 자리에 앉으면 여정을 시작할 수 있어요.</span><span>YOUR TIME. YOUR JOURNEY.</span></div>`;
  const $=id=>host.querySelector('#'+id);
  // Issued paper/card keep their shared 5px/mm display scale. The editable
