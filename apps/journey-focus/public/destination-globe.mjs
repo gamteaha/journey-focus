@@ -35,12 +35,36 @@ export async function createGlobe({canvas,container,pins,places}){
  function focus(p){targetLon=lon+((p.lon-lon+540)%360+360)%360-180;targetLat=p.lat*.7;request();}
  function resize(){const {width,height}=container.getBoundingClientRect();if(!width||!height)return;const aspect=width/height;const half=1.17;camera.left=-half*aspect;camera.right=half*aspect;camera.top=half;camera.bottom=-half;camera.updateProjectionMatrix();renderer.setSize(width,height,false);request();}
  const observer=new ResizeObserver(resize);observer.observe(container);
- canvas.addEventListener('pointerdown',event=>{if(event.button!==0||drag)return;drag={id:event.pointerId,x:event.clientX,y:event.clientY};canvas.setPointerCapture(event.pointerId);canvas.classList.add('is-dragging');});
- canvas.addEventListener('pointermove',event=>{if(!drag||drag.id!==event.pointerId)return;const dx=event.clientX-drag.x,dy=event.clientY-drag.y;const scale=180/Math.max(280,container.clientWidth);rotate(-dx*scale,dy*scale);drag.x=event.clientX;drag.y=event.clientY;});
- function end(event){if(drag?.id!==event.pointerId)return;drag=null;canvas.classList.remove('is-dragging');if(canvas.hasPointerCapture(event.pointerId))canvas.releasePointerCapture(event.pointerId);}
- canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);canvas.addEventListener('lostpointercapture',()=>{drag=null;canvas.classList.remove('is-dragging');});
+ // Capture the whole globe, including destination labels. A click selects a pin;
+ // a drag rotates instead of selecting text or starting native HTML drag/drop.
+ let suppressClick=false;
+ container.addEventListener('dragstart',event=>event.preventDefault());
+ container.addEventListener('pointerdown',event=>{
+  if(event.button!==0||!event.isPrimary||drag||!active)return;
+  event.preventDefault();suppressClick=false;
+  drag={id:event.pointerId,x:event.clientX,y:event.clientY,moved:false,target:event.target.closest('[data-pin]')};
+  // Capturing on pointerdown would retarget a stationary pin click to the container.
+  // Take capture only after the movement threshold has been crossed.
+  if(!drag.target)canvas.focus({preventScroll:true});
+ });
+ container.addEventListener('pointermove',event=>{
+  if(!drag||drag.id!==event.pointerId)return;
+  const dx=event.clientX-drag.x,dy=event.clientY-drag.y;
+  if(!drag.moved&&Math.hypot(dx,dy)<5)return;
+  event.preventDefault();drag.moved=true;if(!container.hasPointerCapture(event.pointerId))container.setPointerCapture(event.pointerId);
+  container.classList.add('is-dragging');
+  const scale=180/Math.max(280,container.clientWidth);rotate(-dx*scale,dy*scale);
+  drag.x=event.clientX;drag.y=event.clientY;
+ });
+ function cancelDrag(){const previous=drag;drag=null;container.classList.remove('is-dragging');if(previous&&container.hasPointerCapture(previous.id))container.releasePointerCapture(previous.id);}
+ function end(event){if(drag?.id!==event.pointerId)return;suppressClick=event.type==='pointerup'&&drag.moved;cancelDrag();}
+ window.addEventListener('pointerup',end);window.addEventListener('pointercancel',end);
+ // Touch implicitly captures its initial child; transferring capture to the
+ // container emits a bubbling lost event for that child, which is not a cancel.
+ container.addEventListener('lostpointercapture',event=>{if(event.target===container&&drag?.id===event.pointerId)cancelDrag();});window.addEventListener('blur',cancelDrag);
+ container.addEventListener('click',event=>{if(suppressClick&&event.detail!==0){event.preventDefault();event.stopImmediatePropagation();}suppressClick=false;},true);
  canvas.addEventListener('keydown',event=>{const keys={ArrowLeft:[-15,0],ArrowRight:[15,0],ArrowUp:[0,10],ArrowDown:[0,-10]};if(keys[event.key]){event.preventDefault();rotate(...keys[event.key]);}if(event.key==='Home'){event.preventDefault();targetLon=65;targetLat=25;request();}});
- document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelAnimationFrame(frame);frame=0;}else request();});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){cancelDrag();cancelAnimationFrame(frame);frame=0;}else request();});
  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();active=false;cancelAnimationFrame(frame);frame=0;for(const {element} of markers)element.hidden=true;const status=document.getElementById('atlas-globe-status');status.hidden=false;status.textContent='지구본이 잠시 쉬고 있어요. 여행지 버튼으로 선택해 주세요.';});
  resize();render();
  return {focus,rotate,setActive(value){active=value;if(!active){cancelAnimationFrame(frame);frame=0;}else{resize();request();}}};

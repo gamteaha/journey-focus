@@ -22,6 +22,9 @@ body.destination-mode> :not(#destination-screen){display:none!important}
 .atlas-globe-column{grid-column:1;grid-row:2;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
 .atlas-globe-column:after{content:'';position:absolute;bottom:34px;width:44%;height:18px;background:#5d71602a;border-radius:50%;filter:blur(13px);pointer-events:none}
 .atlas-globe{width:min(100%,64vh);height:min(100%,64vh);aspect-ratio:1;position:relative;flex:1;min-height:200px;max-height:580px}
+.atlas-globe,.atlas-globe *{user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
+.atlas-globe{touch-action:none;cursor:grab}
+.atlas-globe.is-dragging,.atlas-globe.is-dragging *{cursor:grabbing!important}
 #atlas-canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab;position:absolute;inset:0}
 #atlas-canvas.is-dragging{cursor:grabbing}
 .atlas-pins{position:absolute;inset:0;pointer-events:none}
