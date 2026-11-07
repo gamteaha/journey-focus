@@ -1,3 +1,5 @@
+import {createTravelShell} from '/travel-shell.mjs';
+import {activeTour} from '/world-tour.mjs';
 import {createSwissCabin} from './swiss-cabin.mjs';
 import {boardingLoadingMarkup} from '/boarding-loading.mjs';
 import {SWISS_PASS_KEY,validSwissPass,swissPosition,swissElapsedAt,advanceSwissTrip} from '/src/swiss-journey.mjs';
@@ -8,6 +10,7 @@ if(!validSwissPass(ticket)||(requestedTicket&&ticket.id!==requestedTicket)){loca
 const $=id=>document.getElementById(id);
 const state={ready:false,mapReady:false,cabinReady:false,playing:false,started:false,elapsed:0,travelSeconds:0,duration:ticket.duration,from:ticket.from,character:ticket.character,ticket,meters:0,total:0,fps:0,tilePending:0,errors:[],side:1,view:'cabin',seat:null};
 window.alpinePilot=state;
+let shell,recorded=false,autoTourStarted=false;
 let cabin,cameraPose={heading:0,pitch:0,fov:65},setCamera=()=>{},sessionTick=0;
 $('loading').innerHTML=boardingLoadingMarkup({hidden:false});
 $('loading').querySelector('[data-boarding-from]').textContent=ticket.from;
@@ -28,8 +31,8 @@ function sync(){
  $('monitor-progress').style.width=`${state.total?100*state.meters/state.total:0}%`;
  cabin?.setSession({elapsed:state.elapsed,state:!state.started?'idle':complete?'completed':state.playing?'running':'paused'});
 }
-function play(on){state.playing=Boolean(on&&state.ready&&state.seat);if(state.playing)state.started=true;sync();}
-function showView(view){if(view==='window'&&!state.seat)return;state.view=view;$('swiss-journey').dataset.view=view;$('swiss-cabin').hidden=view!=='cabin';cabin?.setActive(view==='cabin'&&!$('info').open);$('right').setAttribute('aria-pressed',String(view==='window'));$('cabin-view').setAttribute('aria-pressed',String(view==='cabin'));setCamera();sync();}
+function play(on){state.playing=Boolean(on&&state.ready&&state.seat);if(state.playing)state.started=true;shell?.sound.setActive(state.playing);if(state.playing)void shell?.sound.unlock();sync();}
+function showView(view){if(view==='window'&&!state.seat)return;state.view=view;$('swiss-journey').dataset.view=view;$('swiss-cabin').hidden=view!=='cabin';cabin?.setActive(view==='cabin'&&!document.querySelector('dialog[open]'));$('right').setAttribute('aria-pressed',String(view==='window'));$('cabin-view').setAttribute('aria-pressed',String(view==='cabin'));setCamera();sync();}
 function progress(message,stages={}){
  if(loadFailed)return;
  for(const key of ['cabin','world'])loadStages[key]=Math.max(loadStages[key],stages[key]||0);
@@ -42,7 +45,7 @@ function progress(message,stages={}){
  if(state.mapReady&&state.cabinReady&&!loadFinishing){
   loadFinishing=true;$('arrival-status').textContent='열차가 도착했어요.';$('arrival-detail').textContent='오른쪽 창가에서 마음에 드는 자리를 골라 주세요.';
   $('boarding-loading').setAttribute('aria-busy','false');
-  setTimeout(()=>{if(loadFailed)return;state.ready=true;$('loading').hidden=true;cabin?.setActive(true);for(const id of ['reset','progress'])$(id).disabled=false;sync();$('swiss-cabin').querySelector('canvas')?.focus({preventScroll:true});},matchMedia('(prefers-reduced-motion: reduce)').matches?0:400);
+  setTimeout(()=>{if(loadFailed)return;state.ready=true;$('loading').hidden=true;cabin?.setActive(true);for(const id of ['reset','progress'])$(id).disabled=false;sync();void autoTour();$('swiss-cabin').querySelector('canvas')?.focus({preventScroll:true});},matchMedia('(prefers-reduced-motion: reduce)').matches?0:400);
  }
 }
 function fail(error){loadFailed=true;state.playing=false;state.ready=false;state.errors.push(String(error));cabin?.setActive(false);$('loading').hidden=false;$('loading').classList.add('loading-failed');$('boarding-loading').setAttribute('aria-busy','false');$('arrival-title').textContent='열차 준비가 잠시 멈췄어요.';$('arrival-status').textContent='열차를 준비하지 못했어요. 잠시 후 다시 연결해 주세요.';$('arrival-detail').textContent='승차권은 그대로 보관하고 있어요.';$('arrival-retry').hidden=false;sync();console.error(error);}
@@ -50,11 +53,11 @@ $('arrival-retry').onclick=()=>location.reload();
 $('arrival-back').onclick=()=>location.assign('/?destination=swiss');
 $('sources').onclick=()=>{cabin?.setActive(false);$('info').showModal();};$('info-close').onclick=()=>$('info').close();$('info').addEventListener('close',()=>cabin?.setActive(state.view==='cabin'));$('info').addEventListener('click',event=>{if(event.target===$('info')){const r=$('info').getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)$('info').close();}});
 $('cabin-view').onclick=()=>showView('cabin');$('right').onclick=()=>showView('window');
-$('play').onclick=()=>{if(state.duration!==null&&state.elapsed>=state.duration){state.travelSeconds=0;state.elapsed=0;state.meters=swissPosition(0,state.total,state.from).meters;setCamera();}play(!state.playing);};
-$('reset').onclick=()=>{play(false);state.travelSeconds=0;state.meters=swissPosition(0,state.total,state.from).meters;state.elapsed=0;state.started=false;setCamera();sync();};
+$('play').onclick=()=>{if(recorded||(state.duration!==null&&state.elapsed>=state.duration)){recorded=false;state.travelSeconds=0;state.elapsed=0;state.meters=swissPosition(0,state.total,state.from).meters;setCamera();}play(!state.playing);};
+$('reset').onclick=()=>{play(false);state.travelSeconds=0;state.meters=swissPosition(0,state.total,state.from).meters;state.elapsed=0;state.started=false;recorded=false;setCamera();sync();};
 $('progress').oninput=()=>{play(false);state.meters=Number($('progress').value)/1000*state.total;state.travelSeconds=swissElapsedAt(state.meters,state.total,state.travelSeconds,state.from);setCamera();sync();};
 document.addEventListener('visibilitychange',()=>{if(document.hidden)play(false);});
-window.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!/^(INPUT|SELECT|BUTTON|TEXTAREA|A)$/.test(e.target?.tagName)&&!$('info').open){e.preventDefault();if(!$('play').disabled)$('play').click();}});
+window.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.repeat&&!/^(INPUT|SELECT|BUTTON|TEXTAREA|A)$/.test(e.target?.tagName)&&!document.querySelector('dialog[open]')){e.preventDefault();if(!$('play').disabled)$('play').click();}});
 function distance(a,b){const r=Math.PI/180,dlat=(b.lat-a.lat)*r,dlon=(b.lon-a.lon)*r;return 6371000*2*Math.asin(Math.min(1,Math.sqrt(Math.sin(dlat/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dlon/2)**2)));}
 async function initMap(){
  const begin=performance.now();while(!window.Cesium){if(performance.now()-begin>25000)throw Error('Cesium SDK timeout');await new Promise(r=>setTimeout(r,100));}
@@ -86,6 +89,9 @@ async function initMap(){
  let frames=0,fpsStart=performance.now();viewer.scene.postRender.addEventListener(()=>{frames++;const now=performance.now();if(now-fpsStart>1000){state.fps=Math.round(frames*1000/(now-fpsStart));frames=0;fpsStart=now;$('telemetry').textContent=`${state.fps} FPS · ${state.tilePending?'풍경 불러오는 중':'현재 시야 로딩 완료'}`;}});
 }
 async function initCabin(){cabin=await createSwissCabin({host:$('swiss-cabin'),character:ticket.character,onSeat:seat=>{state.seat=seat;if(!seat){play(false);if(state.view==='window')showView('cabin');}sync();},onWindow:()=>showView('window'),onCamera:pose=>{cameraPose=pose;if(state.view==='cabin')setCamera();},onProgress:message=>progress(message,{cabin:.15})});await new Promise(requestAnimationFrame);cabin.setActive(false);state.cabin=cabin;state.cabinReady=true;progress();}
+function finishSwiss(completed=false){if(recorded||!state.started)return;recorded=true;play(false);shell.complete({from:ticket.from,to:ticket.to,elapsed:state.elapsed,completed,unlimited:state.duration===null});}
+shell=createTravelShell({destination:'swiss',getState:()=>({ready:state.ready,seated:!!state.seat,status:recorded?'completed':state.playing?'running':state.started?'paused':'idle',elapsed:state.elapsed,duration:state.duration,view:state.view}),actions:{play:()=>{$('play').click();},pause:()=>play(false),view:showView,settings:()=>$('sources').click(),end:()=>finishSwiss(false)}});
+async function autoTour(){if(!activeTour('swiss')||autoTourStarted)return;autoTourStarted=true;cabin.selectSeat(cabin.seats.reduce((a,b)=>Math.abs(a.z)<Math.abs(b.z)?a:b).id);cabin.confirmSeat();const deadline=performance.now()+25000;while(!state.seat&&performance.now()<deadline)await new Promise(r=>setTimeout(r,100));if(state.seat){showView('window');play(true);}}
 Promise.all([initMap(),initCabin()]).catch(fail);
-let last=performance.now();function tick(now){const dt=Math.min(.15,(now-last)/1000);last=now;if(state.playing&&!document.hidden){const next=advanceSwissTrip(state,dt);Object.assign(state,next);setCamera();if(next.complete)play(false);}if(now-sessionTick>200){sessionTick=now;sync();}requestAnimationFrame(tick);}requestAnimationFrame(tick);
+let last=performance.now();function tick(now){const dt=Math.min(.15,(now-last)/1000);last=now;if(state.playing&&!document.hidden){const next=advanceSwissTrip(state,dt);Object.assign(state,next);setCamera();if(next.complete){play(false);finishSwiss(true);}}if(now-sessionTick>200){sessionTick=now;sync();}requestAnimationFrame(tick);}requestAnimationFrame(tick);
 window.addEventListener('pagehide',()=>{play(false);cabin?.setActive(false);});

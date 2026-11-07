@@ -9,6 +9,7 @@ const palettes={
 const mod=(n,m)=>(n%m+m)%m;
 const rand=n=>{const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x);};
 export async function createPixelScene(container,$){
+ const moonOasis=new URLSearchParams(location.search).get('world')==='oasis';
  const canvas=document.createElement('canvas');canvas.setAttribute('aria-label','도트 모래언덕과 오아시스를 지나는 가상 사막 열차');canvas.style.imageRendering='pixelated';container.append(canvas);
  const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw Error('Canvas unavailable');
  let w=400,h=224,offset=0,sky='sunset',weather='clear',wind=.3,lastFrame;
@@ -65,7 +66,7 @@ export async function createPixelScene(container,$){
    for(let i=0;i<3;i++){const xx=mod(i*171+23-travel*.025,w+130)-70,yy=25+i%2*15;rect(xx,yy,38,3,p.sky[3]);rect(xx+9,yy-2,21,2,p.sky[3]);rect(xx+29,yy+3,24,2,p.sky[3]);}
   }
   ridge(112,7,43,travel*.08,p.far);
-  for(let tile=Math.floor(travel*.12/640)-1;tile<=Math.floor(travel*.12/640)+2;tile++){const x=tile*640-travel*.12; pyramid(x+125,136,55,p);pyramid(x+189,139,36,p);pyramid(x+234,141,24,p);}
+  if(!moonOasis)for(let tile=Math.floor(travel*.12/640)-1;tile<=Math.floor(travel*.12/640)+2;tile++){const x=tile*640-travel*.12; pyramid(x+125,136,55,p);pyramid(x+189,139,36,p);pyramid(x+234,141,24,p);}
   ridge(142,9,65,travel*.24,p.dune,p.light);
   ridge(160,11,86,travel*.45,p.mid);
   for(let tile=Math.floor(travel*.55/900)-1;tile<=Math.floor(travel*.55/900)+2;tile++){
@@ -74,6 +75,16 @@ export async function createPixelScene(container,$){
   ridge(195,10,100,travel*.85,p.sand,p.light);
   // Fine sand ribbons and scattered pebbles stay anchored to this near layer.
   for(let i=Math.floor(travel/40)-2;i<Math.floor((travel+w)/40)+2;i++){const x=i*40-travel,y=204+rand(i)*17;rect(x,y,8+rand(i+20)*14,1,p.dune);if(i%3===0){rect(x+7,y-5,5,3,p.shade);rect(x+8,y-6,3,1,p.light);}}
+  if(moonOasis){
+   rect(0,155,w,65,'#294960');
+   for(let row=0;row<18;row++)for(let j=0;j<12;j++){const x=mod(j*47+row*23-time*(row%2?1.6:-1.1)-travel*.2,w+30)-15;rect(x,158+row*3,5+rand(row+j)*13,1,row%3?'#42667c':'#779a9b');}
+   for(let tile=Math.floor(travel*.55/260)-1;tile<=Math.floor(travel*.55/260)+Math.ceil(w/260)+1;tile++){
+    const x=tile*260-travel*.55+90;ellipse(x,177,48,11,'#555775');ellipse(x,174,44,8,'#82847f');palm(x-18,169,.9,p,time*.2);palm(x+20,170,.65,p,time*.2);
+    for(let n=0;n<9;n++){rect(x-35+n*8,176,2,8,'#496f66');rect(x-35+n*8,175,3,2,'#d9b7cc');}
+   }
+   for(let i=0;i<24;i++){const x=mod(i*33-travel*.4+Math.sin(time*.3+i)*8,w),y=133+rand(i+15)*67+Math.cos(time*.4+i)*5;if(Math.sin(time*.5+i)>.1){rect(x,y,1,1,'#f5dda6');if(i%6===0)rect(x-1,y,3,1,'#d2cead');}}
+   canvas.dataset.variant='oasis';container.dataset.scene='달빛 오아시스 · 반딧불 호숫길';
+  }
   if(phase!=='outdoors'){const x=phase==='boarding'?w+40-mod(travel*4,w+150):-80;station(x,195,p);}
   // Near track edge gives the window a quiet, unmistakable train rhythm.
   rect(0,220,w,4,p.dark);for(let x=-mod(travel*1.8,20);x<w;x+=20)rect(x,220,7,4,p.shade);rect(0,218,w,2,p.light);

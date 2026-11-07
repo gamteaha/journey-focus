@@ -1,6 +1,8 @@
 import { SessionClock, formatTime } from '/src/session.mjs';
 import { buildRoute, buildLoopRoute, positionAt } from '/src/route.mjs';
-import { TrainAudio } from '/audio.mjs';
+import {createTravelSound} from '/travel-sound.mjs';
+import {createTravelShell} from '/travel-shell.mjs';
+import {activeTour,tourTicket} from '/world-tour.mjs';
 import { createComparison } from '/comparison.mjs';
 import { createScenery } from '/scenery.mjs';
 import {normalizeRenderingMode} from '/src/rendering.mjs';
@@ -16,7 +18,8 @@ let preferenceStorage;
 try{preferenceStorage=localStorage;}catch{}
 const savedPreferences=readPreferences(preferenceStorage);
 const clock = new SessionClock();
-const audio = new TrainAudio(() => { if(scenery?.active)return scenery.remaining;const s = clock.snapshot(); return s.unlimited?Infinity:s.duration - s.elapsed; });
+const audio=createTravelSound('seoul');
+let travelShell;
 const state = { stations: [], route: null, railShape: null, duration: savedPreferences.duration, mapReady: false, mapFailed: false, view: savedPreferences.view, recorded: false, stationError: false, loading: false, fetchedAt: null, fps: null };
 let toastTimer, mapTimer, completionTimer, lastUpdate = 0, lastCamera = 0;
 let comparison = null;
@@ -239,7 +242,7 @@ function begin() {
   clock.start(state.duration); state.recorded = false;
   setControls(true); document.body.classList.add('running'); post('lock', { locked: true });
   $('pause').textContent = 'Ⅱ 일시정지'; $('session-kicker').textContent = 'YOUR JOURNEY IS UNDERWAY'; $('session-title').textContent = '지금은, 나에게 집중할 시간.';
-  audio.setActive(true); scheduleCompletion(); connection(); update();
+  audio.setActive(true);void audio.unlock(); scheduleCompletion(); connection(); update();
 }
 function scheduleCompletion() {
   clearTimeout(completionTimer);
@@ -252,7 +255,7 @@ function togglePause() {
   else if (clock.state === 'paused' && state.mapReady) clock.resume();
   if (clock.state === 'completed') { finish(); return; }
   $('pause').textContent = clock.state === 'paused' ? '▶ 이어가기' : 'Ⅱ 일시정지';
-  audio.setActive(clock.state === 'running'); scheduleCompletion(); connection(); update();
+  audio.setActive(clock.state === 'running');if(clock.state==='running')void audio.unlock(); scheduleCompletion(); connection(); update();
 }
 function finish() {
   if (state.recorded || !state.route) return;
@@ -268,6 +271,7 @@ function finish() {
   $('session-kicker').textContent = completed ? 'YOU HAVE ARRIVED' : 'A MOMENT WELL SPENT';
   $('session-title').textContent = completed ? '오늘의 여정을 완주했어요.' : '잠시 머문 시간도, 나를 위한 시간.';
   connection();
+  if(travelShell){travelShell.complete({...entry,completed});return;}
   dialog(completed ? '나에게 도착한 시간.' : '오늘의 여정을 마쳤어요.', `<p>${entry.unlimited?`2호선 무제한 순환 · ${entry.laps}바퀴 완료 · 약 ${(entry.distanceMetres/1000).toFixed(1)}km`:`${escape(entry.from)}에서 ${escape(entry.to)}까지 ${completed ? '목표 집중시간을 채웠어요.' : '여기까지 함께했어요.'}`}</p><div class="result-big">${formatTime(entry.elapsed)}</div><p class="result-note">${completed ? '잘 다녀왔어요. 작은 여행이 오늘의 일상에 여유를 더했기를 바라요.' : '다시 떠나고 싶을 때, 언제든 새로운 여정을 시작하세요.'}</p><p>${saved ? '이 브라우저의 여정 기록에 저장했습니다.' : '브라우저 저장이 제한되어 기록을 저장하지 못했습니다.'} 실제 열차 도착이나 운행시간을 의미하지 않습니다.</p>`, completed ? 'JOURNEY COMPLETE' : 'JOURNEY ENDED');
 }
 function update() {
@@ -316,10 +320,7 @@ function setView(view) {
   post('view', { view });
 }
 $('window-view').onclick = () => {setView('window');saveUserSettings();}; $('overview-view').onclick = () => {setView('overview');saveUserSettings();};
-$('sound-button').onclick = async () => {
-  try { const enabled = await audio.toggle(); $('sound-button').setAttribute('aria-pressed', String(enabled)); $('sound-button').querySelector('span').textContent = enabled ? '열차 소리 켬' : '열차 소리 끔'; if (enabled && clock.state !== 'running'&&!scenery?.running) toast('여정이나 풍경 미리보기를 재생하면 합성 열차 소리가 들려요.'); }
-  catch { toast('이 브라우저에서 소리를 재생하지 못했어요.'); }
-};
+$('sound-button').onclick=()=>{$('game-settings')?.close();audio.open();};
 $('focus-button').onclick = () => {
   const enabled = document.body.classList.toggle('focus-mode'); $('focus-button').setAttribute('aria-pressed', String(enabled)); $('focus-button').querySelector('span').textContent = enabled ? '기본 화면' : '집중 화면';
 };
@@ -343,7 +344,7 @@ $('info-dialog').addEventListener('click', event => { if (event.target === $('in
 function handleShortcut(key){
  if(document.body.classList.contains('entry-preparing'))return;
  if(key==='escape'&&$('game-settings')?.open){$('game-settings').close();return;}
- if($('info-dialog').open||document.body.classList.contains('boarding-mode'))return;
+ if(document.querySelector('dialog[open]')||document.body.classList.contains('boarding-mode'))return;
  if(key==='escape'&&document.body.classList.contains('focus-mode'))$('focus-button').click();
  if(key!=='space')return;
  if(scenery?.active){if(!$('scenery-play').disabled)$('scenery-play').click();return;}
@@ -400,7 +401,7 @@ const cabinFrame=document.createElement('iframe');cabinFrame.id='cabin-frame';ca
 const cabinUrl=new URL('/cabin-frame',location.origin);if(['localhost','127.0.0.1'].includes(location.hostname))cabinUrl.hostname=location.hostname==='localhost'?'127.0.0.1':'localhost';cabinUrl.searchParams.set('parent',location.origin);cabinUrl.searchParams.set('character',character);
 const cabinOrigin=cabinUrl.origin;
 function cabinPost(active){cabinFrame.contentWindow?.postMessage({type:'jf:cabin-active',active},cabinOrigin);}
-cabin={setActive:cabinPost,suspend:()=>cabinPost(false),setSession:session=>cabinFrame.contentWindow?.postMessage({type:'jf:cabin-session',session},cabinOrigin),configure:(id,reset)=>cabinFrame.contentWindow?.postMessage({type:'jf:cabin-configure',character:id,reset},cabinOrigin),dispose:()=>{window.removeEventListener('message',onCabinMessage);cabinFrame.remove();}};
+cabin={chooseSeat:id=>cabinFrame.contentWindow?.postMessage({type:'jf:cabin-seat',id},cabinOrigin),setActive:cabinPost,suspend:()=>cabinPost(false),setSession:session=>cabinFrame.contentWindow?.postMessage({type:'jf:cabin-session',session},cabinOrigin),configure:(id,reset)=>cabinFrame.contentWindow?.postMessage({type:'jf:cabin-configure',character:id,reset},cabinOrigin),dispose:()=>{window.removeEventListener('message',onCabinMessage);cabinFrame.remove();}};
 function onCabinMessage(event){
  if(event.source!==cabinFrame.contentWindow||event.origin!==cabinOrigin)return;
  if(event.data?.type==='jf:cabin-error'){cabinFailed=true;}
@@ -473,6 +474,19 @@ async function enterTrain(ticket,{signal,onProgress=()=>{}}={}){
 boarding=createBoarding({host:$('boarding-screen'),context:()=>({from:$('from').value,to:$('to').value,duration:state.duration,recommendation:journeyRecommendation(),ready:Boolean(state.route?.geometry==='osm-rail'&&state.stations.length>1&&!state.loading&&!state.stationError),error:state.stationError}),onDurationChange:changeDuration,onApplyRecommendation:applyRecommendation,onBoarded:enterTrain,onEntered:()=>{document.body.classList.remove('entry-preparing');$('journey-workspace').inert=false;cabin?.setActive(experienceMode==='cabin');},onRetry:loadStations,onOpen:()=>{document.body.classList.remove('entry-preparing');$('journey-workspace').inert=false;cabin?.setActive(false);post('cabin',{active:true});comparison?.close();setControls(false);document.querySelector('.header-center').textContent='다음 여정을 준비하는 시간';}});
 $('boarding-reopen').onclick=()=>{if(['running','paused'].includes(clock.state)){dialog('나의 승차권', '<p>'+(boardingTicket.duration===null?escape(boardingTicket.from)+' 출발 · 2호선 순환':escape(boardingTicket.from)+' → '+escape(boardingTicket.to))+'</p><div class="result-big">'+escape(formatDuration(boardingTicket.duration))+'</div><p>'+escape(characterById(boardingTicket.character).name)+' · '+escape(boardingTicket.id)+'</p><p>여정을 마친 뒤 새 승차권을 준비할 수 있어요.</p>','MY BOARDING PASS');}else boarding.open();};
 setupGameHUD();
+travelShell=createTravelShell({destination:'seoul',sound:audio,getState:()=>({...clock.snapshot(),status:clock.state,ready:state.mapReady&&!state.mapFailed,seated:!!selectedSeat,view:experienceMode,visible:document.body.classList.contains('in-train')&&!document.body.classList.contains('boarding-mode')&&!document.body.classList.contains('entry-preparing')}),actions:{
+ play:()=>clock.state==='running'||clock.state==='paused'?togglePause():begin(),pause:()=>{if(clock.state==='running')togglePause();},view:setExperience,settings:()=>$('game-settings').showModal(),end:()=>{$('stop').click();}
+}});
+const tour=activeTour('seoul');if(tour)setTimeout(async()=>{
+ try{
+  $('boarding-choose').hidden=true;$('boarding-loading').hidden=false;$('boarding-screen').dataset.stage='loading';
+  await waitForEntry(()=>!!state.route&&!state.loading,()=>state.stationError?'역 정보를 불러오지 못했어요.':null,60000);
+  await enterTrain(tourTicket(tour),{onProgress:p=>{$('arrival-status').textContent=p.label;$('arrival-percent').textContent=p.progress+'%';$('arrival-fill').style.width=p.progress+'%';}});
+  $('boarding-screen').hidden=true;document.body.classList.remove('entry-preparing');$('journey-workspace').inert=false;
+  cabin?.chooseSeat('B11');await waitForEntry(()=>!!selectedSeat,()=>null,20000);
+  setExperience('window');begin();
+ }catch(error){$('boarding-screen').hidden=false;$('arrival-status').textContent=error.message;$('arrival-retry').hidden=false;$('arrival-retry').onclick=()=>location.reload();}
+},0);
 windowWeather=createWindowWeather({scene:$('scene'),settingsHost:$('game-visual-settings')});
 window.addEventListener('pagehide',()=>windowWeather?.dispose(),{once:true});
 document.querySelector('.header-center').textContent='다음 여정을 준비하는 시간';

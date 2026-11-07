@@ -1,27 +1,33 @@
+import {createTravelShell} from '/travel-shell.mjs';
+import {activeTour} from '/world-tour.mjs';
+import {isUnlocked} from '/passport.mjs';
 import {createPixelScene} from './pixel-scene.mjs';
-import {createSoundControls} from './sound-controls.mjs';
+
 import {Session,speedFor,sceneryPhase} from '/songdo/src/session.mjs';
 import {stations} from './route.mjs';
 import {tripPosition} from './journey.mjs';
-import {DESERT_PASS_KEY,validDesertPass} from '/src/desert-journey.mjs';
+import {DESERT_PASS_KEY,validDesertPass,OASIS_PASS_KEY,validOasisPass} from '/src/desert-journey.mjs';
+const destination=new URLSearchParams(location.search).get('world')==='oasis'?'oasis':'desert';
+const passKey=destination==='oasis'?OASIS_PASS_KEY:DESERT_PASS_KEY,validPass=destination==='oasis'?validOasisPass:validDesertPass;
+if(!isUnlocked(destination)){location.replace('/?locked='+destination);await new Promise(()=>{});}
 import {boardingLoadingMarkup} from '/boarding-loading.mjs';
 const $=id=>document.getElementById(id),all=selector=>[...document.querySelectorAll(selector)];
-let pass;try{pass=JSON.parse(sessionStorage.getItem(DESERT_PASS_KEY));}catch{}
-if(!validDesertPass(pass)||new URLSearchParams(location.search).get('ticket')!==pass.id){location.replace('/?destination=desert');await new Promise(()=>{});}
+let pass;try{pass=JSON.parse(sessionStorage.getItem(passKey));}catch{}
+if(!validPass(pass)||new URLSearchParams(location.search).get('ticket')!==pass.id){location.replace('/?destination='+destination);await new Promise(()=>{});}
 const state={from:stations.findIndex(s=>s.name===pass.from),to:stations.findIndex(s=>s.name===pass.to),minutes:pass.duration===null?Infinity:pass.duration/60,friend:pass.character,seat:null,seated:false,screen:'cabin'};
 const session=new Session(state.minutes),reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let distance=0,visualTime=0,factor=1,last=performance.now(),ready=false,art,completed=false;
 let position={x:50,y:77};
-const sound=createSoundControls($);
+let shell;
 document.body.dataset.theme=pass.character;
 all('[data-from]').forEach(el=>el.textContent=pass.from);all('[data-to]').forEach(el=>el.textContent=pass.to);
 $('cabin-trip').textContent=pass.from+' → '+pass.to+' · '+(pass.duration===null?'무제한':pass.duration/60+'분');
 $('train-loading').innerHTML=boardingLoadingMarkup({hidden:false});
 $('train-loading').querySelector('[data-boarding-from]').textContent=pass.from;
 $('train-loading').querySelector('[data-boarding-to]').textContent=pass.to;
-$('train-loading').querySelector('.arrival-route>span').textContent='04';
-$('train-loading').querySelector('.arrival-route>small').textContent='DUNE EXPRESS';
-$('arrival-back').onclick=()=>location.assign('/?destination=desert');$('arrival-retry').onclick=()=>location.reload();
+$('train-loading').querySelector('.arrival-route>span').textContent=destination==='oasis'?'05':'04';
+$('train-loading').querySelector('.arrival-route>small').textContent=destination==='oasis'?'MOON OASIS':'DUNE EXPRESS';
+$('arrival-back').onclick=()=>location.assign('/?destination='+destination);$('arrival-retry').onclick=()=>location.reload();
 function progress(value,label){$('arrival-percent').textContent=value+'%';$('arrival-fill').style.width=value+'%';$('arrival-meter').setAttribute('aria-valuenow',value);$('arrival-status').textContent=label;}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&session.status==='running'){session.pause(performance.now());updateSound();refresh();}});
 $('end-journey').hidden=pass.duration!==null;
@@ -53,11 +59,11 @@ document.addEventListener('keydown',e=>{
  const direction={ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'}[e.key];
  if(direction){e.preventDefault();move(direction);}else if(e.key.toLowerCase()==='e'){$('sit').click();}
 });
-function start(){if(!ready||!state.seated)return;if(session.status==='completed'){session.reset(state.minutes);distance=0;visualTime=0;completed=false;}session.start(performance.now());document.body.classList.add('focusing');updateSound();void sound.unlock();refresh();}
+function start(){if(!ready||!state.seated)return;if(session.status==='completed'){session.reset(state.minutes);distance=0;visualTime=0;completed=false;}session.start(performance.now());document.body.classList.add('focusing');updateSound();void shell.sound.unlock();refresh();}
 $('start').onclick=start;$('window-view').onclick=()=>{if(ready&&state.seated){document.body.classList.add('focusing');refresh();}};
 $('focus-pause').onclick=()=>{if(session.status==='running')session.pause(performance.now());else start();updateSound();refresh();};
-$('focus-exit').onclick=()=>{if(session.status==='running')session.pause(performance.now());document.body.classList.remove('focusing');updateSound();updateSeat();$('start').focus({preventScroll:true});};
-function reopen(){if(session.status==='running')session.pause(performance.now());location.assign('/?destination=desert');}
+$('focus-exit').onclick=()=>{document.body.classList.remove('focusing');updateSound();updateSeat();$('start').focus({preventScroll:true});};
+function reopen(){if(session.status==='running')session.pause(performance.now());location.assign('/?destination='+destination);}
 $('ticket-reopen').onclick=reopen;
 $('settings-open').onclick=()=>$('settings-dialog').showModal();
 const focusSettings=document.createElement('button');focusSettings.className='focus-settings';focusSettings.textContent='☰ 설정';focusSettings.onclick=()=>$('settings-dialog').showModal();document.body.append(focusSettings);
@@ -65,7 +71,7 @@ $('settings-ticket').onclick=()=>{$('settings-dialog').close();reopen();};
 $('about-open').onclick=()=>$('about-dialog').showModal();$('settings-about').onclick=()=>{$('settings-dialog').close();$('about-dialog').showModal();};
 all('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());
 $('speed').oninput=e=>{factor=Number(e.target.value);$('speed-label').textContent=factor.toFixed(1)+'×';};
-function updateSound(){sound.setActive(session.status==='running');}
+function updateSound(){shell?.sound.setActive(session.status==='running');}
 function history(){try{const data=JSON.parse(localStorage.getItem('journey-focus-desert-history')||'[]');return Array.isArray(data)?data.filter(x=>x&&typeof x.route==='string'&&Number.isFinite(x.minutes)&&typeof x.date==='string').slice(0,50):[];}catch{return [];}}
 $('history-open').onclick=()=>{
  $('settings-dialog').close();const list=$('history-list');list.replaceChildren();const records=history();
@@ -78,7 +84,7 @@ function finish(){
  if(completed)return;completed=true;updateSound();const route=`${stations[state.from].name} → ${stations[state.to].name}`;
  const record={route,minutes:Math.round(session.elapsed/60*10)/10,seat:state.seat?.id,date:new Date().toLocaleString('ko-KR')};let saved=true;
  try{localStorage.setItem('journey-focus-desert-history',JSON.stringify([record,...history()].slice(0,50)));}catch{saved=false;}
- $('complete-summary').textContent=`${route} · ${Math.floor(session.elapsed/60)}분 ${Math.floor(session.elapsed%60)}초 집중을 마쳤어요.`+(saved?'':' 이 브라우저에서는 기록을 저장하지 못했어요.');$('complete-dialog').showModal();
+ $('complete-summary').textContent=`${route} · ${Math.floor(session.elapsed/60)}분 ${Math.floor(session.elapsed%60)}초 집중을 마쳤어요.`+(saved?'':' 이 브라우저에서는 기록을 저장하지 못했어요.');shell.complete({from:pass.from,to:pass.to,elapsed:session.elapsed,completed:session.minutes!==Infinity&&session.elapsed>=session.minutes*60,unlimited:pass.duration===null});
 }
 function refresh(){
  $('end-journey').disabled=session.status==='idle'||session.status==='completed';
@@ -90,7 +96,7 @@ function refresh(){
  const backwards=pass.duration===null&&Math.floor(cycle)%2===1;
  const progress=pass.duration===null?cycle%1:session.elapsed/(session.minutes*60);
  const route=tripPosition(backwards?state.to:state.from,backwards?state.from:state.to,progress);
- $('focus-direction').textContent=`사막선 · ${stations[backwards?state.from:state.to].name} 방면`;
+ $('focus-direction').textContent=`${destination==='oasis'?'달빛 호수선':'사막선'} · ${stations[backwards?state.from:state.to].name} 방면`;
  $('focus-route').textContent=route.current.index===(backwards?state.from:state.to)?`${route.current.name} · 도착`:`${route.current.name} → ${route.next.name}`;
  $('focus-progress').style.width=`${route.progress*100}%`;
  $('focus-distance').textContent=`가상 여행 · ${Math.round(route.progress*100)}% · ${state.seat?.id||'창가'}`;
@@ -100,8 +106,9 @@ async function boot(){
  const artwork=createPixelScene($('viewport'),$);
  const images=Promise.all([...document.images].map(img=>img.decode()));
  [art]=await Promise.race([Promise.all([artwork,images]),new Promise((_,reject)=>setTimeout(()=>reject(Error('Loading timeout')),25000))]);
- progress(100,'사막 열차가 준비됐어요.');
+ progress(100,destination==='oasis'?'달빛 열차가 준비됐어요.':'사막 열차가 준비됐어요.');
  await new Promise(resolve=>setTimeout(resolve,250));$('train-loading').hidden=true;$('scene-next').onclick=()=>art.next();$('loading').remove();ready=true;updateSeat();last=performance.now();
+ if(activeTour(destination)){document.querySelector('[data-seat=B03]').click();$('sit').click();start();}
  let frames=0,fpsSince=last;
  function frame(now){
   const before=session.elapsed;session.tick(now);let delta=session.elapsed-before;
@@ -118,5 +125,13 @@ async function boot(){
  }
  requestAnimationFrame(frame);
 }
+shell=createTravelShell({destination,getState:()=>({ready,seated:state.seated,status:session.status,elapsed:session.elapsed,duration:pass.duration,view:document.body.classList.contains('focusing')?'window':'cabin'}),actions:{
+ play:()=>{if(session.status==='running'){session.pause(performance.now());updateSound();refresh();}else start();},pause:()=>{if(session.status==='running'){session.pause(performance.now());updateSound();refresh();}},
+ view:value=>{if(value==='window')$('window-view').click();else $('focus-exit').click();},settings:()=>$('settings-dialog').showModal(),
+ end:()=>{session.pause(performance.now());session.status='completed';finish();refresh();}
+}});
+if($('sound-open'))$('sound-open').onclick=()=>{$('settings-dialog').close();shell.sound.open();};
+if($('train-sound'))$('train-sound').closest('label').hidden=true;
+if(destination==='oasis'){$('season').value='night';$('season').disabled=true;document.title='Journey Focus · 달빛 오아시스';document.querySelector('.window-top>span').textContent='MOON OASIS · STAMP COLLECTION';document.querySelector('.flow-footer').firstChild.textContent='달빛 오아시스 · 도장으로 열린 보상 여행 ';}
 refresh();
 boot().catch(error=>{console.error(error);$('arrival-status').textContent='풍경을 준비하지 못했어요. 다시 시도해 주세요.';$('arrival-retry').hidden=false;});

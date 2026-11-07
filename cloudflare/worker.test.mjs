@@ -85,6 +85,13 @@ test('desert links preserve tickets and serve the procedural pixel renderer',asy
  for(const route of ['/desert','/desert/','/desert/index.html'])assert.ok(config.assets.run_worker_first.includes(route));
 });
 
+test('shared travel controls, passport and bonus map survive deployment',async()=>{
+ const worker=createWorker();
+ for(const file of ['/travel-shell.mjs','/travel-sound.mjs','/travel-ui.css','/passport.mjs','/src/passport.mjs','/world-tour.mjs','/desert/oasis-postcard.svg'])assert.equal((await call(worker,file)).status,200,file);
+ const response=await call(worker,'/desert/?world=oasis&ticket=JF-OASIS&tour=test');
+ assert.equal(response.status,200);assert.match(await response.text(),/src="\.\/src\/app.mjs"/);
+});
+
 test('reports configuration without exposing secret values',async()=>{
  const worker=createWorker();
  const status=await (await call(worker,'/api/status')).json();

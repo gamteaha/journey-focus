@@ -17,9 +17,17 @@ const STEP=60/72/2;
 const CHORDS=[[50,57,60,65],[46,53,57,62],[48,55,60,64],[45,52,55,62]];
 const MELODY=[[74,null,null,77,null,null,81,null],[79,null,null,null,77,null,null,null],[72,null,null,76,null,null,79,null],[74,null,null,null,69,null,null,null]];
 const hz=midi=>440*2**((midi-69)/12);
+export const SOUND_PROFILES={
+ desert:{title:'모래 위의 작은 별',nature:'부드러운 사막 바람',bpm:72,transpose:0,filter:650,level:.26},
+ seoul:{title:'창문에 머문 오후',nature:'창가의 잔잔한 빗소리',bpm:68,transpose:-2,filter:1500,level:.18},
+ songdo:{title:'정원에 띄운 편지',nature:'천천히 일렁이는 물결',bpm:70,transpose:3,filter:900,level:.21},
+ swiss:{title:'호수 너머의 아침',nature:'호숫가의 고요한 바람',bpm:62,transpose:5,filter:480,level:.26},
+ oasis:{title:'달빛이 쉬어가는 곳',nature:'밤의 오아시스 물결',bpm:60,transpose:-5,filter:800,level:.21}
+};
 function target(param,value,now,tau=.09){param.cancelScheduledValues(now);param.setTargetAtTime(value,now,tau);}
 
-export function createSoundGraph(ctx,destination=ctx.destination){
+export function createSoundGraph(ctx,destination=ctx.destination,profile='desert'){
+ const theme=SOUND_PROFILES[profile]||SOUND_PROFILES.desert,stepSeconds=60/theme.bpm/2;
  const master=ctx.createGain(),compressor=ctx.createDynamicsCompressor();
  master.gain.value=0;compressor.threshold.value=-20;compressor.knee.value=18;compressor.ratio.value=3;compressor.attack.value=.01;compressor.release.value=.25;
  master.connect(compressor).connect(destination);
@@ -36,16 +44,16 @@ export function createSoundGraph(ctx,destination=ctx.destination){
   lfo.frequency.value=rate;mod.gain.value=depth;lfo.connect(mod).connect(gain.gain);
   source.connect(filter).connect(gain).connect(bus);source.start();lfo.start();sources.add(source);sources.add(lfo);
  }
- noiseLayer(buses.nature,'lowpass',650,.45,.26,.07,.064);
+ noiseLayer(buses.nature,'lowpass',theme.filter,.45,theme.level,.07,theme.level*.24);
  noiseLayer(buses.nature,'bandpass',1150,.6,.024,.13,.01);
  noiseLayer(buses.rail,'lowpass',230,.5,.28,1.65,.076);
  noiseLayer(buses.rail,'bandpass',420,1,.048,3.3,.028);
  const music=ctx.createBiquadFilter(),delay=ctx.createDelay(1),feedback=ctx.createGain(),wet=ctx.createGain();
  music.type='lowpass';music.frequency.value=2200;music.Q.value=.4;
- music.connect(buses.music);music.connect(delay);delay.delayTime.value=STEP*1.5;feedback.gain.value=.22;wet.gain.value=.18;delay.connect(feedback).connect(delay);delay.connect(wet).connect(buses.music);
+ music.connect(buses.music);music.connect(delay);delay.delayTime.value=stepSeconds*1.5;feedback.gain.value=.22;wet.gain.value=.18;delay.connect(feedback).connect(delay);delay.connect(wet).connect(buses.music);
  function note(midi,time,duration,volume,pad=false,pan=0){
   const osc=ctx.createOscillator(),gain=ctx.createGain(),panner=ctx.createStereoPanner();
-  osc.type=pad?'triangle':'sine';osc.frequency.value=hz(midi);panner.pan.value=pan;gain.gain.value=0;
+  osc.type=pad?'triangle':'sine';osc.frequency.value=hz(midi+theme.transpose);panner.pan.value=pan;gain.gain.value=0;
   gain.gain.setValueAtTime(0,time);gain.gain.linearRampToValueAtTime(volume,time+(pad?.5:.025));gain.gain.exponentialRampToValueAtTime(.0001,time+duration);
   osc.connect(gain).connect(panner).connect(music);
   const voice={osc,gain,panner};voices.add(voice);
@@ -63,18 +71,19 @@ export function createSoundGraph(ctx,destination=ctx.destination){
   for(const {osc,gain}of voices){target(gain.gain,0,ctx.currentTime,.035);try{osc.stop(ctx.currentTime+.25);}catch{}}
  }
  function dispose(){stopNotes();for(const s of sources){try{s.stop();}catch{}s.disconnect();}sources.clear();master.disconnect();compressor.disconnect();}
- return {mix,fade,scheduleStep,stopNotes,dispose};
+ return {mix,fade,scheduleStep,stopNotes,dispose,stepSeconds};
 }
 
 export class DesertSoundscape{
- constructor({mix,onChange=()=>{},contextFactory=()=>new (globalThis.AudioContext||globalThis.webkitAudioContext)()}={}){
+ constructor({mix,profile='desert',onChange=()=>{},contextFactory=()=>new (globalThis.AudioContext||globalThis.webkitAudioContext)()}={}){
+  this.profile=profile;
   this.mix=normalizeMix(mix);this.onChange=onChange;this.contextFactory=contextFactory;this.active=false;this.context=null;this.graph=null;this.step=0;this.error=false;this.disposed=false;
  }
  notify(){this.onChange({active:this.active,context:this.context?.state||'idle',audible:this.active&&this.context?.state==='running'&&Object.values(this.mix).some(x=>x.enabled&&x.volume>0),error:this.error});}
  async unlock(){
   if(this.disposed)return;
   try{
-   if(!this.context){this.context=this.contextFactory();this.graph=createSoundGraph(this.context);this.graph.mix(this.mix);this.context.onstatechange=()=>this.notify();}
+   if(!this.context){this.context=this.contextFactory();this.graph=createSoundGraph(this.context,this.context.destination,this.profile);this.graph.mix(this.mix);this.context.onstatechange=()=>this.notify();}
    this.error=false;await this.context.resume();if(this.disposed)return;
    this.sync();
   }catch{this.error=true;this.notify();}
@@ -88,7 +97,7 @@ export class DesertSoundscape{
    if(!this.interval){this.next=this.context.currentTime+.06;const tick=()=>{
     // Do not queue a burst of missed notes after a throttled tab.
     if(this.next<this.context.currentTime-.1)this.next=this.context.currentTime+.04;
-    while(this.next<this.context.currentTime+.2){this.graph.scheduleStep(this.step++,this.next);this.next+=STEP;}
+    while(this.next<this.context.currentTime+.2){this.graph.scheduleStep(this.step++,this.next);this.next+=this.graph.stepSeconds;}
    };tick();this.interval=setInterval(tick,80);}
   }else{
    clearInterval(this.interval);this.interval=null;this.graph.fade(false);this.graph.stopNotes();

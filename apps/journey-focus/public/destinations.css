@@ -35,10 +35,12 @@ body.destination-mode> :not(#destination-screen){display:none!important}
 .atlas-pin[aria-pressed=true] span{background:#294c3e;color:#fff5df;border-color:#294c3e}
 .atlas-pin[aria-pressed=true] i{background:#c67f60;box-shadow:0 0 0 7px #c67f6028,0 3px 8px #28453535}
 .atlas-pin[data-pin=songdo]{transform:translate(-50%,-20px);flex-direction:column}
+.atlas-pin[data-pin=oasis]{transform:translate(-10%,-15px);flex-direction:column}
+.atlas-pin[data-pin=oasis] span:before{content:'';position:absolute;left:30%;bottom:100%;height:8px;border-left:1px solid #6c8a76}
 .atlas-pin[data-pin=songdo] span:before{content:'';position:absolute;left:50%;bottom:100%;height:8px;border-left:1px solid #6c8a76}
 .atlas-songdo-art{width:100%;height:100%;object-fit:cover;border-radius:80px 80px 14px 14px;box-shadow:0 7px 16px #496b4a12}
 .atlas-desert-art{width:100%;height:100%;object-fit:cover;image-rendering:pixelated;border-radius:6px;box-shadow:5px 5px #ad8d7055}
-.atlas-tabs{gap:16px!important}.atlas-tabs button{white-space:nowrap}
+.atlas-tabs{gap:6px!important}.atlas-tabs button{white-space:nowrap}
 .atlas-tabs button{flex:1;padding-left:2px!important;padding-right:2px!important}.atlas-tabs button span{margin-right:4px}
 .atlas-compass{position:absolute;top:12%;right:4%;text-align:center;color:#82907a;font:11px/2 Georgia,serif;pointer-events:none}
 .atlas-globe-status{position:absolute;left:10%;right:10%;top:45%;text-align:center;pointer-events:none;font-size:14px}
@@ -74,3 +76,4 @@ body.destination-mode> :not(#destination-screen){display:none!important}
  .swiss-pass-route{padding-top:12px}.swiss-pass-route>span{font-size:17px}.swiss-facts{margin-top:16px;padding:12px 16px}.swiss-disclosure{margin-top:12px!important;font-size:10px!important}
  .swiss-pass-stub{gap:15px}.swiss-board{margin-top:15px;padding:14px 20px}
 }
+@media(max-width:799px){.atlas-tabs button{min-width:0;font-size:14px!important}.atlas-tabs button span{display:block;font-size:8px;margin:0 0 4px}}
