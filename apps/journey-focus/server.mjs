@@ -20,6 +20,11 @@ try {
   }
 } catch { /* The app still works without the optional scenery assets. */ }
 const PUBLIC = new Map([
+  ['/songdo/', ['public/songdo/index.html', 'text/html']],
+  ['/songdo/index.html', ['public/songdo/index.html', 'text/html']],
+  ['/songdo-ticket.mjs', ['public/songdo-ticket.mjs', 'text/javascript']],
+  ['/songdo-ticket.css', ['public/songdo-ticket.css', 'text/css']],
+  ['/src/songdo-journey.mjs', ['src/songdo-journey.mjs', 'text/javascript']],
   ['/models/swiss/monorail-cabin.glb', ['public/models/swiss/monorail-cabin.glb', 'model/gltf-binary']],
   ['/models/swiss/seats.json', ['public/models/swiss/seats.json', 'application/json']],
   ['/alpine-pilot/swiss-cabin.mjs', ['public/alpine-pilot/swiss-cabin.mjs', 'text/javascript']],
@@ -106,6 +111,9 @@ const PUBLIC = new Map([
   ['/data/line2-surface.json', ['public/data/line2-surface.json', 'application/json']],
   ['/data/line2-loop.json', ['public/data/line2-loop.json', 'application/json']],
 ]);
+for(const file of ['src/app.mjs','src/illustrated-scene.mjs','src/session.mjs','src/route.mjs','src/journey.mjs','src/style.css','src/boarding.css','songdo.css','input/window-panorama-v2.png','input/window-verge-v2.png','input/inu-character-front.png','input/inu-character-study.png']){
+ PUBLIC.set('/songdo/'+file,['public/songdo/'+file,file.endsWith('.mjs')?'text/javascript':file.endsWith('.css')?'text/css':'image/png']);
+}
 // Only bundled font chunks from the checked-in manifest can be served.
 const fontManifest=JSON.parse(await readFile(path.join(ROOT,'public/fonts/gowun/manifest.json'),'utf8'));
 for(const {file} of fontManifest.files){

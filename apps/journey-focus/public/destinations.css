@@ -31,6 +31,10 @@ body.destination-mode> :not(#destination-screen){display:none!important}
 .atlas-pin small{display:block;font:8px sans-serif;letter-spacing:1.6px;margin-top:5px}
 .atlas-pin[aria-pressed=true] span{background:#294c3e;color:#fff5df;border-color:#294c3e}
 .atlas-pin[aria-pressed=true] i{background:#c67f60;box-shadow:0 0 0 7px #c67f6028,0 3px 8px #28453535}
+.atlas-pin[data-pin=songdo]{transform:translate(-50%,-20px);flex-direction:column}
+.atlas-pin[data-pin=songdo] span:before{content:'';position:absolute;left:50%;bottom:100%;height:8px;border-left:1px solid #6c8a76}
+.atlas-songdo-art{width:100%;height:100%;object-fit:cover;border-radius:80px 80px 14px 14px;box-shadow:0 7px 16px #496b4a12}
+.atlas-tabs{gap:16px!important}.atlas-tabs button{white-space:nowrap}
 .atlas-compass{position:absolute;top:12%;right:4%;text-align:center;color:#82907a;font:11px/2 Georgia,serif;pointer-events:none}
 .atlas-globe-status{position:absolute;left:10%;right:10%;top:45%;text-align:center;pointer-events:none;font-size:14px}
 .atlas-rotate{display:flex;align-items:center;gap:24px;padding:8px 0;z-index:1;flex:none}

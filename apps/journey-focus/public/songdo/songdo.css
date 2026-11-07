@@ -1,0 +1,31 @@
+/* Keep the teammate's illustrated window; share only the ticket and arrival flow. */
+#train-loading[hidden]{display:none}
+#train-loading:not([hidden]){position:fixed;inset:0;z-index:1000;background:#102e2b;overflow:auto}
+#train-loading .boarding-loading{display:block;color:#eef0df;max-width:880px;margin:auto;padding:6vh 24px}
+body:not(.focusing){min-height:100dvh;background:#edf1e8}
+body:not(.focusing) header{height:66px;padding:10px 24px;max-width:none}
+body:not(.focusing) .flow-main{max-width:1400px;padding:18px 28px}
+#cabin-screen .flow-heading{margin-bottom:12px}
+#cabin-screen .flow-heading h1{font-size:27px;margin:3px 0 6px}
+.boarding-cabin{height:clamp(260px,calc(100dvh - 340px),600px)}
+.cabin-controls{padding:12px 0}
+.flow-footer{padding:10px 0;font-size:11px}
+.focusing{overflow:hidden}
+.focusing header{display:none}
+.focusing .flow-main{height:100dvh}
+body.focusing #focus-scene{height:100dvh;min-height:0;margin:0;padding:16px 16px 94px;box-sizing:border-box}
+body.focusing .window-frame{height:100%;min-height:0}
+body.focusing #viewport{height:100%}
+.focusing .focus-clock strong{font-family:Georgia,serif}
+.focusing .focus-settings{position:fixed;right:140px;top:64px;z-index:30;border:0;border-radius:30px;background:#fff5dfeb;color:#4d6856;padding:12px 15px}
+.focus-settings{display:none}.focusing .focus-settings{display:block}
+@media(max-width:600px){body:not(.focusing) header{padding:10px 14px}.brand{font-size:20px}.brand small{font-size:9px}.flow-main{padding:12px!important}#cabin-screen .flow-heading h1{font-size:21px}.cabin-toolbar{font-size:11px;gap:8px}.boarding-cabin{height:330px}.cabin-controls{gap:8px}.cabin-controls .primary{min-width:0}.focusing .flow-main{padding:0!important}body.focusing #focus-scene{padding:10px 8px 92px}.focusing .focus-settings{right:106px;top:26px;padding:9px;font-size:11px}}
+@media(orientation:landscape) and (max-height:500px){body.focusing #focus-scene{padding:8px 10px 68px}.focusing .focus-settings{top:22px}}
+@media(min-width:800px) and (min-height:600px){
+ body:not(.focusing){height:100dvh;overflow:hidden}
+ body:not(.focusing) .flow-main{height:calc(100dvh - 66px);display:flex;flex-direction:column}
+ #cabin-screen{flex:1;min-height:0;display:flex;flex-direction:column}
+ .boarding-cabin{flex:1;width:100%;height:auto;min-height:200px}
+ .cabin-controls{margin:12px auto 0;width:100%;flex-shrink:0}
+ .cabin-toolbar,.flow-heading,.flow-footer{flex-shrink:0}
+}

@@ -10,6 +10,6 @@
     "binding": "ASSETS",
     "html_handling": "none",
     "not_found_handling": "none",
-    "run_worker_first": ["/", "/api/*", "/map", "/map.html", "/cabin-frame", "/cabin-frame.html", "/alpine-pilot", "/alpine-pilot/", "/alpine-pilot/index.html"]
+    "run_worker_first": ["/", "/api/*", "/map", "/map.html", "/cabin-frame", "/cabin-frame.html", "/alpine-pilot", "/alpine-pilot/", "/alpine-pilot/index.html", "/songdo", "/songdo/", "/songdo/index.html"]
   }
 }

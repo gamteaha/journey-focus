@@ -1,0 +1,7 @@
+body.boarding-mode:has(.boarding-screen[data-city=songdo]) .header{background:#d4dbce}
+.boarding-screen[data-city=songdo]:not([data-stage=loading]):before{background:#d4dbce}
+.boarding-screen[data-city=songdo] .seoul-ticket-art{width:110px;height:54px;object-fit:cover;border-radius:35px;transform:none}
+.boarding-screen[data-city=songdo] .select-fields select{font-size:25px!important}
+.boarding-screen[data-city=songdo] .ticket-sticker--edge-watch{top:285px}
+.boarding-screen[data-city=songdo] .pass-stub{background:#f2dfd2}
+@media(max-width:799px){.boarding-screen[data-city=songdo] .seoul-ticket-art{width:65px;height:40px}.boarding-screen[data-city=songdo] .select-fields select{font-size:21px!important}}

@@ -61,6 +61,17 @@ test('Swiss boarding URLs resolve the nested HTML and preserve ticket query on s
  for(const asset of ['/alpine-pilot/pilot.mjs','/alpine-pilot/route.json','/models/swiss/monorail-cabin.glb'])assert.equal((await call(worker,asset)).status,200);
  assert.equal((await call(worker,'/alpine-pilot/missing')).status,404);
 });
+test('Songdo links serve their own illustrated experience and bundled assets',async()=>{
+ const worker=createWorker(),query='?ticket=JF-SONGDO';
+ for(const route of ['/songdo/','/songdo/index.html']){
+  const response=await call(worker,route+query);assert.equal(response.status,200);assert.match(await response.text(),/송도 정원 여행/);
+ }
+ const redirect=await call(worker,'/songdo'+query);assert.equal(redirect.status,308);assert.equal(redirect.headers.get('Location'),base+'/songdo/'+query);
+ for(const file of ['/songdo/src/app.mjs','/songdo/input/window-panorama-v2.png','/songdo/input/inu-character-front.png','/songdo-ticket.mjs','/src/songdo-journey.mjs'])assert.equal((await call(worker,file)).status,200,file);
+ const config=JSON.parse(await readFile(path.join(root,'wrangler.jsonc'),'utf8'));
+ for(const route of ['/songdo','/songdo/','/songdo/index.html'])assert.ok(config.assets.run_worker_first.includes(route));
+});
+
 test('reports configuration without exposing secret values',async()=>{
  const worker=createWorker();
  const status=await (await call(worker,'/api/status')).json();

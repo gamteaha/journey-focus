@@ -37,11 +37,12 @@ export function createWorker(fetcher=(...args)=>fetch(...args)){
    }
    // html_handling is disabled: nested directory URLs need an explicit entry.
    // Canonicalize the slash so the pilot's relative scripts/route resolve correctly.
-   if(url.pathname==='/alpine-pilot'){
-    url.pathname='/alpine-pilot/';
+   if(['/alpine-pilot','/songdo'].includes(url.pathname)){
+    url.pathname+='/';
     return new Response(null,{status:308,headers:{...commonHeaders,Location:url.href}});
    }
    const htmlFiles={'/':'/index.html','/map':'/map.html','/map.html':'/map.html','/cabin-frame':'/cabin-frame.html','/cabin-frame.html':'/cabin-frame.html','/alpine-pilot/':'/alpine-pilot/index.html','/alpine-pilot/index.html':'/alpine-pilot/index.html'};
+   htmlFiles['/songdo/']='/songdo/index.html';htmlFiles['/songdo/index.html']='/songdo/index.html';
    const file=htmlFiles[url.pathname];
    if(file){
     // Read HTML from the assets binding, with HTML redirects disabled in Wrangler.
