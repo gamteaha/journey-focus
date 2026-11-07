@@ -20,6 +20,11 @@ try {
   }
 } catch { /* The app still works without the optional scenery assets. */ }
 const PUBLIC = new Map([
+  ['/desert/', ['public/desert/index.html', 'text/html']],
+  ['/desert/index.html', ['public/desert/index.html', 'text/html']],
+  ['/desert-ticket.mjs', ['public/desert-ticket.mjs', 'text/javascript']],
+  ['/desert-ticket.css', ['public/desert-ticket.css', 'text/css']],
+  ['/src/desert-journey.mjs', ['src/desert-journey.mjs', 'text/javascript']],
   ['/songdo/', ['public/songdo/index.html', 'text/html']],
   ['/songdo/index.html', ['public/songdo/index.html', 'text/html']],
   ['/songdo-ticket.mjs', ['public/songdo-ticket.mjs', 'text/javascript']],
@@ -115,6 +120,7 @@ for(const file of ['src/app.mjs','src/illustrated-scene.mjs','src/session.mjs','
  PUBLIC.set('/songdo/'+file,['public/songdo/'+file,file.endsWith('.mjs')?'text/javascript':file.endsWith('.css')?'text/css':'image/png']);
 }
 // Only bundled font chunks from the checked-in manifest can be served.
+for(const file of ['src/app.mjs','src/pixel-scene.mjs','src/route.mjs','src/journey.mjs','desert.css','postcard.svg'])PUBLIC.set('/desert/'+file,['public/desert/'+file,file.endsWith('.mjs')?'text/javascript':file.endsWith('.css')?'text/css':'image/svg+xml']);
 const fontManifest=JSON.parse(await readFile(path.join(ROOT,'public/fonts/gowun/manifest.json'),'utf8'));
 for(const {file} of fontManifest.files){
  if(!/^font-\d{3}\.woff2$/.test(file))throw new Error('Invalid bundled font path');

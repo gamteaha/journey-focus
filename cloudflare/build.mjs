@@ -20,7 +20,7 @@ await cp(path.join(root,'assets-source/subway-car/README.md'),path.join(output,'
 await writeFile(path.join(output,'_headers'),'/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n  X-Frame-Options: SAMEORIGIN\n');
 
 // Check the browser's actual import graph, including FBXLoader dependencies.
-const pending=['/destinations.mjs','/songdo/src/app.mjs','/alpine-pilot/pilot.mjs','/app.mjs','/map.mjs','/cabin-frame.mjs'],seen=new Set();
+const pending=['/destinations.mjs','/desert/src/app.mjs','/songdo/src/app.mjs','/alpine-pilot/pilot.mjs','/app.mjs','/map.mjs','/cabin-frame.mjs'],seen=new Set();
 while(pending.length){
  const url=pending.pop();
  if(seen.has(url))continue;

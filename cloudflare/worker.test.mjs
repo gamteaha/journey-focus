@@ -72,6 +72,19 @@ test('Songdo links serve their own illustrated experience and bundled assets',as
  for(const route of ['/songdo','/songdo/','/songdo/index.html'])assert.ok(config.assets.run_worker_first.includes(route));
 });
 
+test('desert links preserve tickets and serve the procedural pixel renderer',async()=>{
+ const worker=createWorker(),query='?ticket=JF-DESERT';
+ for(const route of ['/desert/','/desert/index.html']){
+  const response=await call(worker,route+query);assert.equal(response.status,200);
+  assert.match(await response.text(),/src="\.\/src\/app.mjs"/);
+ }
+ const redirect=await call(worker,'/desert'+query);
+ assert.equal(redirect.status,308);assert.equal(redirect.headers.get('Location'),base+'/desert/'+query);
+ for(const file of ['/desert/src/app.mjs','/desert/src/pixel-scene.mjs','/desert/postcard.svg','/desert-ticket.mjs','/src/desert-journey.mjs'])assert.equal((await call(worker,file)).status,200,file);
+ const config=JSON.parse(await readFile(path.join(root,'wrangler.jsonc'),'utf8'));
+ for(const route of ['/desert','/desert/','/desert/index.html'])assert.ok(config.assets.run_worker_first.includes(route));
+});
+
 test('reports configuration without exposing secret values',async()=>{
  const worker=createWorker();
  const status=await (await call(worker,'/api/status')).json();

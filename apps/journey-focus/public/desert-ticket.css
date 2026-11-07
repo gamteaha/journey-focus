@@ -1,0 +1,9 @@
+body.boarding-mode:has(.boarding-screen[data-city=desert]) .header{background:#dfd3be}
+.boarding-screen[data-city=desert]:not([data-stage=loading]):before{background:#dfd3be}
+.boarding-screen[data-city=desert] .boarding-pass,.boarding-screen[data-city=desert] .receipt-main{background:#f6e6c7}
+.boarding-screen[data-city=desert] .pass-stub{background:#dcb7a0}
+.boarding-screen[data-city=desert] .seoul-ticket-art{width:110px;height:55px;object-fit:cover;border-radius:2px;image-rendering:pixelated;transform:none}
+.boarding-screen[data-city=desert] .select-fields select{font-size:25px!important}
+.boarding-screen[data-city=desert] .city-stamp{color:#8b5b49;border-color:#aa7d61}
+.boarding-screen[data-city=desert] .ticket-sticker--edge-watch{top:285px}
+@media(max-width:799px){.boarding-screen[data-city=desert] .seoul-ticket-art{width:65px;height:38px}.boarding-screen[data-city=desert] .select-fields select{font-size:21px!important}}
