@@ -2,10 +2,10 @@ import {createIllustratedScene} from './illustrated-scene.mjs';
 import {Session,speedFor,sceneryPhase} from './session.mjs';
 import {stations} from './route.mjs';
 import {tripPosition} from './journey.mjs';
-import {SONGDO_PASS_KEY,validSongdoPass} from '/src/songdo-journey.mjs';
+import {SONGDO_PASS_KEY,validSongdoPass,migrateSongdoPass} from '/src/songdo-journey.mjs';
 import {boardingLoadingMarkup} from '/boarding-loading.mjs';
 const $=id=>document.getElementById(id),all=selector=>[...document.querySelectorAll(selector)];
-let pass;try{pass=JSON.parse(sessionStorage.getItem(SONGDO_PASS_KEY));}catch{}
+let pass;try{pass=migrateSongdoPass(JSON.parse(sessionStorage.getItem(SONGDO_PASS_KEY)));}catch{}
 if(!validSongdoPass(pass)||new URLSearchParams(location.search).get('ticket')!==pass.id){location.replace('/?destination=songdo');await new Promise(()=>{});}
 const state={from:stations.findIndex(s=>s.name===pass.from),to:stations.findIndex(s=>s.name===pass.to),minutes:pass.duration===null?Infinity:pass.duration/60,friend:pass.character,seat:null,seated:false,screen:'cabin'};
 const session=new Session(state.minutes),reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -18,7 +18,7 @@ $('train-loading').innerHTML=boardingLoadingMarkup({hidden:false});
 $('train-loading').querySelector('[data-boarding-from]').textContent=pass.from;
 $('train-loading').querySelector('[data-boarding-to]').textContent=pass.to;
 $('train-loading').querySelector('.arrival-route>span').textContent='03';
-$('train-loading').querySelector('.arrival-route>small').textContent='SONGDO GARDEN';
+$('train-loading').querySelector('.arrival-route>small').textContent='INCHEON GARDEN';
 $('arrival-back').onclick=()=>location.assign('/?destination=songdo');$('arrival-retry').onclick=()=>location.reload();
 function progress(value,label){$('arrival-percent').textContent=value+'%';$('arrival-fill').style.width=value+'%';$('arrival-meter').setAttribute('aria-valuenow',value);$('arrival-status').textContent=label;}
 function audio(){if(!soundContext){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return null;soundContext=new Audio();}void soundContext.resume().catch(()=>{});return soundContext;}
@@ -92,7 +92,7 @@ function refresh(){
  const backwards=pass.duration===null&&Math.floor(cycle)%2===1;
  const progress=pass.duration===null?cycle%1:session.elapsed/(session.minutes*60);
  const route=tripPosition(backwards?state.to:state.from,backwards?state.from:state.to,progress);
- $('focus-direction').textContent=`송도 정원선 · ${stations[backwards?state.from:state.to].name} 방면`;
+ $('focus-direction').textContent=`인천 정원선 · ${stations[backwards?state.from:state.to].name} 방면`;
  $('focus-route').textContent=route.current.index===(backwards?state.from:state.to)?`${route.current.name} · 도착`:`${route.current.name} → ${route.next.name}`;
  $('focus-progress').style.width=`${route.progress*100}%`;
  $('focus-distance').textContent=`가상 여행 · ${Math.round(route.progress*100)}% · ${state.seat?.id||'창가'}`;
@@ -102,7 +102,7 @@ async function boot(){
  const artwork=createIllustratedScene($('viewport'),$);
  const images=Promise.all([...document.images].map(img=>img.decode()));
  [art]=await Promise.race([Promise.all([artwork,images]),new Promise((_,reject)=>setTimeout(()=>reject(Error('Loading timeout')),25000))]);
- progress(100,'송도 정원 열차가 준비됐어요.');
+ progress(100,'인천 정원 열차가 준비됐어요.');
  await new Promise(resolve=>setTimeout(resolve,250));$('train-loading').hidden=true;$('scene-next').onclick=()=>art.next();$('loading').remove();ready=true;updateSeat();last=performance.now();
  let frames=0,fpsSince=last;
  function frame(now){
@@ -112,7 +112,7 @@ async function boot(){
   if(document.body.classList.contains('focusing')){
    const phase=sceneryPhase(session);$('viewport').dataset.scenery=phase;
    art.draw({distance:reducedMotion?0:distance,time:visualTime,phase});
-   $('travel-status').textContent=phase==='boarding'?'출발 승강장 · 곧 바깥으로 나가요':phase==='arrival'?'도착 승강장 · 오늘도 수고했어요':session.status==='paused'?'잠시 정차 · 풍경도 기다려요':'송도 정원 여행 · 상상 속 물길을 따라';
+   $('travel-status').textContent=phase==='boarding'?'출발 승강장 · 곧 바깥으로 나가요':phase==='arrival'?'도착 승강장 · 오늘도 수고했어요':session.status==='paused'?'잠시 정차 · 풍경도 기다려요':'인천 정원 여행 · 상상 속 물길을 따라';
   }
   refresh();if(session.status==='completed')finish();frames++;
   if(now-fpsSince>1000){$('fps').textContent=`${Math.round(frames*1000/(now-fpsSince))} FPS`;frames=0;fpsSince=now;}

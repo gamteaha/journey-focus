@@ -64,7 +64,7 @@ test('Swiss boarding URLs resolve the nested HTML and preserve ticket query on s
 test('Songdo links serve their own illustrated experience and bundled assets',async()=>{
  const worker=createWorker(),query='?ticket=JF-SONGDO';
  for(const route of ['/songdo/','/songdo/index.html']){
-  const response=await call(worker,route+query);assert.equal(response.status,200);assert.match(await response.text(),/송도 정원 여행/);
+  const response=await call(worker,route+query);assert.equal(response.status,200);assert.match(await response.text(),/인천 정원 여행/);
  }
  const redirect=await call(worker,'/songdo'+query);assert.equal(redirect.status,308);assert.equal(redirect.headers.get('Location'),base+'/songdo/'+query);
  for(const file of ['/songdo/src/app.mjs','/songdo/input/window-panorama-v2.png','/songdo/input/inu-character-front.png','/songdo-ticket.mjs','/src/songdo-journey.mjs'])assert.equal((await call(worker,file)).status,200,file);

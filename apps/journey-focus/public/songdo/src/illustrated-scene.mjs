@@ -46,7 +46,7 @@ export async function createIllustratedScene(container,$) {
         else {ctx.rotate(time*.3+i);ctx.fillStyle=snow?'rgba(255,253,246,.85)':season==='autumn'?'rgba(208,137,68,.6)':'rgba(255,205,220,.65)';ctx.beginPath();ctx.ellipse(0,0,Math.max(1.4,3*scale),Math.max(1,1.5*scale),0,0,Math.PI*2);ctx.fill();}ctx.restore();
       }
     }
-    container.dataset.offset=travel.toFixed(2);container.dataset.scene='송도 정원 · 상상 속 물길';$('scene-name').textContent='송도 정원 · 상상 속 물길';
+    container.dataset.offset=travel.toFixed(2);container.dataset.scene='인천 정원 · 상상 속 물길';$('scene-name').textContent='인천 정원 · 상상 속 물길';
   }
   return {draw,next(){offset+=.23;}};
 }

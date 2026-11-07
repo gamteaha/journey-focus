@@ -1,12 +1,12 @@
 import {createBoarding} from '/boarding.mjs';
-import {SONGDO_STOPS,SONGDO_PASS_KEY,makeSongdoPass,validSongdoPass,recommendSongdo} from '/src/songdo-journey.mjs';
+import {SONGDO_STOPS,SONGDO_PASS_KEY,makeSongdoPass,validSongdoPass,recommendSongdo,migrateSongdoPass} from '/src/songdo-journey.mjs';
 const $=id=>document.getElementById(id);
 let from=SONGDO_STOPS[0],duration=1500,to=recommendSongdo(from,duration).to,boarding;
-try{const saved=JSON.parse(sessionStorage.getItem(SONGDO_PASS_KEY));if(validSongdoPass(saved))({from,to,duration}=saved);}catch{}
-function context(){return {from,to,duration,ready:true,statusText:'송도를 상상한 일러스트 여행 · 정거장과 풍경은 가상이에요.',recommendation:recommendSongdo(from,duration)};}
+try{const saved=migrateSongdoPass(JSON.parse(sessionStorage.getItem(SONGDO_PASS_KEY)));if(validSongdoPass(saved))({from,to,duration}=saved);}catch{}
+function context(){return {from,to,duration,ready:true,statusText:'인천를 상상한 일러스트 여행 · 정거장과 풍경은 가상이에요.',recommendation:recommendSongdo(from,duration)};}
 function update(){
  $('from').value=from;$('to').value=to;
- $('route-summary').textContent='SONGDO GARDEN LINE · 가상 정거장 7곳';
+ $('route-summary').textContent='INCHEON GARDEN LINE · 가상 정거장 7곳';
  document.querySelectorAll('[data-duration]').forEach(b=>{const active=Number(b.dataset.duration)===duration;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});
  boarding?.update();
 }
@@ -15,12 +15,12 @@ for(const id of ['from','to']){
  select.onchange=()=>{if(id==='from'){from=select.value;to=recommendSongdo(from,duration).to;}else to=select.value;update();};
 }
 $('swap').disabled=false;$('swap').onclick=()=>{[from,to]=[to,from];update();};
-document.querySelector('.header-center').textContent='인천 송도 · 상상 속 수변 정원으로';
+document.querySelector('.header-center').textContent='인천 · 상상 속 수변 정원으로';
 document.querySelector('.ticket-header-tools').hidden=true;
 function changeDuration(value){duration=value;to=recommendSongdo(from,duration).to;update();}
 document.querySelectorAll('[data-duration]').forEach(b=>b.onclick=()=>changeDuration(Number(b.dataset.duration)));
 boarding=createBoarding({host:$('boarding-screen'),context,makePass:makeSongdoPass,
- edition:{id:'songdo',name:'송도',label:'GARDEN · IMAGINED',art:'/songdo/input/window-panorama-v2.png',kind:'가상 여행 · 자유석',unlimitedKind:'가상 여행 · 무제한 왕복',unlimitedDestination:'정원길 왕복',unlimitedHeading:'GARDEN SHUTTLE',unlimitedSummary:'∞ 무제한 왕복'},
+ edition:{id:'songdo',name:'인천',label:'GARDEN · IMAGINED',art:'/songdo/input/window-panorama-v2.png',kind:'가상 여행 · 자유석',unlimitedKind:'가상 여행 · 무제한 왕복',unlimitedDestination:'정원길 왕복',unlimitedHeading:'GARDEN SHUTTLE',unlimitedSummary:'∞ 무제한 왕복'},
  onDurationChange:changeDuration,onApplyRecommendation:()=>{to=recommendSongdo(from,duration).to;update();},
  pickerPresentation:({host,context:c})=>{
   host.querySelector('#recommended-title').textContent=c.duration===null?'정원길 왕복':'추천 가상 정거장';
@@ -32,7 +32,7 @@ boarding=createBoarding({host:$('boarding-screen'),context,makePass:makeSongdoPa
  onBoarded:async(pass,{signal,onProgress})=>{
   if(signal.aborted)throw new DOMException('Cancelled','AbortError');
   sessionStorage.setItem(SONGDO_PASS_KEY,JSON.stringify(pass));
-  onProgress({progress:10,stage:'cabin',label:'송도 정원 열차로 이동하고 있어요.'});
+  onProgress({progress:10,stage:'cabin',label:'인천 정원 열차로 이동하고 있어요.'});
   location.assign('/songdo/?ticket='+encodeURIComponent(pass.id));await new Promise(()=>{});
  }
 });
