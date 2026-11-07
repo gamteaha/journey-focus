@@ -1,4 +1,5 @@
 import {createPixelScene} from './pixel-scene.mjs';
+import {createSoundControls} from './sound-controls.mjs';
 import {Session,speedFor,sceneryPhase} from '/songdo/src/session.mjs';
 import {stations} from './route.mjs';
 import {tripPosition} from './journey.mjs';
@@ -10,7 +11,8 @@ if(!validDesertPass(pass)||new URLSearchParams(location.search).get('ticket')!==
 const state={from:stations.findIndex(s=>s.name===pass.from),to:stations.findIndex(s=>s.name===pass.to),minutes:pass.duration===null?Infinity:pass.duration/60,friend:pass.character,seat:null,seated:false,screen:'cabin'};
 const session=new Session(state.minutes),reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let distance=0,visualTime=0,factor=1,last=performance.now(),ready=false,art,completed=false;
-let position={x:50,y:77},soundContext,railGain;
+let position={x:50,y:77};
+const sound=createSoundControls($);
 document.body.dataset.theme=pass.character;
 all('[data-from]').forEach(el=>el.textContent=pass.from);all('[data-to]').forEach(el=>el.textContent=pass.to);
 $('cabin-trip').textContent=pass.from+' → '+pass.to+' · '+(pass.duration===null?'무제한':pass.duration/60+'분');
@@ -21,7 +23,6 @@ $('train-loading').querySelector('.arrival-route>span').textContent='04';
 $('train-loading').querySelector('.arrival-route>small').textContent='DUNE EXPRESS';
 $('arrival-back').onclick=()=>location.assign('/?destination=desert');$('arrival-retry').onclick=()=>location.reload();
 function progress(value,label){$('arrival-percent').textContent=value+'%';$('arrival-fill').style.width=value+'%';$('arrival-meter').setAttribute('aria-valuenow',value);$('arrival-status').textContent=label;}
-function audio(){if(!soundContext){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return null;soundContext=new Audio();}void soundContext.resume().catch(()=>{});return soundContext;}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&session.status==='running'){session.pause(performance.now());updateSound();refresh();}});
 $('end-journey').hidden=pass.duration!==null;
 $('end-journey').onclick=()=>{session.pause(performance.now());session.status='completed';$('settings-dialog').close();finish();refresh();};
@@ -52,7 +53,7 @@ document.addEventListener('keydown',e=>{
  const direction={ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'}[e.key];
  if(direction){e.preventDefault();move(direction);}else if(e.key.toLowerCase()==='e'){$('sit').click();}
 });
-function start(){if(!ready||!state.seated)return;if(session.status==='completed'){session.reset(state.minutes);distance=0;visualTime=0;completed=false;}session.start(performance.now());document.body.classList.add('focusing');updateSound();refresh();}
+function start(){if(!ready||!state.seated)return;if(session.status==='completed'){session.reset(state.minutes);distance=0;visualTime=0;completed=false;}session.start(performance.now());document.body.classList.add('focusing');updateSound();void sound.unlock();refresh();}
 $('start').onclick=start;$('window-view').onclick=()=>{if(ready&&state.seated){document.body.classList.add('focusing');refresh();}};
 $('focus-pause').onclick=()=>{if(session.status==='running')session.pause(performance.now());else start();updateSound();refresh();};
 $('focus-exit').onclick=()=>{if(session.status==='running')session.pause(performance.now());document.body.classList.remove('focusing');updateSound();updateSeat();$('start').focus({preventScroll:true});};
@@ -64,10 +65,7 @@ $('settings-ticket').onclick=()=>{$('settings-dialog').close();reopen();};
 $('about-open').onclick=()=>$('about-dialog').showModal();$('settings-about').onclick=()=>{$('settings-dialog').close();$('about-dialog').showModal();};
 all('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());
 $('speed').oninput=e=>{factor=Number(e.target.value);$('speed-label').textContent=factor.toFixed(1)+'×';};
-function updateSound(){if(!railGain)return;railGain.gain.setTargetAtTime($('train-sound').checked&&session.status==='running'?.025:0,soundContext.currentTime,.1);}
-$('train-sound').onchange=()=>{
- if($('train-sound').checked&&!railGain){const ctx=audio();if(!ctx){$('train-sound').checked=false;return;}const buffer=ctx.createBuffer(1,ctx.sampleRate*3,ctx.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*(.65+.35*Math.sin(i/ctx.sampleRate*7));const source=ctx.createBufferSource(),filter=ctx.createBiquadFilter();railGain=ctx.createGain();railGain.gain.value=0;source.buffer=buffer;source.loop=true;filter.type='lowpass';filter.frequency.value=380;source.connect(filter).connect(railGain).connect(ctx.destination);source.start();}updateSound();
-};
+function updateSound(){sound.setActive(session.status==='running');}
 function history(){try{const data=JSON.parse(localStorage.getItem('journey-focus-desert-history')||'[]');return Array.isArray(data)?data.filter(x=>x&&typeof x.route==='string'&&Number.isFinite(x.minutes)&&typeof x.date==='string').slice(0,50):[];}catch{return [];}}
 $('history-open').onclick=()=>{
  $('settings-dialog').close();const list=$('history-list');list.replaceChildren();const records=history();

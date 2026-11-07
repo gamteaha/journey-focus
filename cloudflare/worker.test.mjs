@@ -80,7 +80,7 @@ test('desert links preserve tickets and serve the procedural pixel renderer',asy
  }
  const redirect=await call(worker,'/desert'+query);
  assert.equal(redirect.status,308);assert.equal(redirect.headers.get('Location'),base+'/desert/'+query);
- for(const file of ['/desert/src/app.mjs','/desert/src/pixel-scene.mjs','/desert/postcard.svg','/desert-ticket.mjs','/src/desert-journey.mjs'])assert.equal((await call(worker,file)).status,200,file);
+ for(const file of ['/desert/src/app.mjs','/desert/src/pixel-scene.mjs','/desert/src/soundscape.mjs','/desert/src/sound-controls.mjs','/desert/postcard.svg','/desert-ticket.mjs','/src/desert-journey.mjs'])assert.equal((await call(worker,file)).status,200,file);
  const config=JSON.parse(await readFile(path.join(root,'wrangler.jsonc'),'utf8'));
  for(const route of ['/desert','/desert/','/desert/index.html'])assert.ok(config.assets.run_worker_first.includes(route));
 });
