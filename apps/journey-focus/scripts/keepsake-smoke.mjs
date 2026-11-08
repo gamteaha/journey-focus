@@ -18,7 +18,7 @@ await p.evaluate(`document.getElementById('travel-passport').close();(async()=>{
 assert(await waitFor(p,"!!document.getElementById('learning-share')",3000));await sleep(1200);await p.screenshot('tmp/flame-stamp-complete.png');
 fs.mkdirSync('tmp',{recursive:true});const downloadDir=fs.mkdtempSync('tmp/share-card-');await p.send('Browser.setDownloadBehavior',{behavior:'allow',downloadPath:fs.realpathSync(downloadDir)});
 await p.evaluate(`Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>false});document.getElementById('learning-share').click()`);assert(await waitFor(p,"document.getElementById('learning-share-status').textContent.includes('저장했어요')",5000));
-await sleep(600);assert(fs.existsSync(downloadDir+'/journey-focus-study.png'));
+const downloadDeadline=Date.now()+10000;while(!fs.existsSync(downloadDir+'/journey-focus-study.png')&&Date.now()<downloadDeadline)await sleep(200);assert(fs.existsSync(downloadDir+'/journey-focus-study.png'));
 // Exercise native sharing and cancellation without sending to another person.
 await p.evaluate(`Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>true});Object.defineProperty(navigator,'share',{configurable:true,value:async data=>{window.qaShare=data.files[0].size;}});document.getElementById('learning-share').click()`);assert(await waitFor(p,"document.getElementById('learning-share-status').textContent==='공유했어요.'",5000));assert(await p.evaluate(`qaShare>10000`));
 await p.evaluate(`Object.defineProperty(navigator,'share',{configurable:true,value:async()=>{throw new DOMException('Cancelled','AbortError')}});document.getElementById('learning-share').click()`);assert(await waitFor(p,"document.getElementById('learning-share-status').textContent.includes('취소')",5000));
