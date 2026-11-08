@@ -33,3 +33,11 @@ Blender 4.5.15에서 실제 import 및 정면·사선·후면 렌더링을 확�
 얼굴의 정면·사선 확대 검사는 위 명령의 `--render`를 `--render-face`로 바꾸면 재현됩니다. 결과는 `tmp/character-rig-review/04-face-front.png`, `05-face-quarter.png`에 저장됩니다.
 
 관절과 채색은 초기 작업본입니다. 표정 리깅, 손가락, 책 읽기, 정밀한 어깨 변형은 구현하지 않았습니다. 원형의 팔과 몸통이 가까이 붙어 있어 팔 동작 범위를 작게 제한했습니다. 친구 동기화는 이번 작업에 포함되지 않습니다.
+
+## 4K 웹 표시용 버전 (2026-11-08)
+
+`build-character.py --high-quality`는 별도 `blue-flame-hq.glb`와 `blue-flame-basecolor-hq.png`를 생성합니다. 기존 원본, 2K GLB, 편집용 blend는 덮어쓰지 않습니다. 4096×4096 아틀라스에 겹치지 않는 전체 UV와 표면 깊이 검사를 사용해 사선에서 귀·이마에 보이던 흰 조각을 줄였습니다. 같은 삼각형 20,000개와 관절·Idle/Walk/Sit를 유지합니다. 형태의 정밀 재모델링은 아닙니다.
+
+```powershell
+& 'C:\Program Files\Blender Foundation\Blender 4.5\blender.exe' --background --factory-startup --python 'assets-source\characters\blue-flame\build-character.py' -- --high-quality
+```

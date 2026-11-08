@@ -1,7 +1,12 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizePassport,passportSummary,addReceipt,WORLD_ORDER} from '../src/passport.mjs';
+import {normalizePassport,passportSummary,addReceipt,WORLD_ORDER,learningSummary} from '../src/passport.mjs';
 const input={id:'run-1',destination:'seoul',from:'성수',to:'건대입구',elapsed:300,completed:true,date:'2026-11-07T00:00:00.000Z'};
+test('personal ranking counts elapsed study time, ties share rank and duplicate runs count once',()=>{
+ let book=normalizePassport(null);for(const [id,elapsed]of [['a',300],['b',900],['c',900],['d',60]])book=addReceipt(book,{...input,id,elapsed}).book;
+ book=addReceipt(book,{...input,id:'b',elapsed:900}).book;
+ const s=learningSummary(book,'a');assert.equal(s.total,2160);assert.equal(s.sessions,4);assert.equal(s.best,900);assert.equal(s.rank,3);assert.deepEqual(s.ranked.map(r=>r.rank),[1,1,3,4]);assert.equal(learningSummary(null).rank,null);
+});
 test('existing four worlds remain open, bonus requires three stamps',()=>{
  let book=normalizePassport(null);assert.deepEqual(passportSummary(book).unlocked,['seoul','songdo','swiss','desert']);
  assert.throws(()=>addReceipt(book,{...input,destination:'oasis'}));

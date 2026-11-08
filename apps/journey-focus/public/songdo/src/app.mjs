@@ -1,3 +1,5 @@
+import {mascotMarkup,studyMascotMarkup} from '/mascot.mjs';
+import {mountArrivalAudio} from '/arrival-audio.mjs';
 import {createTravelShell} from '/travel-shell.mjs';
 import {activeTour} from '/world-tour.mjs';
 import {isUnlocked} from '/passport.mjs';
@@ -16,10 +18,10 @@ const state={from:stations.findIndex(s=>s.name===pass.from),to:stations.findInde
 const session=new Session(state.minutes),reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let distance=0,visualTime=0,factor=1,last=performance.now(),ready=false,art,completed=false;
 let position={x:50,y:77};
-document.body.dataset.theme=pass.character;
+document.body.dataset.theme=pass.character;const studyImage=document.querySelector('.window-companion');studyImage.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(studyMascotMarkup(pass.character).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '));studyImage.alt='창가에서 공부하는 횃불이';const travelerImage=$('traveler').querySelector('img');travelerImage.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(mascotMarkup(pass.character).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '));
 all('[data-from]').forEach(el=>el.textContent=pass.from);all('[data-to]').forEach(el=>el.textContent=pass.to);
 $('cabin-trip').textContent=pass.from+' → '+pass.to+' · '+(pass.duration===null?'무제한':pass.duration/60+'분');
-$('train-loading').innerHTML=boardingLoadingMarkup({hidden:false});
+$('train-loading').innerHTML=boardingLoadingMarkup({hidden:false});mountArrivalAudio($('train-loading'),pass.to);
 $('train-loading').querySelector('[data-boarding-from]').textContent=pass.from;
 $('train-loading').querySelector('[data-boarding-to]').textContent=pass.to;
 $('train-loading').querySelector('.arrival-route>span').textContent='03';

@@ -1,3 +1,4 @@
+import {visualPixelRatio} from '/visual-quality.mjs';
 // Continuous environment painting + one near foliage band. No isolated sprite collage.
 export async function createIllustratedScene(container,$) {
   const canvas=document.createElement('canvas');canvas.setAttribute('aria-label','연결된 공원과 물길을 바라보는 창밖 여행');container.append(canvas);
@@ -5,8 +6,8 @@ export async function createIllustratedScene(container,$) {
   const load=name=>new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(new Error(name));image.src=new URL('../input/'+name,import.meta.url).href;});
   const [panorama,verge]=await Promise.all([load('window-panorama-v2.png'),load('window-verge-v2.png')]);
   let width=1,height=1,offset=0,weather='clear',season='spring',temp=16;
-  const resize=()=>{const r=container.getBoundingClientRect(),dpr=Math.min(devicePixelRatio,2);width=Math.max(1,r.width);height=Math.max(1,r.height);canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);};
-  new ResizeObserver(resize).observe(container);resize();
+  const resize=()=>{const r=container.getBoundingClientRect(),dpr=visualPixelRatio(r.width,r.height);width=Math.max(1,r.width);height=Math.max(1,r.height);canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);};
+  new ResizeObserver(resize).observe(container);window.addEventListener('journey-quality',resize);resize();
   const names={spring:'봄꽃',summer:'여름 바람',autumn:'가을 낙엽',winter:'겨울'};
   function configure(){season=$('season').value;weather=$('weather').value;temp=Number($('temperature').value);const text=`${names[season]} · ${weather==='rain'?(temp<=2?'눈':'비'):weather==='wind'?'바람':'맑음'} · ${temp}°C`;$('temperature-label').textContent=`${temp}°C`;$('weather-description').textContent=text;$('focus-weather').textContent=text;}
   $('season').onchange=()=>{$('temperature').value={spring:16,summer:29,autumn:14,winter:-3}[$('season').value];configure();};$('weather').onchange=configure;$('temperature').oninput=configure;$('temperature').value=16;configure();
@@ -25,7 +26,7 @@ export async function createIllustratedScene(container,$) {
     ctx.fillStyle='#fff2d3';ctx.textAlign='center';ctx.font=`${Math.max(13,Math.min(22,width/24))}px sans-serif`;ctx.fillText(phase==='boarding'?'곧, 햇살 가득한 창밖으로':'오늘도 함께 잘 달렸어요',width/2,height*.4);
   }
   function draw({distance,time,phase}){
-    ctx.setTransform(canvas.width/width,0,0,canvas.height/height,0,0);
+    ctx.setTransform(canvas.width/width,0,0,canvas.height/height,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
     const scale=height/700,tileWidth=height*panorama.width/panorama.height;
     const travel=distance*3.2*scale+offset*tileWidth+tileWidth*.12;
     if(phase!=='outdoors'){tunnel(travel,phase);container.dataset.offset=travel.toFixed(2);return;}

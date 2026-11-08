@@ -87,7 +87,7 @@ test('desert links preserve tickets and serve the procedural pixel renderer',asy
 
 test('shared travel controls, passport and bonus map survive deployment',async()=>{
  const worker=createWorker();
- for(const file of ['/travel-shell.mjs','/travel-sound.mjs','/travel-ui.css','/passport.mjs','/src/passport.mjs','/world-tour.mjs','/desert/oasis-postcard.svg'])assert.equal((await call(worker,file)).status,200,file);
+ for(const file of ['/travel-shell.mjs','/travel-sound.mjs','/travel-ui.css','/passport.mjs','/src/passport.mjs','/world-tour.mjs','/desert/oasis-postcard.svg','/keepsakes.mjs','/arrival-audio.mjs','/mascot.mjs','/visual-quality.mjs','/models/blue-flame-hq.glb'])assert.equal((await call(worker,file)).status,200,file);
  const response=await call(worker,'/desert/?world=oasis&ticket=JF-OASIS&tour=test');
  assert.equal(response.status,200);assert.match(await response.text(),/src="\.\/src\/app.mjs"/);
 });

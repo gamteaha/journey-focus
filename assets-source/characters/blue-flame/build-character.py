@@ -16,6 +16,8 @@ PUBLIC = ROOT / 'apps/journey-focus/public/models'
 REVIEW = ROOT / 'tmp/character-rig-review'
 PUBLIC.mkdir(parents=True, exist_ok=True)
 REVIEW.mkdir(parents=True, exist_ok=True)
+HIGH_QUALITY = '--high-quality' in sys.argv
+SUFFIX = '-hq' if HIGH_QUALITY else ''
 HEIGHT = 1.25
 HIP = HEIGHT * .095
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -68,6 +70,7 @@ bpy.ops.object.mode_set(mode='OBJECT')
 # cuts raised brows/ears into tiny islands; a cylinder overlaps the front and
 # back of an ear. Hidden/side surfaces retain unique smart-projected charts.
 uv_layer = model.data.uv_layers.active.data
+full_unwrap = [loop.uv.copy() for loop in uv_layer]
 bvh = BVHTree.FromPolygons([v.co for v in model.data.vertices],[p.vertices[:] for p in model.data.polygons],all_triangles=True)
 front_visible = []
 for polygon in model.data.polygons:
@@ -108,12 +111,17 @@ for index in hidden_head:
 palette = {name:np.array([int(color[i:i+2],16)/255 for i in (0,2,4)],dtype=np.float32) for name,color in {
     'Flame':'315fc1','Suit':'263452','Ivory':'f7f6ef','Cheeks':'ffda32','Eyes':'244689','Nose':'244781','Trousers':'d4d9df','Mouth':'39465e'
 }.items()}
+if HIGH_QUALITY:
+    # A single non-overlapping unwrap keeps oblique ear/forehead triangles
+    # out of the front projection. The 4K atlas provides room for each island.
+    for loop,uv in zip(uv_layer,full_unwrap):
+        loop.uv = uv
 
 # The relief is asymmetric: generic mirrored ellipses put paint below the
 # sculpted eyes/nose and leave blue crescents on the ears. These contours are
 # measured on this mesh, with a dense lookup baked once for fast texel painting.
 landmarks = json.loads((HERE / 'face-paint.json').read_text(encoding='utf8'))
-face_size = 2048
+face_size = 4096 if HIGH_QUALITY else 2048
 face_bounds = (-.25,.25,.29,.76)  # xmin,xmax,zmin,zmax, divided by HEIGHT
 face_labels = np.full((face_size,face_size),indices['Flame'],dtype=np.uint8)
 
@@ -203,7 +211,7 @@ def paint(positions,visible_surface=False):
     # The pale ear/forehead face ends at its bevel. Hidden upper surfaces are
     # the blue hood; keeping that chart uniformly blue also prevents white
     # island padding from showing as disconnected flecks in an oblique view.
-    if not visible_surface:
+    if not visible_surface and not HIGH_QUALITY:
         put('Flame',head&(z>.605))
     return colors
 
@@ -215,7 +223,7 @@ material_ids = np.argmin(np.sum((center_colors[:,None,:]-face_palette[None,:,:])
 for face,material_id in zip(model.data.polygons,material_ids):
     face.material_index = int(material_id)
 
-size = 2048
+size = 4096 if HIGH_QUALITY else 2048
 pixels = np.ones((size,size,4),dtype=np.float32)
 pixels[:,:,:3] = palette['Flame']
 filled = np.zeros((size,size),dtype=bool)
@@ -238,9 +246,9 @@ for face in model.data.polygons:
     if not np.any(inside):
         continue
     world = a[inside,None]*xyz[0]+b[inside,None]*xyz[1]+c[inside,None]*xyz[2]
-    pixels[yy[inside],xx[inside],:3] = paint(world,visible_surface=front_visible[face.index])
+    pixels[yy[inside],xx[inside],:3] = paint(world,visible_surface=False if HIGH_QUALITY else front_visible[face.index])
     filled[yy[inside],xx[inside]] = True
-for _ in range(5):
+for _ in range(10 if HIGH_QUALITY else 5):
     old = filled.copy()
     for axis,offset in [(0,1),(0,-1),(1,1),(1,-1)]:
         available = np.roll(old,offset,axis=axis)&~filled
@@ -249,7 +257,7 @@ for _ in range(5):
 image = bpy.data.images.new('Flame character paint',width=size,height=size,alpha=True)
 image.colorspace_settings.name = 'sRGB'
 image.pixels.foreach_set(pixels.ravel())
-image.filepath_raw = str(HERE / 'blue-flame-basecolor.png')
+image.filepath_raw = str(HERE / ('blue-flame-basecolor'+SUFFIX+'.png'))
 image.file_format = 'PNG'
 image.save()
 image.pack()
@@ -385,10 +393,14 @@ bpy.ops.object.select_all(action='DESELECT')
 rig.select_set(True)
 model.select_set(True)
 bpy.context.view_layer.objects.active = rig
-bpy.ops.export_scene.gltf(filepath=str(PUBLIC / 'blue-flame.glb'),export_format='GLB',use_selection=True,export_animations=True,export_animation_mode='ACTIONS',export_anim_single_armature=True,export_extras=True)
+bpy.ops.export_scene.gltf(filepath=str(PUBLIC / ('blue-flame'+SUFFIX+'.glb')),export_format='GLB',use_selection=True,export_animations=True,export_animation_mode='ACTIONS',export_anim_single_armature=True,export_extras=True)
+
+if HIGH_QUALITY:
+    print('4K character exported; original asset preserved.')
+    sys.exit(0)
 
 report = {'height':HEIGHT,'hipHeight':HIP,'triangles':sum(len(p.vertices)-2 for p in model.data.polygons),'bones':list(groups),'actions':list(actions),'materials':list(materials),'paintVersion':2,'faceContours':'face-paint.json','source':'white_mesh.glb','output':'apps/journey-focus/public/models/blue-flame.glb'}
-with (HERE / 'rig-info.json').open('w',encoding='utf8') as handle:
+with (HERE / ('rig-info'+SUFFIX+'.json')).open('w',encoding='utf8') as handle:
     json.dump(report,handle,ensure_ascii=False,indent=2)
 
 # Editable .blend plus optional real 3D renders of the exported design.
@@ -434,7 +446,7 @@ scene.frame_set(1)
 bpy.ops.object.select_all(action='DESELECT')
 model.select_set(True)
 bpy.context.view_layer.objects.active = model
-bpy.ops.wm.save_as_mainfile(filepath=str(HERE / 'blue-flame-rigged.blend'))
+bpy.ops.wm.save_as_mainfile(filepath=str(HERE / ('blue-flame-rigged'+SUFFIX+'.blend')))
 if '--render-face' in sys.argv:
     scene.render.resolution_x = 1000
     scene.render.resolution_y = 1000

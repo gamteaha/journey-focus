@@ -13,3 +13,5 @@
 
 .standalone-arrival{position:fixed;z-index:100;display:flex;overflow:auto;box-sizing:border-box;font-family:'Gowun Dodum','Malgun Gothic',sans-serif}.standalone-arrival[hidden]{display:none!important}.standalone-arrival .boarding-loading{flex-shrink:0}.standalone-arrival .boarding-loading[hidden]{display:none}.standalone-arrival .arrival-actions button:focus-visible{outline:2px solid #d4ddb6;outline-offset:4px}
 @media(prefers-reduced-motion:reduce){.arrival-train,.arrival-meter>span:after{animation:none}.arrival-meter>span{transition:none}}
+
+.arrival-actions{flex-wrap:wrap}.arrival-announcement{flex:1 0 100%;text-align:center}.arrival-announcement p{font-size:12px;line-height:1.7;color:#d7dfcb;margin:12px 0}.arrival-announcement button{margin:3px 5px;font-size:11px!important;min-height:34px}.arrival-announcement [data-announcement-mute]{opacity:.8}

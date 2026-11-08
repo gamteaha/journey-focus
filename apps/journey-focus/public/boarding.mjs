@@ -1,3 +1,5 @@
+import {mountArrivalAudio} from '/arrival-audio.mjs';
+import {mascotMarkup as avatar} from '/mascot.mjs';
 import {boardingLoadingMarkup} from '/boarding-loading.mjs';
 import {CHARACTERS,characterById,createBoardingPass,formatDuration,cardTouchesReader,createTicketCut} from '/src/boarding.mjs';
 import {createJourneyPicker} from '/journey-picker.mjs';
@@ -15,7 +17,7 @@ function createBoardingFeedback(){
 // City decoration is separate from route/time controls for future editions.
 const SEOUL_TICKET={id:'seoul',name:'서울',label:'SEOUL · 01',art:'/images/seoul-stickers/palace-gate.png'};
 const ticketSticker=(name,placement)=>`<img class="ticket-sticker ticket-sticker--${placement}" src="/images/seoul-stickers/${name}.png" alt="" aria-hidden="true" draggable="false">`;
-const avatar=(id='blue')=>`<svg class="pass-avatar" viewBox="0 0 160 190" aria-hidden="true" style="--avatar-color:${characterById(id).color};--avatar-suit:${characterById(id).suit}"><ellipse cx="80" cy="177" rx="36" ry="6" fill="#173d2f" opacity=".08"/><path d="M55 135q-18 8-16 27l12 2 10-19m44-10q18 8 16 27l-12 2-10-19" fill="#e6e9e0"/><path d="M60 158v18q8 10 16 0v-16m8 0v16q8 10 16 0v-18" fill="var(--avatar-suit)"/><path d="M55 134q25-13 50 0l4 28q-29 18-58 0z" fill="var(--avatar-suit)"/><path d="M80 7c-4 28-35 37-44 65-16 45 8 70 44 70s60-25 44-70c-2-9-4-18-2-27-7 5-11 12-12 18C103 37 91 24 80 7z" fill="var(--avatar-color)"/><circle cx="56" cy="78" r="12" fill="#f8f8ec"/><circle cx="104" cy="78" r="12" fill="#f8f8ec"/><path d="M80 68c-13 11-31 27-31 43 0 22 62 22 62 0 0-16-18-32-31-43z" fill="#fbfaf2"/><ellipse cx="66" cy="101" rx="4" ry="5" fill="#294776"/><ellipse cx="94" cy="101" rx="4" ry="5" fill="#294776"/><circle cx="59" cy="113" r="7" fill="#f4d263"/><circle cx="101" cy="113" r="7" fill="#f4d263"/><path d="M75 111q5-5 10 0-1 6-5 6t-5-6m-2 9q7 6 14 0" fill="none" stroke="#294776" stroke-width="3" stroke-linecap="round"/><path d="M80 135v26" stroke="#e2e7dc" stroke-width="1.5" stroke-dasharray="2 5"/></svg>`;
+
 
 export function createBoarding({host,context,onBoarded,onEntered,onRetry,onOpen,onDurationChange,onApplyRecommendation,edition=SEOUL_TICKET,makePass=createBoardingPass,pickerPresentation}){
  const cityStamp=()=>`<span class="city-stamp" aria-label="${edition.name} 에디션"><b>${edition.name}행</b><small>${edition.label}</small></span>`;
@@ -107,7 +109,7 @@ export function createBoarding({host,context,onBoarded,onEntered,onRetry,onOpen,
  }
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  async function startLoading(){
-  if(!issued)return;const attempt=++enterAttempt;entryAbort?.abort();entryAbort=new AbortController();loadingProgress=0;host.dataset.stage='loading';host.classList.remove('loading-failed','boarding-leaving');$('boarding-choose').hidden=true;$('boarding-inspect').hidden=true;$('boarding-loading').hidden=false;$('boarding-loading').setAttribute('aria-busy','true');$('arrival-retry').hidden=true;$('arrival-title').textContent='열차가 들어오는 중이에요.';showLoading({progress:0,stage:'cabin',label:'객실과 창밖 풍경을 준비하고 있어요.',detail:'준비가 끝나면 자동으로 열차에 탑승해요.'});$('arrival-title').focus({preventScroll:true});
+  if(!issued)return;const attempt=++enterAttempt;entryAbort?.abort();entryAbort=new AbortController();loadingProgress=0;host.dataset.stage='loading';host.classList.remove('loading-failed','boarding-leaving');$('boarding-choose').hidden=true;$('boarding-inspect').hidden=true;$('boarding-loading').hidden=false;$('boarding-loading').setAttribute('aria-busy','true');$('arrival-retry').hidden=true;$('arrival-title').textContent='열차가 들어오는 중이에요.';showLoading({progress:0,stage:'cabin',label:'객실과 창밖 풍경을 준비하고 있어요.',detail:'준비가 끝나면 자동으로 열차에 탑승해요.'});$('arrival-title').focus({preventScroll:true});if(edition.id==='seoul')mountArrivalAudio($('boarding-loading'),issued.to);
   await new Promise(requestAnimationFrame);await new Promise(requestAnimationFrame);
   if(attempt!==enterAttempt)return;
   try{

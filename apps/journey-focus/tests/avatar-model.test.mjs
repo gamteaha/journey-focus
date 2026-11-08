@@ -7,6 +7,12 @@ import {GLTFLoader} from '../public/vendor/three/examples/jsm/loaders/GLTFLoader
 
 const modelFile=new URL('../public/models/blue-flame.glb',import.meta.url);
 function documentOf(buffer){assert.equal(buffer.readUInt32LE(0),0x46546c67);return JSON.parse(buffer.subarray(20,20+buffer.readUInt32LE(12)).toString());}
+test('high-quality character embeds a repainted 4K atlas and retains the same rig and animations',async()=>{
+ const bytes=await readFile(new URL('../public/models/blue-flame-hq.glb',import.meta.url)),gltf=documentOf(bytes),base=documentOf(await readFile(modelFile));
+ assert.ok(bytes.length<2_000_000);assert.equal(gltf.skins[0].joints.length,13);assert.deepEqual(gltf.animations.map(a=>a.name).sort(),base.animations.map(a=>a.name).sort());
+ const binary=20+bytes.readUInt32LE(12)+8;
+ for(const image of gltf.images){const view=gltf.bufferViews[image.bufferView],png=bytes.subarray(binary+(view.byteOffset||0));assert.equal(png.readUInt32BE(16),4096);assert.equal(png.readUInt32BE(20),4096);}
+});
 test('supplied source stays intact and the runtime model contains paint, skin and all three motions',async()=>{
  const original=await readFile(new URL('../../../assets-source/characters/blue-flame/white_mesh.glb',import.meta.url));
  assert.equal(createHash('sha256').update(original).digest('hex'),'b35d7e333ac37947b8d5d72dbaec92fb562b5e6a8792069df9a0210324482c1a');

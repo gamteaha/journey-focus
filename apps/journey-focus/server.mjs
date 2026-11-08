@@ -20,7 +20,7 @@ try {
   }
 } catch { /* The app still works without the optional scenery assets. */ }
 const PUBLIC = new Map([
- ...['travel-shell.mjs','travel-sound.mjs','world-tour.mjs','passport.mjs','travel-ui.css'].map(file=>['/'+file,['public/'+file,file.endsWith('.css')?'text/css':'text/javascript']]),
+ ...['mascot.mjs','keepsakes.mjs','arrival-audio.mjs','visual-quality.mjs','travel-shell.mjs','travel-sound.mjs','world-tour.mjs','passport.mjs','travel-ui.css'].map(file=>['/'+file,['public/'+file,file.endsWith('.css')?'text/css':'text/javascript']]),
  ['/src/passport.mjs',['src/passport.mjs','text/javascript']],
   ['/desert/', ['public/desert/index.html', 'text/html']],
   ['/desert/index.html', ['public/desert/index.html', 'text/html']],
@@ -81,6 +81,7 @@ const PUBLIC = new Map([
   ['/cabin.css', ['public/cabin.css', 'text/css']],
   ['/src/cabin.mjs', ['src/cabin.mjs', 'text/javascript']],
   ['/models/subway-car.fbx', ['../../assets-source/subway-car/SubwayCar_Compiled.fbx', 'application/octet-stream']],
+  ['/models/blue-flame-hq.glb', ['public/models/blue-flame-hq.glb', 'model/gltf-binary']],
   ['/models/blue-flame.glb', ['public/models/blue-flame.glb', 'model/gltf-binary']],
   ['/render-study', ['public/review/realism-comparison/index.html', 'text/html']],
   ['/render-study/', ['public/review/realism-comparison/index.html', 'text/html']],

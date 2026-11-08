@@ -1,3 +1,5 @@
+import {visualQuality} from '/visual-quality.mjs';
+import {mountArrivalAudio} from '/arrival-audio.mjs';
 import { SessionClock, formatTime } from '/src/session.mjs';
 import { buildRoute, buildLoopRoute, positionAt } from '/src/route.mjs';
 import {createTravelSound} from '/travel-sound.mjs';
@@ -65,8 +67,9 @@ function applySeatView(){if(selectedSeat)post('visual',{settings:{...(comparison
 $('cabin-view').onclick=()=>setExperience('cabin');$('landscape-view').onclick=()=>setExperience('window');
 $('compare-toggle').addEventListener('click',()=>setExperience('window'));
 let renderMode='auto';
-try{renderMode=normalizeRenderingMode(localStorage.getItem('journey-focus-rendering'));}catch{}
+renderMode={high:'cinematic',balanced:'balanced',light:'light'}[visualQuality()];
 $('render-quality').value=renderMode;
+window.addEventListener('journey-quality',()=>{const q=visualQuality();$('render-quality').value={high:'cinematic',balanced:'balanced',light:'light'}[q];$('render-quality').dispatchEvent(new Event('change'));cabinFrame.contentWindow?.postMessage({type:'jf:cabin-quality',quality:q},cabinOrigin);});
 $('render-quality').onchange=()=>{
  renderMode=normalizeRenderingMode($('render-quality').value);
  try{localStorage.setItem('journey-focus-rendering',renderMode);}catch{}
@@ -479,7 +482,7 @@ travelShell=createTravelShell({destination:'seoul',sound:audio,getState:()=>({..
 }});
 const tour=activeTour('seoul');if(tour)setTimeout(async()=>{
  try{
-  $('boarding-choose').hidden=true;$('boarding-loading').hidden=false;$('boarding-screen').dataset.stage='loading';
+  $('boarding-choose').hidden=true;$('boarding-loading').hidden=false;mountArrivalAudio($('boarding-loading'),'건대입구');$('boarding-screen').dataset.stage='loading';
   await waitForEntry(()=>!!state.route&&!state.loading,()=>state.stationError?'역 정보를 불러오지 못했어요.':null,60000);
   await enterTrain(tourTicket(tour),{onProgress:p=>{$('arrival-status').textContent=p.label;$('arrival-percent').textContent=p.progress+'%';$('arrival-fill').style.width=p.progress+'%';}});
   $('boarding-screen').hidden=true;document.body.classList.remove('entry-preparing');$('journey-workspace').inert=false;

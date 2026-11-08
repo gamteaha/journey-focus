@@ -6,6 +6,12 @@ export const DESTINATIONS=Object.freeze({
  oasis:{name:'달빛 오아시스',mark:'MOON OASIS',color:'#83749e',unlock:3}
 });
 export const WORLD_ORDER=Object.freeze(['seoul','songdo','swiss','desert','oasis']);
+export function learningSummary(value,receiptId){
+ const receipts=normalizePassport(value).receipts;
+ const ranked=[...receipts].sort((a,b)=>b.elapsed-a.elapsed||Date.parse(b.date)-Date.parse(a.date));
+ let rank=0;const records=ranked.map((r,i)=>{if(!i||r.elapsed!==ranked[i-1].elapsed)rank=i+1;return {...r,rank};});
+ return {total:receipts.reduce((n,r)=>n+r.elapsed,0),sessions:receipts.length,best:ranked[0]?.elapsed||0,rank:records.find(r=>r.id===receiptId)?.rank??null,ranked:records};
+}
 export function validReceipt(r){return !!r&&typeof r.id==='string'&&r.id.length<120&&!!DESTINATIONS[r.destination]&&typeof r.from==='string'&&typeof r.to==='string'&&Number.isFinite(r.elapsed)&&r.elapsed>=0&&r.elapsed<=864000&&typeof r.date==='string'&&Number.isFinite(Date.parse(r.date))&&typeof r.stamp==='boolean';}
 export function normalizePassport(value){const ids=new Set();return {version:1,receipts:(Array.isArray(value?.receipts)?value.receipts:[]).filter(r=>validReceipt(r)&&!ids.has(r.id)&&ids.add(r.id))};}
 export function passportSummary(value){

@@ -1,0 +1,5 @@
+const KEY='journey-focus-visual-quality-v1';
+export function visualQuality(){try{const q=localStorage.getItem(KEY);return ['high','balanced','light'].includes(q)?q:'high';}catch{return 'high';}}
+export function setVisualQuality(value){const q=['high','balanced','light'].includes(value)?value:'high';try{localStorage.setItem(KEY,q);}catch{}window.dispatchEvent(new CustomEvent('journey-quality',{detail:q}));}
+export function visualPixelRatio(width=innerWidth,height=innerHeight){const q=visualQuality(),dpr=window.devicePixelRatio||1,target=q==='high'?Math.min(2,Math.max(1.5,dpr)):q==='light'?1:Math.min(1.5,dpr);return Math.max(.75,Math.min(target,Math.sqrt(6000000/Math.max(1,width*height))));}
+export function configureRenderer(renderer,surface){const apply=()=>{const r=surface.getBoundingClientRect();renderer.setPixelRatio(visualPixelRatio(r.width,r.height));renderer.setSize(Math.max(1,r.width),Math.max(1,r.height),false);};const observer=new ResizeObserver(apply);observer.observe(surface);window.addEventListener('journey-quality',apply);apply();return ()=>{observer.disconnect();window.removeEventListener('journey-quality',apply);};}

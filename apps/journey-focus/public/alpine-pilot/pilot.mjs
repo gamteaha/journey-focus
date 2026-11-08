@@ -1,3 +1,5 @@
+import {mountArrivalAudio} from '/arrival-audio.mjs';
+import {visualPixelRatio,visualQuality} from '/visual-quality.mjs';
 import {createTravelShell} from '/travel-shell.mjs';
 import {activeTour} from '/world-tour.mjs';
 import {createSwissCabin} from './swiss-cabin.mjs';
@@ -12,7 +14,7 @@ const state={ready:false,mapReady:false,cabinReady:false,playing:false,started:f
 window.alpinePilot=state;
 let shell,recorded=false,autoTourStarted=false;
 let cabin,cameraPose={heading:0,pitch:0,fov:65},setCamera=()=>{},sessionTick=0;
-$('loading').innerHTML=boardingLoadingMarkup({hidden:false});
+$('loading').innerHTML=boardingLoadingMarkup({hidden:false});mountArrivalAudio($('loading'),ticket.to);
 $('loading').querySelector('[data-boarding-from]').textContent=ticket.from;
 $('loading').querySelector('[data-boarding-to]').textContent=ticket.to;
 $('loading').querySelector('.arrival-route>span').textContent='CH';
@@ -64,14 +66,14 @@ async function initMap(){
  const C=window.Cesium;C.Ion.defaultAccessToken='';progress('스위스의 선로와 풍경을 연결하고 있어요.',{world:.1});
  const [terrain,response]=await Promise.all([C.CesiumTerrainProvider.fromUrl('https://3d.geo.admin.ch/ch.swisstopo.terrain.3d/v1/',{requestVertexNormals:true,credit:'© Data: swisstopo'}),fetch('./route.json')]);if(!response.ok)throw Error('Route request failed');const route=await response.json();
  const imagery=new C.UrlTemplateImageryProvider({url:'https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg',maximumLevel:19,rectangle:C.Rectangle.fromDegrees(5.140242,45.398181,11.47757,48.230651),credit:'© SWISSIMAGE / swisstopo',hasAlphaChannel:false,enablePickFeatures:false});
- const viewer=new C.Viewer('map',{terrainProvider:terrain,baseLayer:new C.ImageryLayer(imagery),baseLayerPicker:false,geocoder:false,homeButton:false,sceneModePicker:false,navigationHelpButton:false,animation:false,timeline:false,fullscreenButton:false,selectionIndicator:false,infoBox:false,shouldAnimate:false,requestRenderMode:false});state.viewer=viewer;viewer.resolutionScale=Math.min(1,1/(window.devicePixelRatio||1));viewer.targetFrameRate=30;
- viewer.scene.screenSpaceCameraController.enableInputs=false;viewer.scene.globe.maximumScreenSpaceError=2;viewer.scene.globe.depthTestAgainstTerrain=true;viewer.scene.globe.enableLighting=false;viewer.scene.fog.density=.00004;
+ const viewer=new C.Viewer('map',{terrainProvider:terrain,baseLayer:new C.ImageryLayer(imagery),baseLayerPicker:false,geocoder:false,homeButton:false,sceneModePicker:false,navigationHelpButton:false,animation:false,timeline:false,fullscreenButton:false,selectionIndicator:false,infoBox:false,shouldAnimate:false,requestRenderMode:false});state.viewer=viewer;viewer.targetFrameRate=30;const quality=()=>{viewer.useBrowserRecommendedResolution=true;viewer.resolutionScale=visualPixelRatio();viewer.scene.globe.maximumScreenSpaceError=visualQuality()==='high'?1:visualQuality()==='light'?3:2;viewer.scene.postProcessStages.fxaa.enabled=true;};window.addEventListener('journey-quality',quality);quality();
+ viewer.scene.screenSpaceCameraController.enableInputs=false;viewer.scene.globe.depthTestAgainstTerrain=true;viewer.scene.globe.enableLighting=false;viewer.scene.fog.density=.00004;
  viewer.scene.renderError.addEventListener((_scene,e)=>fail(e));for(const provider of [terrain,imagery])provider.errorEvent.addEventListener(e=>{state.errors.push(e.message);$('health').textContent='일부 풍경 데이터를 불러오는 데 시간이 걸리고 있어요.';});viewer.scene.globe.tileLoadProgressEvent.addEventListener(n=>state.tilePending=n);
  const points=[{...route.points[0],along:0}];let along=0;for(let i=1;i<route.points.length;i++){const a=route.points[i-1],b=route.points[i],d=distance(a,b),n=Math.ceil(d/15);for(let j=1;j<=n;j++)points.push({lon:a.lon+(b.lon-a.lon)*j/n,lat:a.lat+(b.lat-a.lat)*j/n,along:along+d*j/n});along+=d;}state.total=along;state.meters=swissPosition(0,along,state.from).meters;
  viewer.camera.setView({destination:C.Cartesian3.fromDegrees(10.028,46.399,4200),orientation:{heading:0,pitch:-Math.PI/2,roll:0}});progress('선로를 따라 창가 높이를 준비하고 있어요.',{world:.35});
  const positions=await C.sampleTerrainMostDetailed(terrain,points.map(p=>C.Cartographic.fromDegrees(p.lon,p.lat)));positions.forEach((p,i)=>{if(!Number.isFinite(p.height))throw Error('Terrain height missing');points[i].height=p.height;});
  function at(m){m=Math.max(0,Math.min(along,m));let lo=0,hi=points.length-1;while(hi-lo>1){const mid=(lo+hi)>>1;if(points[mid].along<m)lo=mid;else hi=mid;}const a=points[lo],b=points[hi],t=(m-a.along)/(b.along-a.along||1);return{lon:a.lon+(b.lon-a.lon)*t,lat:a.lat+(b.lat-a.lat)*t,height:a.height+(b.height-a.height)*t};}
- setCamera=()=>{const a=at(state.meters),back=at(state.meters-12),front=at(state.meters+12),r=Math.PI/180,dlon=(front.lon-back.lon)*r;const railHeading=Math.atan2(Math.sin(dlon)*Math.cos(front.lat*r),Math.cos(back.lat*r)*Math.sin(front.lat*r)-Math.sin(back.lat*r)*Math.cos(front.lat*r)*Math.cos(dlon));const outside=state.view==='window';
+ setCamera=()=>{const a=at(state.meters),back=at(state.meters-12),front=at(state.meters+12),r=Math.PI/180,dlon=(front.lon-back.lon)*r;const railHeading=Math.atan2(Math.sin(dlon)*Math.cos(front.lat*r),Math.cos(back.lat*r)*Math.sin(front.lat*r)-Math.sin(back.lat*r)*Math.cos(front.lat*r)*Math.cos(dlon));const outside=state.view==='window'||!state.mapReady;
   const cx=outside?.98:(cameraPose.x||0),forward=outside?-(state.seat?.z||0):-(cameraPose.z||0),cy=outside?1.35:(cameraPose.y||1.5);
   const origin=C.Cartesian3.fromDegrees(a.lon,a.lat,a.height+1.5),enu=C.Transforms.eastNorthUpToFixedFrame(origin);
   const offset=new C.Cartesian3(cx*Math.cos(railHeading)+forward*Math.sin(railHeading),-cx*Math.sin(railHeading)+forward*Math.cos(railHeading),cy);
@@ -85,7 +87,9 @@ async function initMap(){
   const vertical=(outside?65:cameraPose.fov)*r,aspect=viewer.canvas.clientWidth/viewer.canvas.clientHeight;viewer.camera.frustum.fov=aspect>1?2*Math.atan(Math.tan(vertical/2)*aspect):vertical;
   $('progress').value=String(state.meters/along*1000);$('distance').textContent=`${(state.meters/1000).toFixed(2)} / ${(along/1000).toFixed(2)} km`;
  };setCamera();progress('처음 보이는 풍경을 채우고 있어요.',{world:.7});
- const loadStart=performance.now();while(!viewer.scene.globe.tilesLoaded&&performance.now()-loadStart<25000)await new Promise(r=>setTimeout(r,250));state.initialLoadMs=Math.round(performance.now()-begin);state.mapReady=true;progress();$('health').textContent=`실제 선로 ${(along/1000).toFixed(2)}km · 풍경 초기 준비 ${(state.initialLoadMs/1000).toFixed(1)}초. ${state.tilePending?'일부 타일은 계속 불러오는 중입니다.':''}`;
+ // Warm the right-window panorama before exposing the cabin: the close-up
+ // camera otherwise loads a different set of tiles and first shows bare DEM.
+ const loadStart=performance.now();while(!viewer.scene.globe.tilesLoaded&&performance.now()-loadStart<45000)await new Promise(r=>setTimeout(r,250));state.initialLoadMs=Math.round(performance.now()-begin);state.mapReady=true;setCamera();progress();$('health').textContent=`실제 선로 ${(along/1000).toFixed(2)}km · 풍경 초기 준비 ${(state.initialLoadMs/1000).toFixed(1)}초. ${state.tilePending?'일부 타일은 계속 불러오는 중입니다.':''}`;
  let frames=0,fpsStart=performance.now();viewer.scene.postRender.addEventListener(()=>{frames++;const now=performance.now();if(now-fpsStart>1000){state.fps=Math.round(frames*1000/(now-fpsStart));frames=0;fpsStart=now;$('telemetry').textContent=`${state.fps} FPS · ${state.tilePending?'풍경 불러오는 중':'현재 시야 로딩 완료'}`;}});
 }
 async function initCabin(){cabin=await createSwissCabin({host:$('swiss-cabin'),character:ticket.character,onSeat:seat=>{state.seat=seat;if(!seat){play(false);if(state.view==='window')showView('cabin');}sync();},onWindow:()=>showView('window'),onCamera:pose=>{cameraPose=pose;if(state.view==='cabin')setCamera();},onProgress:message=>progress(message,{cabin:.15})});await new Promise(requestAnimationFrame);cabin.setActive(false);state.cabin=cabin;state.cabinReady=true;progress();}

@@ -1,3 +1,4 @@
+import {configureRenderer} from '/visual-quality.mjs';
 import * as T from '/vendor/three/build/three.module.js';
 import {GLTFLoader} from '/vendor/three/examples/jsm/loaders/GLTFLoader.js';
 import {createAvatar} from '/avatar.mjs';
@@ -7,14 +8,14 @@ export async function createSwissCabin({host,onSeat,onWindow,onCamera,onProgress
  const surface=host.querySelector('.swiss-cabin-canvas'),interaction=host.querySelector('.seat-interaction'),caption=host.querySelector('#seat-caption'),action=host.querySelector('#seat-action'),badge=host.querySelector('.study-badge');
  let disposed=false,active=true,raf=0,keys=new Set(),last=performance.now(),time=0,session={elapsed:0,state:'idle'};
  let x=0,z=2.8,heading=Math.PI,seat=null,candidate=null,target=null,waypoints=[],hover=null,snap=true;
- const renderer=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;renderer.setClearColor(0,0);surface.append(renderer.domElement);renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','스위스 임시 객실. 방향키로 이동하고 오른쪽 좌석을 선택하세요.');
+ const renderer=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:'low-power'});const releaseQuality=configureRenderer(renderer,surface);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.25;renderer.setClearColor(0,0);surface.append(renderer.domElement);renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','스위스 임시 객실. 방향키로 이동하고 오른쪽 좌석을 선택하세요.');
  const scene=new T.Scene(),camera=new T.PerspectiveCamera(65,1,.035,80);
  scene.add(new T.HemisphereLight(0xf1f6ff,0xc6b8a2,3));const sun=new T.DirectionalLight(0xfff8ec,2.5);sun.position.set(3,4,2);scene.add(sun);
  for(const p of [-4,0,4]){const light=new T.PointLight(0xfff4df,7,7,1.5);light.position.set(0,2.1,p);scene.add(light);}
  const response=await fetch('/models/swiss/seats.json');if(!response.ok)throw Error('Swiss seat data unavailable');const config=await response.json();
  onProgress?.('열차와 횃불이를 불러오고 있어요.');
  let model,avatar;
- try{const result=await Promise.allSettled([new GLTFLoader().loadAsync('/models/swiss/monorail-cabin.glb'),createAvatar(character)]);if(result[0].status==='fulfilled')model=result[0].value.scene;if(result[1].status==='fulfilled')avatar=result[1].value;if(!model||!avatar)throw Error('Swiss cabin model or avatar unavailable');}catch(e){avatar?.dispose();renderer.dispose();throw e;}
+ try{const result=await Promise.allSettled([new GLTFLoader().loadAsync('/models/swiss/monorail-cabin.glb'),createAvatar(character,{maxAnisotropy:renderer.capabilities.getMaxAnisotropy()})]);if(result[0].status==='fulfilled')model=result[0].value.scene;if(result[1].status==='fulfilled')avatar=result[1].value;if(!model||!avatar)throw Error('Swiss cabin model or avatar unavailable');}catch(e){avatar?.dispose();releaseQuality();renderer.dispose();throw e;}
  scene.add(model);model.traverse(o=>{if(o.isMesh){for(const m of [o.material].flat()){m.side=T.DoubleSide;if(m.name==='glass'){m.transparent=true;m.opacity=.08;m.depthWrite=false;}if(m.map)m.map.anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());}}});
  // Continuous interior reveals bridge the glass/wall seam on both sides.
  // These bounds are measured from the supplied model's glass, in metres.
@@ -76,5 +77,5 @@ export async function createSwissCabin({host,onSeat,onWindow,onCamera,onProgress
  function setActive(value){active=value;clear();if(!active){cancelAnimationFrame(raf);raf=0;}else if(!raf&&!document.hidden){last=performance.now();resize();raf=requestAnimationFrame(render);}}
  const visibility=()=>setActive(active);document.addEventListener('visibilitychange',visibility);
  onProgress?.('객실과 좌석 준비가 끝났어요.');notify();setActive(true);
- return{snapshot,selectSeat,confirmSeat:confirm,seats:config.seats,setActive,setSession(value){session=value;},dispose(){disposed=true;setActive(false);observer.disconnect();window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);window.removeEventListener('blur',clear);document.removeEventListener('visibilitychange',clear);document.removeEventListener('visibilitychange',visibility);avatar.dispose();scene.traverse(o=>{o.geometry?.dispose();for(const m of [o.material].flat())if(m){m.map?.dispose();m.dispose();}});renderer.dispose();}};
+ return{snapshot,selectSeat,confirmSeat:confirm,seats:config.seats,setActive,setSession(value){session=value;},dispose(){disposed=true;setActive(false);observer.disconnect();window.removeEventListener('keydown',keydown);window.removeEventListener('keyup',keyup);window.removeEventListener('blur',clear);document.removeEventListener('visibilitychange',clear);document.removeEventListener('visibilitychange',visibility);avatar.dispose();scene.traverse(o=>{o.geometry?.dispose();for(const m of [o.material].flat())if(m){m.map?.dispose();m.dispose();}});releaseQuality();renderer.dispose();}};
 }

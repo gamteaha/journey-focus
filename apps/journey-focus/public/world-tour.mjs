@@ -1,3 +1,4 @@
+import {stampCelebration} from '/keepsakes.mjs';
 import {WORLD_ORDER} from '/src/passport.mjs';
 import {DESTINATIONS,readPassport,passportSummary,ensureTravelStyle,showPassport} from '/passport.mjs';
 import {createBoardingPass} from '/src/boarding.mjs';
@@ -33,7 +34,7 @@ export function transferWorld(destination,elapsed){
  ensureTravelStyle();let el=document.getElementById('world-transfer');if(!el){el=document.createElement('dialog');el.id='world-transfer';el.className='travel-dialog';document.body.append(el);}
  const next={...t,leg:t.leg+1,elapsed:t.elapsed+elapsed},name=DESTINATIONS[WORLD_ORDER[next.leg%WORLD_ORDER.length]].name;
  el.innerHTML=`<header><div><small>WORLD JOURNEY · ${Math.floor(next.leg/5)}바퀴 완료</small><h2>다음 창가는 ${name}.</h2></div></header><p>누적 ${Math.floor(next.elapsed/60)}분 집중했어요.</p><p id="transfer-status" role="status"></p><div class="travel-dialog-actions"><button id="transfer-go">지금 환승</button><button id="transfer-pause">환승 대기</button><button id="transfer-stop">세계여행 마치기</button></div>`;
- let seconds=5,paused=false,done=false;
+ stampCelebration(el);let seconds=5,paused=false,done=false;
  const leave=()=>{if(done)return;done=true;clearInterval(timer);try{go(next);}catch{done=false;el.querySelector('#transfer-status').textContent='환승 정보를 저장하지 못했어요. 다시 시도해 주세요.';}};
  const render=()=>el.querySelector('#transfer-status').textContent=paused?'편히 쉬세요. 지금 환승을 누르면 이어져요.':seconds+'초 후 다음 열차로 환승해요.';
  const timer=setInterval(()=>{if(document.hidden||paused)return;if(--seconds<=0)leave();else render();},1000);
