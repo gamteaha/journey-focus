@@ -27,4 +27,3 @@ assert(await waitFor(p,"window.qaSpeech?.length===2",3000));assert.match(await p
 assert(await p.evaluate(`(async()=>{Object.defineProperty(window,'speechSynthesis',{configurable:true,value:undefined});const m=await import('/arrival-audio.mjs'),status=document.querySelector('#qa-arrival p');return m.speakArrival('서울',{status})===false&&status.textContent.includes('지원하지');})()`));
 assert.deepEqual(p.errors,[]);console.log('PASS: passport cover/open/stamp replay, responsive pages, personal ranking, completion ceremony, PNG/native share/cancel, Korean arrival speech');
 }finally{await p.evaluate(`for(const [key,value] of ${JSON.stringify([['journey-focus-passport-v1',previous],['journey-focus-boarding-sound',previousSound]])}){if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}`);p.close();}
-
